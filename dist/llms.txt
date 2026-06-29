@@ -62,9 +62,21 @@ Radar Inmobiliario Madrid agrega y publica datos de precios de vivienda, rentabi
 - Los Rosales (Villaverde): 3.014 €/m²
 
 ## Macrodatos Madrid (junio 2026)
-- Euríbor 12 meses: referencia hipotecaria principal
+- Euríbor 12 meses: 2,52 % (junio 2026, referencia hipotecaria principal)
 - Hipotecas firmadas: 22 meses consecutivos al alza (récord desde 2010)
+- Variación mensual hipotecas mayo 2026: −0,7 % (primera caída del año)
 - Demanda embalsada sostenida por estabilización del euríbor
+
+## Noticias recientes (junio 2026)
+
+- [Hipotecas en Madrid: 22 meses al alza y el mejor abril desde 2010](https://radarinmobiliario.com/noticia/hipotecas-madrid-22-meses-alza-abril-2010) — 22 Jun 2026 · Demanda
+- [La firma de hipotecas en Madrid frena: primera caída mensual del año](https://radarinmobiliario.com/noticia/hipotecas-madrid-frena-primera-caida-mensual) — 22 Jun 2026 · Demanda
+- [El Cañaveral supera las 770 viviendas en alquiler asequible](https://radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible) — 24 Jun 2026 · Infraestructura
+- [Casa 47 invierte 140 M€ en el Nuevo Barrio Campamento](https://radarinmobiliario.com/noticia/casa-47-140-millones-campamento) — 29 Jun 2026 · Obras
+- [El Ministerio critica a Madrid por no limitar los alquileres](https://radarinmobiliario.com/noticia/ministerio-critica-madrid-alquileres) — 26 Jun 2026 · Regulación
+- [La compraventa para reforma en Salamanca se desploma un 60%](https://radarinmobiliario.com/noticia/compraventa-reforma-salamanca-60) — 26 Jun 2026 · Demanda
+- [Bravo Murillo vs Tetuán: una brecha de precio del 10%](https://radarinmobiliario.com/noticia/bravo-murillo-tetuan-brecha-10) — 29 Jun 2026 · Urbanismo
+- [Los municipios del área metropolitana suben un 4,1% al ritmo de Madrid](https://radarinmobiliario.com/noticia/municipios-metropolitanos-alza-4-1) — 16 Jun 2026 · Demanda
 
 ## Fuentes
 Idealista, Fotocasa, Colegios Notariales, Ayuntamiento de Madrid. Datos a junio 2026.

@@ -13,6 +13,7 @@
   <meta name="description" content="Datos actualizados de precio €/m², rentabilidad y variación anual por distrito y barrio en Madrid. Análisis independiente del mercado inmobiliario.">
   <link rel="canonical" href="https://radarinmobiliario.com/">
   <link rel="alternate" hreflang="es" href="https://radarinmobiliario.com/">
+  <link rel="alternate" hreflang="x-default" href="https://radarinmobiliario.com/">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -69,7 +70,7 @@
       "@type": "ImageObject",
       "url": "https://radarinmobiliario.com/og-image.png"
     },
-    "foundingDate": "2025",
+    "foundingDate": "2025-01-01",
     "inLanguage": "es",
     "areaServed": {
       "@type": "City",
@@ -128,6 +129,105 @@
       This page requires JavaScript to display.
     </div>
   </noscript>
+
+  <!-- SEO: dynamic meta tags per route — updates title, canonical, og: on hash navigation -->
+  <script>
+    function updatePageMeta(path) {
+      var seg = (path || '/').replace(/^\//, '').split('/');
+      var view = seg[0] || '';
+      var slug = seg[1] || '';
+      var title, desc, canonical;
+
+      if (view === '') {
+        title = 'Radar Inmobiliario Madrid | Precios y datos del mercado por distrito';
+        desc  = 'Datos actualizados de precio €/m², rentabilidad y variación anual por distrito y barrio en Madrid. Análisis independiente del mercado inmobiliario.';
+        canonical = 'https://radarinmobiliario.com/';
+      } else if (view === 'distritos' && !slug) {
+        title = 'Distritos de Madrid: precio €/m² y rentabilidad | Radar Inmobiliario';
+        desc  = '21 distritos de Madrid con precio medio €/m², rentabilidad bruta y variación interanual. Datos junio 2026.';
+        canonical = 'https://radarinmobiliario.com/distritos';
+      } else if (view === 'distritos' && slug) {
+        var d = window.HOME_DATA && window.HOME_DATA.distritos && window.HOME_DATA.distritos.find(function(x) { return x.slug === slug; });
+        if (d) {
+          title = 'Precio vivienda en ' + d.nombre + ': ' + d.precioMedio.toLocaleString('es-ES') + ' €/m² | Radar Inmobiliario';
+          desc  = 'Precio medio ' + d.precioMedio.toLocaleString('es-ES') + ' €/m², rentabilidad bruta ' + d.rent + '% y variación interanual +' + d.varAnual + '% en ' + d.nombre + ', Madrid.';
+        } else {
+          title = 'Distrito de Madrid | Radar Inmobiliario';
+          desc  = 'Datos de precio €/m² y rentabilidad en Madrid.';
+        }
+        canonical = 'https://radarinmobiliario.com/distritos/' + slug;
+      } else if (view === 'noticias') {
+        title = 'Noticias del mercado inmobiliario de Madrid | Radar Inmobiliario';
+        desc  = 'Últimas noticias sobre precios, hipotecas, urbanismo y regulación del mercado inmobiliario de Madrid.';
+        canonical = 'https://radarinmobiliario.com/noticias';
+      } else if (view === 'noticia' && slug) {
+        var D = window.NEWS_DATA;
+        var art = (D && D.items && D.items.find(function(a) { return a.slug === slug; }))
+               || (D && D.destacada && D.destacada.slug === slug ? D.destacada : null);
+        if (art) {
+          title = art.titulo + ' | Radar Inmobiliario Madrid';
+          desc  = art.resumen ? art.resumen.slice(0, 160) : 'Noticias del mercado inmobiliario de Madrid.';
+        } else {
+          title = 'Noticia | Radar Inmobiliario Madrid';
+          desc  = 'Noticias del mercado inmobiliario de Madrid.';
+        }
+        canonical = 'https://radarinmobiliario.com/noticia/' + slug;
+      } else if (view === 'metodologia') {
+        title = 'Metodología de datos | Radar Inmobiliario Madrid';
+        desc  = 'Cómo se calculan los precios €/m², rentabilidades y variaciones interanuales publicados en Radar Inmobiliario.';
+        canonical = 'https://radarinmobiliario.com/metodologia';
+      } else if (view === 'legal') {
+        title = 'Aviso Legal y Privacidad | Radar Inmobiliario Madrid';
+        desc  = 'Aviso legal, política de privacidad y condiciones de uso de Radar Inmobiliario Madrid.';
+        canonical = 'https://radarinmobiliario.com/legal';
+      } else if (view === 'sobre') {
+        title = 'Sobre Radar Inmobiliario Madrid | Publicación independiente de datos';
+        desc  = 'Quiénes somos. Publicación independiente de datos del mercado inmobiliario de Madrid.';
+        canonical = 'https://radarinmobiliario.com/sobre';
+      } else {
+        return;
+      }
+
+      document.title = title;
+      var setMeta = function(sel, val) { var el = document.querySelector(sel); if (el) el.setAttribute('content', val); };
+      var setLink = function(sel, val) { var el = document.querySelector(sel); if (el) el.setAttribute('href', val); };
+      setMeta('meta[name="description"]', desc);
+      setLink('link[rel="canonical"]', canonical);
+      setLink('link[rel="alternate"][hreflang="es"]', canonical);
+      setLink('link[rel="alternate"][hreflang="x-default"]', canonical);
+      setMeta('meta[property="og:url"]', canonical);
+      setMeta('meta[property="og:title"]', title);
+      setMeta('meta[property="og:description"]', desc);
+      setMeta('meta[name="twitter:title"]', title);
+      setMeta('meta[name="twitter:description"]', desc);
+    }
+
+    function tryUpdateMeta(path, attempt) {
+      if (!attempt) attempt = 0;
+      var needsData = path && (path.indexOf('distritos/') !== -1 || path.indexOf('noticia/') !== -1);
+      if (!needsData || (window.HOME_DATA && window.NEWS_DATA)) {
+        updatePageMeta(path);
+      } else if (attempt < 30) {
+        setTimeout(function() { tryUpdateMeta(path, attempt + 1); }, 100);
+      }
+    }
+
+    window.addEventListener('hashchange', function() {
+      var path = window.location.hash.replace(/^#/, '') || '/';
+      tryUpdateMeta(path, 0);
+    });
+
+    window.addEventListener('DOMContentLoaded', function() {
+      var pathname = window.location.pathname;
+      var hash = window.location.hash;
+      if (pathname !== '/' && !hash) {
+        history.replaceState(null, '', '/#' + pathname);
+        tryUpdateMeta(pathname, 0);
+      } else if (hash) {
+        tryUpdateMeta(hash.replace(/^#/, '') || '/', 0);
+      }
+    });
+  </script>
 </head>
 <body>
   <div id="__bundler_thumbnail">
