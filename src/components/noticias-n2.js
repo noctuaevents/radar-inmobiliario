@@ -24,8 +24,9 @@ function NewsV2() {
   const D = window.NEWS_DATA;
   const [filtro, setFiltro] = useStateN2('Todas');
 
-  const categorias = ['Todas', ...Array.from(new Set(D.items.map(n => n.categoria)))];
-  const filtered = filtro === 'Todas' ? D.items : D.items.filter(n => n.categoria === filtro);
+  const sinDestacada = D.items.filter(n => n.titulo !== D.destacada.titulo);
+  const categorias = ['Todas', ...Array.from(new Set(sinDestacada.map(n => n.categoria)))];
+  const filtered = filtro === 'Todas' ? sinDestacada : sinDestacada.filter(n => n.categoria === filtro);
 
   const recientes = filtered.slice(0, 6);
   const resto = filtered.slice(6);
@@ -135,7 +136,7 @@ function NewsV2() {
             {resto.map((n, i) => (
               <li
                 key={i}
-                onClick={() => window.navTo && window.navTo('/noticia')}
+                onClick={() => window.navTo && window.navTo('/noticia/' + n.slug)}
                 className="border-b border-slate-200 py-4 flex items-baseline gap-5 group cursor-pointer"
               >
                 <span className="text-[11px] font-mono tabular-nums text-slate-400 w-12 flex-shrink-0">{n.fecha}</span>
@@ -202,7 +203,7 @@ function NewsV2Hero({ d, heroBar }) {
 
           <div className="flex items-center gap-5 mt-8">
             <button
-              onClick={() => window.navTo && window.navTo('/noticia')}
+              onClick={() => window.navTo && window.navTo('/noticia/' + d.slug)}
               className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg text-sm"
             >
               Leer cobertura completa →
@@ -215,26 +216,38 @@ function NewsV2Hero({ d, heroBar }) {
           </div>
         </div>
 
-        <div className="col-span-5 flex flex-col justify-center">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-bold mb-4">
-            Impacto en el mercado
-          </p>
-          <div className="space-y-2.5">
-            {d.metricas.map((m, i) => (
-              <div
-                key={i}
-                className="bg-white border border-slate-200 rounded-xl px-5 py-3.5 flex items-center justify-between relative overflow-hidden"
-              >
-                <span className={`absolute left-0 top-0 bottom-0 w-0.5 ${bar}`} />
-                <span className="text-[12px] text-slate-500">{m.label}</span>
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-lg font-bold text-slate-900 tabular-nums">{m.valor}</span>
-                  <span className={`text-[12px] font-bold tabular-nums ${m.up ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {m.delta}
-                  </span>
+        <div className="col-span-5 flex flex-col justify-center gap-5">
+          {d.imagen && (
+            <div className="rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0" style={{ aspectRatio: '16/9' }}>
+              <img
+                src={d.imagen}
+                alt={d.titulo}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => { e.currentTarget.parentElement.style.display = 'none'; }}
+              />
+            </div>
+          )}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-bold mb-4">
+              Impacto en el mercado
+            </p>
+            <div className="space-y-2.5">
+              {d.metricas.map((m, i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-slate-200 rounded-xl px-5 py-3.5 flex items-center justify-between relative overflow-hidden"
+                >
+                  <span className={`absolute left-0 top-0 bottom-0 w-0.5 ${bar}`} />
+                  <span className="text-[12px] text-slate-500">{m.label}</span>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-lg font-bold text-slate-900 tabular-nums">{m.valor}</span>
+                    <span className={`text-[12px] font-bold tabular-nums ${m.up ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {m.delta}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -246,38 +259,51 @@ function NewsV2Hero({ d, heroBar }) {
 function NewsV2Card({ n }) {
   return (
     <div
-      onClick={() => window.navTo && window.navTo('/noticia')}
-      className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-emerald-400 hover:shadow-sm transition-all cursor-pointer group"
+      onClick={() => window.navTo && window.navTo('/noticia/' + n.slug)}
+      className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-emerald-400 hover:shadow-sm transition-all cursor-pointer group"
     >
-      <div className="flex items-center gap-2.5 mb-4">
-        <span className={`inline-block text-[10px] uppercase tracking-[0.15em] font-bold px-2 py-0.5 rounded border ${tagBg[n.tag] || tagBg.amber}`}>
-          {n.categoria}
-        </span>
-        <span className="text-[11px] text-slate-400 font-mono tabular-nums">{n.fecha} · {n.hora}</span>
-      </div>
-
-      <h4
-        className="text-[17px] font-bold text-slate-900 tracking-tight leading-snug mb-3 group-hover:text-emerald-700 transition-colors"
-        style={{ textWrap: 'balance' }}
-      >
-        {n.titulo}
-      </h4>
-
-      <p
-        className="text-[13.5px] text-slate-600 leading-relaxed mb-5"
-        style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-      >
-        {n.resumen}
-      </p>
-
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-semibold">Impacto</p>
-          <p className="text-sm font-bold text-slate-900 tabular-nums mt-0.5">{n.impacto}</p>
+      {n.imagen && (
+        <div className="overflow-hidden bg-slate-100" style={{ aspectRatio: '16/9' }}>
+          <img
+            src={n.imagen}
+            alt={n.titulo}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={e => { e.currentTarget.parentElement.style.display = 'none'; }}
+          />
         </div>
-        <div className="text-right">
-          <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-semibold">Fuente</p>
-          <p className="text-[12px] font-semibold text-slate-700 mt-0.5">{n.fuente}</p>
+      )}
+
+      <div className="p-5">
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className={`inline-block text-[10px] uppercase tracking-[0.15em] font-bold px-2 py-0.5 rounded border ${tagBg[n.tag] || tagBg.amber}`}>
+            {n.categoria}
+          </span>
+          <span className="text-[11px] text-slate-400 font-mono tabular-nums">{n.fecha} · {n.hora}</span>
+        </div>
+
+        <h4
+          className="text-[17px] font-bold text-slate-900 tracking-tight leading-snug mb-3 group-hover:text-emerald-700 transition-colors"
+          style={{ textWrap: 'balance' }}
+        >
+          {n.titulo}
+        </h4>
+
+        <p
+          className="text-[13.5px] text-slate-600 leading-relaxed mb-5"
+          style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+        >
+          {n.resumen}
+        </p>
+
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-semibold">Impacto</p>
+            <p className="text-sm font-bold text-slate-900 tabular-nums mt-0.5">{n.impacto}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-semibold">Fuente</p>
+            <p className="text-[12px] font-semibold text-slate-700 mt-0.5">{n.fuente}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -302,15 +328,15 @@ function NewsV2Side({ D }) {
           <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">
             ¿Qué pasará en Julio?
           </p>
-          <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-2 py-0.5">
-            Vota
+          <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-0.5">
+            Opinión editorial
           </span>
         </div>
-        <h3 className="text-base font-bold text-slate-900 mb-5">Mercado de predicción</h3>
+        <h3 className="text-base font-bold text-slate-900 mb-5">Previsiones del mercado</h3>
 
         <div className="space-y-3.5">
           {predicciones.map((p, i) => (
-            <div key={i} className="group cursor-pointer">
+            <div key={i}>
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-[13px] text-slate-700 leading-tight pr-2">{p.q}</p>
                 <div className="flex items-baseline gap-1.5 flex-shrink-0">
@@ -330,12 +356,9 @@ function NewsV2Side({ D }) {
           ))}
         </div>
 
-        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-[11px] text-slate-400">128 lectores votaron</p>
-          <a className="text-[11px] font-semibold text-emerald-700 cursor-pointer hover:underline underline-offset-4">
-            Dejar mi voto →
-          </a>
-        </div>
+        <p className="mt-5 pt-4 border-t border-slate-100 text-[10px] text-slate-400 italic">
+          Previsiones editoriales, no datos de votación real.
+        </p>
       </div>
 
     </div>

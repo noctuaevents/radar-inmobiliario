@@ -1,0 +1,77 @@
+# Radar Inmobiliario Madrid
+> Publicación independiente de datos del mercado inmobiliario de Madrid.
+> Precio €/m², rentabilidad bruta y variación interanual para los 21 distritos y 131 barrios.
+
+## Descripción
+Radar Inmobiliario Madrid agrega y publica datos de precios de vivienda, rentabilidad de alquiler y variación interanual para todos los distritos de Madrid. Los datos proceden de Idealista, Fotocasa, Colegios Notariales y el Ayuntamiento de Madrid. Actualización mensual. Los datos son orientativos y no constituyen asesoramiento financiero.
+
+## Datos por distrito — junio 2026 (precio €/m², rentabilidad bruta, variación interanual)
+
+| Distrito              | €/m²   | Rentabilidad | Var. interanual |
+|-----------------------|--------|-------------|-----------------|
+| Salamanca             | 10.189 | 2,80 %      | +16,2 %         |
+| Chamberí              |  8.992 | 3,15 %      | +11,2 %         |
+| Chamartín             |  8.187 | 3,30 %      | +13,4 %         |
+| Retiro                |  7.758 | 3,24 %      | +21,4 %         |
+| Centro                |  7.566 | 3,62 %      | +13,6 %         |
+| Moncloa-Aravaca       |  6.376 | 3,97 %      | +14,0 %         |
+| Arganzuela            |  6.334 | 4,34 %      | +20,9 %         |
+| Tetuán                |  6.034 | 4,20 %      | +11,7 %         |
+| Ciudad Lineal         |  5.096 | 4,11 %      | +23,5 %         |
+| Fuencarral-El Pardo   |  5.423 | 4,40 %      | +17,6 %         |
+| Hortaleza             |  5.411 | 4,92 %      | +15,0 %         |
+| Barajas               |  4.901 | 4,78 %      | +15,9 %         |
+| Moratalaz             |  4.533 | 5,10 %      | +26,1 %         |
+| San Blas-Canillejas   |  4.051 | 5,39 %      | +32,8 %         |
+| Vicálvaro             |  3.903 | 6,02 %      | +20,7 %         |
+| Latina                |  3.916 | 5,49 %      | +21,0 %         |
+| Carabanchel           |  3.718 | 6,56 %      | +15,4 %         |
+| Villa de Vallecas     |  3.717 | 5,66 %      | +11,9 %         |
+| Usera                 |  3.609 | 7,49 %      | +20,5 %         |
+| Puente de Vallecas    |  3.325 | 8,24 %      | +18,3 %         |
+| Villaverde            |  3.002 | 7,21 %      | +29,6 %         |
+
+**Media Madrid: 5.527 €/m²**
+
+## Barrios más rentables (junio 2026)
+- Puente de Vallecas: 8,24 % rentabilidad bruta
+- Usera: 7,49 %
+- Villaverde: 7,21 %
+- Carabanchel: 6,56 %
+- Vicálvaro: 6,02 %
+
+## Barrios con mayor subida interanual
+- San Blas-Canillejas: +32,8 %
+- Villaverde: +29,6 %
+- Moratalaz: +26,1 %
+- Ciudad Lineal: +23,5 %
+- Retiro: +21,4 %
+
+## Barrios más caros (top 5, precio €/m²)
+- Castellana (Salamanca): 12.102 €/m²
+- Goya (Salamanca): 11.445 €/m²
+- Lista (Salamanca): 11.263 €/m²
+- Recoletos (Salamanca): 11.229 €/m²
+- Almagro (Chamberí): 10.914 €/m²
+
+## Barrios más baratos (top 5, precio €/m²)
+- San Cristóbal (Villaverde): 2.305 €/m²
+- Orcasur (Usera): 2.480 €/m²
+- Villaverde Alto (Villaverde): 2.804 €/m²
+- Entrevías (Puente de Vallecas): 2.837 €/m²
+- Los Rosales (Villaverde): 3.014 €/m²
+
+## Macrodatos Madrid (junio 2026)
+- Euríbor 12 meses: referencia hipotecaria principal
+- Hipotecas firmadas: 22 meses consecutivos al alza (récord desde 2010)
+- Demanda embalsada sostenida por estabilización del euríbor
+
+## Fuentes
+Idealista, Fotocasa, Colegios Notariales, Ayuntamiento de Madrid. Datos a junio 2026.
+
+## Licencia
+Uso informativo con atribución a Radar Inmobiliario Madrid (radarinmobiliario.com).
+Licencia CC BY-NC 4.0.
+
+## Contacto
+radarinmobiliario.com

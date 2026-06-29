@@ -5,8 +5,10 @@ Salida: pipeline/work/candidates.json (top 25 artículos puntuados, sin duplicad
 
 Uso: python3 pipeline/fetch_news.py
 """
+import concurrent.futures
 import json
 import re
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -49,6 +51,22 @@ DISTRITOS_MADRID = [
     "vallecas", "moratalaz", "ciudad lineal", "hortaleza", "villaverde",
     "villa de vallecas", "vicálvaro", "vicalvaro", "san blas", "canillejas", "barajas",
 ]
+
+
+def fetch_og_image(url: str, timeout: int = 6) -> str:
+    """Descarga las primeras 64 KB de la URL y extrae og:image. Devuelve '' si falla."""
+    try:
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (compatible; RadarInmobiliario/1.0)'
+        })
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            html = resp.read(65536).decode('utf-8', errors='ignore')
+        m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html, re.I)
+        if not m:
+            m = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html, re.I)
+        return m.group(1).strip() if m else ''
+    except Exception:
+        return ''
 
 
 def score_article(title: str, summary: str) -> int:
@@ -115,8 +133,18 @@ def main():
     articles.sort(key=lambda x: (-x["score"], x["fecha_iso"]))
     top = articles[:25]
 
+    print(f"\nObteniendo og:image de {len(top)} artículos…")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        imgs = list(pool.map(fetch_og_image, [a["url"] for a in top]))
+    found = 0
+    for a, img in zip(top, imgs):
+        a["imagen"] = img
+        if img:
+            found += 1
+    print(f"  {found}/{len(top)} imágenes encontradas")
+
     OUT_FILE.write_text(json.dumps(top, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"\n{len(top)} candidatos escritos en {OUT_FILE.relative_to(ROOT)}")
+    print(f"{len(top)} candidatos escritos en {OUT_FILE.relative_to(ROOT)}")
     for a in top[:5]:
         print(f"  [{a['score']:2d}] {a['titulo'][:80]}")
 

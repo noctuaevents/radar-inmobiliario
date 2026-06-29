@@ -835,3 +835,277 @@ function NoticiaDetalleV3() {
 window.NoticiaDetalleV1 = NoticiaDetalleV1;
 window.NoticiaDetalleV2 = NoticiaDetalleV2;
 window.NoticiaDetalleV3 = NoticiaDetalleV3;
+
+// ─── Dynamic article detail — driven by NEWS_DATA slug ───────────
+function NoticiaDetalleDynamic({ slug }) {
+  const D = window.NEWS_DATA;
+  const allItems = D.items || [];
+  const article = allItems.find(a => a.slug === slug)
+    || (D.destacada && D.destacada.slug === slug ? D.destacada : null)
+    || D.destacada;
+
+  if (!article) {
+    return (
+      <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-400">Artículo no encontrado.</p>
+      </div>
+    );
+  }
+
+  const tagColor = {
+    rose:    { bar: 'bg-rose-500',    text: 'text-rose-700',    soft: 'bg-rose-50',    border: 'border-rose-200' },
+    emerald: { bar: 'bg-emerald-500', text: 'text-emerald-700', soft: 'bg-emerald-50', border: 'border-emerald-200' },
+    sky:     { bar: 'bg-sky-500',     text: 'text-sky-700',     soft: 'bg-sky-50',     border: 'border-sky-200' },
+    violet:  { bar: 'bg-violet-500',  text: 'text-violet-700',  soft: 'bg-violet-50',  border: 'border-violet-200' },
+    amber:   { bar: 'bg-amber-500',   text: 'text-amber-700',   soft: 'bg-amber-50',   border: 'border-amber-200' },
+  };
+  const ac = tagColor[article.tag] || tagColor.emerald;
+
+  let distritoData = null;
+  if (article.distrito && window.HOME_DATA) {
+    distritoData = window.HOME_DATA.distritos.find(d => d.nombre === article.distrito);
+  }
+
+  const relacionadas = allItems
+    .filter(n => n.slug !== slug && n.titulo !== D.destacada?.titulo)
+    .slice(0, 3);
+
+  const metricCards = article.metricas
+    || (article.impacto ? [{ label: article.impactoLabel || 'Impacto', valor: article.impacto, delta: '', up: true }] : []);
+
+  return (
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-white">
+      <div className="max-w-6xl mx-auto px-10 pt-10">
+        <nav className="flex items-center gap-2 text-[12px] text-slate-400">
+          <a href="/" onClick={(e) => { e.preventDefault(); window.navTo('/'); }} className="hover:text-emerald-700">Inicio</a>
+          <span>›</span>
+          <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }} className="hover:text-emerald-700">Noticias</a>
+          <span>›</span>
+          <span className={ac.text}>{article.categoria}</span>
+        </nav>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-10 mt-6">
+        <div className="relative bg-stone-50 border border-slate-200 rounded-3xl overflow-hidden">
+          <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${ac.bar}`} />
+          <div className="relative grid grid-cols-12 gap-10 p-10 pl-12">
+            <div className="col-span-7">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="inline-block w-6 h-px bg-slate-900" />
+                <span className={`text-[10px] uppercase tracking-[0.28em] font-bold ${ac.text}`}>{article.categoria}</span>
+                {article.distrito && (
+                  <>
+                    <span className="text-slate-300 text-[10px]">·</span>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold">{article.distrito}</span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-[2.6rem] font-bold text-slate-900 tracking-[-0.02em] leading-[1.04] mb-5" style={{ textWrap: 'balance' }}>
+                {article.titulo}
+              </h1>
+              <p className="text-[16px] text-slate-600 leading-relaxed max-w-xl">{article.resumen}</p>
+              <div className="flex items-center gap-5 mt-7 text-[12px] text-slate-500">
+                <span className="font-semibold text-slate-700">{article.fuente}</span>
+                <span className="text-slate-300">·</span>
+                <span className="font-mono tabular-nums">{article.fecha} · {article.hora}</span>
+              </div>
+            </div>
+            <div className="col-span-5 flex flex-col justify-center gap-4">
+              {article.imagen && (
+                <div className="rounded-2xl overflow-hidden bg-slate-100" style={{ aspectRatio: '16/9' }}>
+                  <img src={article.imagen} alt={article.titulo}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={e => { e.currentTarget.parentElement.style.display = 'none'; }} />
+                </div>
+              )}
+              {metricCards.length > 0 && (
+                <div className="space-y-2.5">
+                  {metricCards.map((m, i) => (
+                    <div key={i} className="bg-white border border-slate-200 rounded-xl px-5 py-3.5 flex items-center justify-between relative overflow-hidden">
+                      <span className={`absolute left-0 top-0 bottom-0 w-0.5 ${ac.bar}`} />
+                      <span className="text-[12px] text-slate-500">{m.label}</span>
+                      <div className="flex items-baseline gap-2.5">
+                        <span className="text-lg font-bold text-slate-900 tabular-nums">{m.valor}</span>
+                        {m.delta && (
+                          <span className={`text-[12px] font-bold tabular-nums ${m.up ? 'text-emerald-700' : 'text-rose-700'}`}>{m.delta}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-10 mt-14 grid grid-cols-12 gap-10 pb-20">
+        <article className="col-span-8">
+          <p className="text-[16.5px] text-slate-700 leading-[1.7] mb-8">{article.resumen}</p>
+          <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
+              <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+            </div>
+            <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg text-sm cursor-pointer">
+              ← Volver a noticias
+            </a>
+          </div>
+        </article>
+        <aside className="col-span-4 space-y-5">
+          {distritoData && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold mb-2">Distrito afectado</p>
+              <h2 className="text-xl font-bold text-slate-900 mt-1">{distritoData.nombre}</h2>
+              <div className="mt-4 space-y-2.5">
+                {[
+                  ['Precio medio', `${distritoData.precioMedio.toLocaleString('es-ES')} €/m²`],
+                  ['Var. interanual', `+${distritoData.varAnual.toFixed(1)} %`],
+                  ['Rentabilidad bruta', `${distritoData.rent.toFixed(2)} %`],
+                ].map(([label, val]) => (
+                  <div key={label} className="flex items-baseline justify-between">
+                    <span className="text-[12px] text-slate-500">{label}</span>
+                    <span className="text-sm font-bold text-slate-900 tabular-nums">{val}</span>
+                  </div>
+                ))}
+              </div>
+              <a href="/distritos" onClick={(e) => { e.preventDefault(); window.navTo('/distritos'); }}
+                className="block mt-4 text-[12px] font-semibold text-emerald-700 hover:underline underline-offset-4">
+                Ver todos los distritos →
+              </a>
+            </div>
+          )}
+          {relacionadas.length > 0 && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold mb-4">Más noticias</p>
+              <div className="space-y-4">
+                {relacionadas.map((r, i) => (
+                  <a key={i} href={`/noticia/${r.slug}`}
+                    onClick={(e) => { e.preventDefault(); window.navTo(`/noticia/${r.slug}`); }}
+                    className="block group cursor-pointer">
+                    <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-slate-400 mb-1">{r.categoria}</p>
+                    <p className="text-[13px] font-semibold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors" style={{ textWrap: 'balance' }}>
+                      {r.titulo}
+                    </p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+// ─── Metodología ─────────────────────────────────────────────────
+function MetodologiaPage() {
+  const secs = [
+    {
+      h: 'Fuentes de datos',
+      body: null,
+      items: [
+        '<strong>Idealista</strong> y <strong>Fotocasa</strong>: precios de anuncio de venta (precio de oferta, no precio escriturado).',
+        '<strong>Colegios Notariales</strong>: precios de transacciones reales escrituradas. Base de referencia para el precio de cierre.',
+        '<strong>Ministerio de Transportes (MITMA)</strong>: estadísticas trimestrales de transacciones inmobiliarias.',
+        '<strong>Ayuntamiento de Madrid</strong>: datos de obra nueva y planeamiento urbanístico.',
+      ],
+    },
+    {
+      h: 'Cálculo del precio €/m²',
+      body: 'El precio publicado es la mediana de los anuncios activos para cada distrito, filtrados por superficie entre 30 y 300 m². Se excluyen los anuncios sin superficie declarada y los precios que se desvíen más de 2,5 desviaciones estándar de la mediana del distrito. La mediana es menos sensible a los outliers que la media aritmética.',
+    },
+    {
+      h: 'Rentabilidad bruta estimada',
+      body: 'La rentabilidad bruta se calcula como: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">(Alquiler mensual × 12) / Precio de compra × 100</code>. El precio de alquiler se obtiene de Idealista y Fotocasa aplicando la misma metodología de mediana por distrito. Este valor es <strong>antes de gastos</strong> (IBI, comunidad, seguros, reforma, vacancia). No representa la rentabilidad neta real de una inversión.',
+    },
+    {
+      h: 'Variación interanual',
+      body: 'Compara el precio mediano del mes actual con el del mismo mes del año anterior. No es una proyección: es el cambio ya ocurrido. Variaciones muy elevadas en barrios con menos de 15 anuncios deben interpretarse con cautela.',
+    },
+    {
+      h: 'Cadencia de actualización',
+      body: 'Los datos de precio y rentabilidad se actualizan mensualmente (primera semana de cada mes, con datos del mes anterior). Las noticias de mercado se publican de forma continua, con un mínimo de 4 noticias por semana.',
+    },
+    {
+      h: 'Limitaciones',
+      items: [
+        'Los precios de anuncio no son precios de cierre; la diferencia de negociación puede ser del 3–8 %.',
+        'Los datos de barrio tienen mayor margen de error por menor volumen de muestra.',
+        'No incluimos garajes, trasteros ni locales comerciales.',
+        'Los datos del Ministerio tienen un retardo de 3–6 meses respecto al momento de escritura.',
+      ],
+    },
+  ];
+  return (
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">
+      <div className="max-w-3xl mx-auto px-8 py-16">
+        <nav className="flex items-center gap-2 text-[12px] text-slate-400 mb-10">
+          <a href="/sobre" onClick={(e) => { e.preventDefault(); window.navTo('/sobre'); }} className="hover:text-emerald-700">Acerca</a>
+          <span>›</span>
+          <span>Metodología</span>
+        </nav>
+        <h1 className="text-4xl font-bold text-slate-900 mb-3">Metodología de datos</h1>
+        <p className="text-emerald-600 font-medium mb-10">Cómo calculamos cada cifra publicada en Radar Inmobiliario Madrid.</p>
+        <div className="space-y-10">
+          {secs.map((s, i) => (
+            <section key={i}>
+              <h2 className="text-xl font-bold text-slate-900 mb-3">{s.h}</h2>
+              {s.body && <p className="text-base text-slate-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: s.body }} />}
+              {s.items && (
+                <ul className="list-disc list-inside space-y-1.5 text-base text-slate-700 leading-relaxed">
+                  {s.items.map((it, j) => <li key={j} dangerouslySetInnerHTML={{ __html: it }} />)}
+                </ul>
+              )}
+            </section>
+          ))}
+        </div>
+        <div className="mt-12 pt-8 border-t border-slate-200">
+          <a href="/sobre" onClick={(e) => { e.preventDefault(); window.navTo('/sobre'); }}
+            className="text-emerald-600 text-sm font-medium hover:text-emerald-700">← Volver a Acerca</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Legal / Privacidad ──────────────────────────────────────────
+function LegalPage() {
+  const secs = [
+    { h: 'Titular del sitio', body: 'Radar Inmobiliario Madrid es una publicación de datos independiente. Contacto: <a href="mailto:hola@radarinmobiliario.com" style="color:#059669">hola@radarinmobiliario.com</a>' },
+    { h: 'Datos personales que recogemos', body: 'La única información personal que recopilamos es la <strong>dirección de correo electrónico</strong> que introduces voluntariamente en el formulario de suscripción al boletín mensual.' },
+    { h: 'Finalidad y base legal', body: 'Tu email se usa exclusivamente para enviarte el boletín mensual de Radar Inmobiliario Madrid. La base legal del tratamiento es tu consentimiento explícito al suscribirte (art. 6.1.a RGPD). No cedemos tu email a terceros ni lo usamos para publicidad.' },
+    { h: 'Plazo de conservación', body: 'Conservamos tu email mientras mantengas la suscripción activa. Puedes cancelarla en cualquier momento desde el enlace de baja que incluye cada envío.' },
+    {
+      h: 'Tus derechos (RGPD / LOPD-GDD)',
+      body: 'Puedes ejercer en cualquier momento los derechos de <strong>acceso, rectificación, supresión, oposición, limitación y portabilidad</strong>. Escríbenos a <a href="mailto:hola@radarinmobiliario.com" style="color:#059669">hola@radarinmobiliario.com</a> y respondemos en 30 días. Si no quedas satisfecho, puedes reclamar ante la <a href="https://www.aepd.es" target="_blank" rel="noopener" style="color:#059669">Agencia Española de Protección de Datos (AEPD)</a>.',
+    },
+    { h: 'Cookies y rastreo', body: 'Esta publicación usa <strong>Google AdSense</strong> para financiarse. Google puede establecer cookies de publicidad. No usamos otras herramientas de analítica ni rastreo propias.' },
+    { h: 'Descargo de responsabilidad', body: 'Los datos publicados son <strong>orientativos</strong> y no constituyen asesoramiento financiero, legal ni de inversión. Consulta siempre a un profesional antes de tomar decisiones de compra, venta o alquiler.' },
+  ];
+  return (
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">
+      <div className="max-w-3xl mx-auto px-8 py-16">
+        <h1 className="text-4xl font-bold text-slate-900 mb-2">Aviso Legal y Privacidad</h1>
+        <p className="text-sm text-slate-500 mb-10">Última actualización: junio 2026</p>
+        <div className="space-y-8">
+          {secs.map((s, i) => (
+            <section key={i}>
+              <h2 className="text-xl font-bold text-slate-900 mb-3">{s.h}</h2>
+              <p className="text-base text-slate-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: s.body }} />
+            </section>
+          ))}
+        </div>
+        <div className="mt-12 pt-8 border-t border-slate-200">
+          <a href="/" onClick={(e) => { e.preventDefault(); window.navTo('/'); }}
+            className="text-emerald-600 text-sm font-medium hover:text-emerald-700">← Volver al inicio</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+window.NoticiaDetalleDynamic = NoticiaDetalleDynamic;
+window.MetodologiaPage = MetodologiaPage;
+window.LegalPage = LegalPage;

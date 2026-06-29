@@ -19,7 +19,7 @@ function VariationD() {
     return () => obs.disconnect();
   }, []);
 
-  const BEEHIIV_URL = ''; // TODO: añadir URL de suscripción de Beehiiv aquí
+  const BEEHIIV_URL = '/.netlify/functions/subscribe';
 
   const [nlEmail, setNlEmail] = React.useState('');
   const [nlStatus, setNlStatus] = React.useState('idle'); // idle | loading | ok | error
@@ -53,8 +53,9 @@ function VariationD() {
             <span className="text-emerald-600">Madrid</span>
           </div>
           <nav className="flex items-center gap-6 text-sm text-slate-600">
-            <span className="cursor-pointer hover:text-emerald-700" onClick={() => window.navTo && window.navTo('/distritos')}>Distritos</span>
-            <span className="cursor-pointer hover:text-emerald-700" onClick={() => window.navTo && window.navTo('/noticias')}>Noticias</span>
+            <a href="/distritos" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }}>Distritos</a>
+            <a href="/noticias" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }}>Noticias</a>
+            <a href="/sobre" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/sobre'); }}>Acerca</a>
             <span className="bg-emerald-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-emerald-500">Newsletter</span>
           </nav>
         </div>
@@ -159,7 +160,7 @@ function VariationD() {
 
           <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
             <span>Fuentes: Idealista, Fotocasa, Ayuntamiento de Madrid · {meta.fecha}</span>
-            <a className="text-emerald-700 font-semibold hover:underline underline-offset-4 cursor-pointer" onClick={() => window.navTo && window.navTo('/distritos')}>Abrir mapa completo →</a>
+            <a href="/distritos" className="text-emerald-700 font-semibold hover:underline underline-offset-4" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }}>Abrir mapa completo →</a>
           </div>
         </div>
       </section>
@@ -225,8 +226,8 @@ function VariationD() {
 
               <ul className="space-y-0 border-t border-slate-200">
                 {noticiasDestacadas.map((n, i) => (
-                  <li key={i} onClick={() => window.navTo && window.navTo('/noticia')} className="border-b border-slate-200 py-5 group cursor-pointer">
-                    <div className="flex items-baseline gap-5">
+                  <li key={i} className="border-b border-slate-200 py-5 group">
+                    <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticia'); }} className="flex items-baseline gap-5 cursor-pointer">
                       <span className="text-xs font-bold tabular-nums text-slate-400 w-12 flex-shrink-0">{n.fecha}</span>
                       <div className="flex-1">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-bold mb-1">
@@ -237,11 +238,11 @@ function VariationD() {
                         </h3>
                       </div>
                       <span className="text-slate-300 group-hover:text-emerald-600 transition-colors">→</span>
-                    </div>
+                    </a>
                   </li>
                 ))}
               </ul>
-              <a onClick={() => window.navTo && window.navTo('/noticias')} className="inline-block mt-6 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline cursor-pointer">Todas las noticias →</a>
+              <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }} className="inline-block mt-6 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline">Todas las noticias →</a>
             </div>
 
             <div className="col-span-5">
@@ -265,7 +266,7 @@ function VariationD() {
                   formatColor="text-slate-900"
                 />
               </div>
-              <a className="inline-block mt-4 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline cursor-pointer" onClick={() => window.navTo && window.navTo('/distritos')}>Ver los 131 barrios →</a>
+              <a href="/distritos" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }} className="inline-block mt-4 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline">Ver los 131 barrios →</a>
             </div>
           </div>
         </div>
@@ -288,8 +289,8 @@ function VariationD() {
                     <p className="text-sm text-slate-500 leading-relaxed mt-0.5 max-w-md">{h.descripcion}</p>
                   </div>
                 </div>
-                <button className="bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap">
-                  {h.cta}
+                <button disabled className="bg-stone-50 border border-slate-200 text-slate-400 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap cursor-not-allowed">
+                  Próximamente
                 </button>
               </div>
             ))}
@@ -346,7 +347,8 @@ function VariationD() {
                     )}
                     <p className="text-slate-500 text-xs flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-slate-400" />
-                      1 envío/mes · sin spam
+                      1 envío/mes · sin spam ·{' '}
+                      <a href="/legal" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/legal'); }} className="underline hover:text-slate-700">privacidad</a>
                     </p>
                   </>
                 )}
@@ -357,10 +359,41 @@ function VariationD() {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-slate-200 py-10">
-        <div className="max-w-6xl mx-auto px-8 flex items-center justify-between text-xs text-slate-500">
-          <span className="flex items-center gap-1.5"><span className="text-emerald-600">●</span> Radar Inmobiliario Madrid · © 2026</span>
-          <span>Datos orientativos. No es asesoramiento financiero.</span>
+      <footer className="bg-white border-t border-slate-200 py-12">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="flex items-start justify-between gap-10">
+            <div className="max-w-xs">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 mb-2">
+                <span className="text-emerald-600">●</span>
+                <span>Radar Inmobiliario Madrid</span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">Publicación independiente de datos del mercado inmobiliario de Madrid. Análisis sin patrocinios ni afiliados.</p>
+              <p className="text-xs text-slate-500 mt-2">
+                <a href="mailto:hola@radarinmobiliario.com" className="hover:text-emerald-700">hola@radarinmobiliario.com</a>
+              </p>
+            </div>
+            <div className="flex gap-14 text-xs">
+              <div>
+                <p className="text-slate-400 uppercase tracking-wider font-semibold mb-3">Explorar</p>
+                <div className="space-y-2">
+                  <a href="/distritos" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }} className="block text-slate-600 hover:text-emerald-700">Distritos</a>
+                  <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }} className="block text-slate-600 hover:text-emerald-700">Noticias</a>
+                </div>
+              </div>
+              <div>
+                <p className="text-slate-400 uppercase tracking-wider font-semibold mb-3">Publicación</p>
+                <div className="space-y-2">
+                  <a href="/sobre" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/sobre'); }} className="block text-slate-600 hover:text-emerald-700">Acerca</a>
+                  <a href="/metodologia" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/metodologia'); }} className="block text-slate-600 hover:text-emerald-700">Metodología</a>
+                  <a href="/legal" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/legal'); }} className="block text-slate-600 hover:text-emerald-700">Legal / Privacidad</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+            <span>© 2026 Radar Inmobiliario Madrid. Datos orientativos, no asesoramiento financiero.</span>
+            <span>Madrid, España</span>
+          </div>
         </div>
       </footer>
     </div>

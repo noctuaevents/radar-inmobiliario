@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-triage_ollama.py — Triaje de candidatos con Ollama (qwen2.5:7b, local, gratis).
+triage_claude.py — Triaje de candidatos con Claude (claude -p headless).
 Lee pipeline/work/candidates.json.
 Escribe notas markdown en ~/Documents/Radar Inmobiliario/Contenido/Noticias/_cola/.
-Cada nota tiene publicar: false — tú las revisas en Obsidian y cambias a true las que apruebas.
+Cada nota tiene publicar: false — revisa en Obsidian y cambia a true las que quieras publicar.
 
-Uso: python3 pipeline/triage_ollama.py
+Uso: python3 pipeline/triage_claude.py
 """
 import json
+import os
 import re
+import subprocess
 import sys
-import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -18,8 +19,6 @@ ROOT = Path(__file__).parent.parent
 CANDIDATES_FILE = ROOT / "pipeline" / "work" / "candidates.json"
 COLA_DIR = Path.home() / "Documents" / "Radar Inmobiliario" / "Contenido" / "Noticias" / "_cola"
 COLA_DIR.mkdir(parents=True, exist_ok=True)
-
-OLLAMA_MODEL = "qwen2.5:7b"
 
 CATEGORIAS = ["Infraestructura", "Urbanismo", "Regulación", "Movilidad", "Fiscalidad", "Demanda", "Obras"]
 DISTRITOS_VALIDOS = [
@@ -31,47 +30,20 @@ DISTRITOS_VALIDOS = [
 TAGS_VALIDOS = ["emerald", "amber", "rose", "sky", "violet"]
 
 
-TRIAGE_PROMPT = """\
-Eres el editor de Radar Inmobiliario Madrid. Analiza esta noticia del mercado inmobiliario de Madrid.
-
-NOTICIA:
-Título: {titulo}
-Fuente: {fuente}
-Resumen: {resumen_raw}
-
-Devuelve SOLO un JSON con estos campos (sin texto extra):
-{{
-  "relevante": true/false,          // ¿Es relevante para el mercado inmobiliario de Madrid?
-  "categoria": "...",               // Una de: {categorias}
-  "distrito": "..." o null,         // Distrito de Madrid afectado, o null si es toda la ciudad
-  "tag": "...",                     // Color: {tags} (emerald=positivo, rose=negativo, amber=neutro, sky=info, violet=fiscal)
-  "direccion_impacto": "sube"/"baja"/"neutro",
-  "resumen_borrador": "...",        // 1-2 frases directas con datos concretos. Máx 200 chars.
-  "impacto_borrador": "...",        // Solo el número/dato clave (ej: "+6,2%", "2.800 €/m²"). Máx 20 chars.
-  "impacto_label_borrador": "..."   // Descripción muy corta del dato (ej: "sobre precio distrito"). Máx 35 chars.
-}}
-"""
-
-
-def ask_ollama(prompt: str) -> str:
-    payload = json.dumps({
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json",
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        "http://localhost:11434/api/generate",
-        data=payload,
-        headers={"Content-Type": "application/json"},
+def ask_claude(prompt: str) -> str:
+    env = os.environ.copy()
+    env["PATH"] = f"{Path.home()}/.local/bin:{env.get('PATH', '')}"
+    result = subprocess.run(
+        ["claude", "-p", prompt],
+        capture_output=True, text=True, env=env, timeout=180
     )
-    with urllib.request.urlopen(req, timeout=90) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
-    return data.get("response", "")
+    if result.returncode != 0:
+        raise RuntimeError(f"Claude error (código {result.returncode}):\n{result.stderr[:400]}")
+    return result.stdout
 
 
-def extract_json(text: str):
-    m = re.search(r"\{.*\}", text, re.S)
+def extract_json_array(text: str):
+    m = re.search(r"\[.*\]", text, re.S)
     if not m:
         return None
     try:
@@ -99,7 +71,6 @@ def write_note(article: dict, triage: dict, idx: int):
     filepath = COLA_DIR / filename
 
     distrito_raw = triage.get("distrito") or ""
-    # Validar distrito
     distrito = None
     if distrito_raw:
         for d in DISTRITOS_VALIDOS:
@@ -107,7 +78,7 @@ def write_note(article: dict, triage: dict, idx: int):
                 distrito = d
                 break
         if not distrito:
-            distrito = distrito_raw  # keep raw if not matched
+            distrito = distrito_raw
 
     categoria = triage.get("categoria", "Demanda")
     if categoria not in CATEGORIAS:
@@ -140,7 +111,7 @@ impactoLabel: '{triage.get("impacto_label_borrador", "")}'
 **Fuente:** {article["fuente"]}
 **URL:** {article["url"]}
 
-## Resumen (borrador Ollama — editar antes de publicar)
+## Resumen (borrador Claude — editar antes de publicar)
 
 {triage.get("resumen_borrador", article["resumen_raw"][:200])}
 
@@ -157,36 +128,64 @@ def main():
         sys.exit(f"ERROR: no existe {CANDIDATES_FILE}. Ejecuta primero fetch_news.py")
 
     candidates: list[dict] = json.loads(CANDIDATES_FILE.read_text(encoding="utf-8"))
-    print(f"{len(candidates)} candidatos a triar con Ollama ({OLLAMA_MODEL})…\n")
+    print(f"{len(candidates)} candidatos a triar con Claude…\n")
+
+    candidatos_json = json.dumps([
+        {
+            "idx": i,
+            "titulo": a["titulo"],
+            "fuente": a["fuente"],
+            "resumen_raw": a["resumen_raw"][:400],
+        }
+        for i, a in enumerate(candidates)
+    ], indent=2, ensure_ascii=False)
+
+    prompt = f"""Eres el editor de Radar Inmobiliario Madrid, una publicación de datos independiente sobre el mercado inmobiliario de Madrid.
+
+Analiza estos {len(candidates)} candidatos de noticias y devuelve un array JSON con el triaje de cada uno.
+
+CANDIDATOS:
+{candidatos_json}
+
+Para cada candidato devuelve un objeto con estos campos:
+- "idx": el número de índice del input (campo "idx")
+- "relevante": true/false — ¿es relevante para el mercado inmobiliario de Madrid?
+- "categoria": una de {json.dumps(CATEGORIAS)}
+- "distrito": nombre exacto del distrito de Madrid afectado, o null si aplica a toda la ciudad
+- "tag": uno de ["emerald","amber","rose","sky","violet"] — emerald=positivo para el mercado/compradores, rose=negativo, amber=neutro, sky=informativo, violet=fiscal/regulatorio
+- "direccion_impacto": "sube" / "baja" / "neutro"
+- "resumen_borrador": 1-2 frases directas con datos concretos, estilo periodístico. Máx 200 chars.
+- "impacto_borrador": solo el número/dato clave (ej: "+6,2%", "2.800 €/m²", "−14 min"). Máx 20 chars.
+- "impacto_label_borrador": descripción muy corta del dato (ej: "sobre precio distrito", "a Atocha"). Máx 35 chars.
+
+Devuelve SOLO el array JSON, sin texto extra ni bloques de código markdown."""
+
+    print("Invocando claude -p para triar todos los candidatos…")
+    try:
+        raw = ask_claude(prompt)
+    except RuntimeError as e:
+        sys.exit(str(e))
+
+    results = extract_json_array(raw)
+    if not results:
+        sys.exit(f"ERROR: Claude no devolvió un array JSON válido.\nOutput recibido:\n{raw[:600]}")
+
+    by_idx = {r["idx"]: r for r in results if isinstance(r, dict) and "idx" in r}
 
     written = 0
     skipped = 0
-
-    for i, article in enumerate(candidates, 1):
-        print(f"[{i:2d}/{len(candidates)}] {article['titulo'][:70]}…")
-
-        prompt = TRIAGE_PROMPT.format(
-            titulo=article["titulo"],
-            fuente=article["fuente"],
-            resumen_raw=article["resumen_raw"][:400],
-            categorias=", ".join(CATEGORIAS),
-            tags=", ".join(TAGS_VALIDOS),
-        )
-
-        raw = ask_ollama(prompt)
-        triage = extract_json(raw)
-
+    for i, article in enumerate(candidates):
+        triage = by_idx.get(i)
+        print(f"[{i+1:2d}/{len(candidates)}] {article['titulo'][:70]}…")
         if not triage:
-            print(f"  ⚠ JSON no parseable, se descarta")
+            print(f"  ⚠ Sin resultado de Claude, se descarta")
             skipped += 1
             continue
-
         if not triage.get("relevante", True):
             print(f"  → No relevante, descartado")
             skipped += 1
             continue
-
-        filename = write_note(article, triage, i)
+        filename = write_note(article, triage, i + 1)
         print(f"  → {filename}  [{triage.get('categoria')} | {triage.get('tag')} | {triage.get('direccion_impacto')}]")
         written += 1
 

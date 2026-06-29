@@ -67,6 +67,7 @@ for f in files:
         "fuente": get("fuente"),
         "tag": get("tag"),
         "url": get("url"),
+        "imagen": get("imagen"),
         "impacto_borrador": get("impacto"),
         "impactoLabel_borrador": get("impactoLabel"),
         "resumen_borrador": borrador,
@@ -90,7 +91,7 @@ Se te dan $COUNT noticias aprobadas en formato JSON. Tu tarea:
    - Reescribe 'resumen' en 1-2 frases directas, datos concretos, estilo periodístico sin adornos. Máx 200 chars.
    - Define 'impacto': el dato clave de impacto en precio (ej: '+6,2 %', '-14 min', '2.800 €/m²'). Máx 20 chars.
    - Define 'impactoLabel': descripción muy corta del dato (ej: 'sobre precio distrito', 'a Atocha'). Máx 35 chars.
-   - Mantén 'fecha', 'hora', 'categoria', 'distrito', 'fuente', 'tag' del input. 'distrito' puede ser null.
+   - Mantén sin modificar: 'fecha', 'hora', 'categoria', 'distrito', 'fuente', 'tag', 'imagen' del input. 'distrito' puede ser null. 'imagen' puede ser cadena vacía.
 
 2. Elige la noticia más impactante como 'destacada' y añádele:
    - 'titulo': titular directo con datos (máx 100 chars)
@@ -104,12 +105,12 @@ Devuelve SOLO el JSON con esta estructura (sin texto extra):
   \"actualizado\": \"$FECHA_CORTA\",
   \"semanaResumen\": { \"publicadas\": $COUNT, \"distritosCubiertos\": <n>, \"movimientoMedio\": \"<±X,X %>\" },
   \"destacada\": {
-    \"fecha\": \"...\", \"hora\": \"...\", \"categoria\": \"...\", \"distrito\": \"...\", \"fuente\": \"...\",
+    \"fecha\": \"...\", \"hora\": \"...\", \"categoria\": \"...\", \"distrito\": \"...\", \"fuente\": \"...\", \"imagen\": \"...\",
     \"titulo\": \"...\", \"resumen\": \"...\",
     \"metricas\": [{\"label\": \"...\", \"valor\": \"...\", \"delta\": \"...\", \"up\": true}]
   },
   \"items\": [
-    {\"fecha\":\"...\",\"hora\":\"...\",\"categoria\":\"...\",\"tag\":\"...\",\"distrito\":\"...\",\"fuente\":\"...\",\"titulo\":\"...\",\"resumen\":\"...\",\"impacto\":\"...\",\"impactoLabel\":\"...\"}
+    {\"fecha\":\"...\",\"hora\":\"...\",\"categoria\":\"...\",\"tag\":\"...\",\"distrito\":\"...\",\"fuente\":\"...\",\"imagen\":\"...\",\"titulo\":\"...\",\"resumen\":\"...\",\"impacto\":\"...\",\"impactoLabel\":\"...\"}
   ]
 }
 
