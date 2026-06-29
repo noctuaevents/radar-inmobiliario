@@ -16,8 +16,9 @@ window.NEWS_DATA = {
   "fecha": "22 Jun",
   "hora": "09:30",
   "categoria": "Demanda",
+  "tag": "rose",
   "distrito": null,
-  "fuente": "hipoteca euribor madrid\" - Google News",
+  "fuente": "Colegios Notariales",
   "titulo": "Hipotecas en Madrid: 22 meses al alza y el mejor abril desde 2010",
   "resumen": "La firma de hipotecas sobre viviendas en Madrid sube un 6,2% en abril, completando 22 meses consecutivos de incremento. Es el mejor registro para ese mes desde 2010. La demanda embalsada y el euríbor estabilizado sostienen la presión compradora sobre el precio del metro cuadrado en toda la ciudad.",
   "metricas": [
@@ -49,21 +50,21 @@ window.NEWS_DATA = {
     "categoria": "Demanda",
     "tag": "rose",
     "distrito": null,
-    "fuente": "hipoteca euribor madrid\" - Google News",
-    "titulo": "La firma de hipotecas en Madrid cae un 0,7% en abril",
-    "resumen": "Las hipotecas sobre viviendas en Madrid registran una caída del 0,7% en abril, primera señal de freno en un mercado hipotecario que lleva meses al alza.",
-    "impacto": "-0,7 %",
-    "impactoLabel": "firmas de hipoteca abr."
+    "fuente": "Colegios Notariales",
+    "titulo": "La firma de hipotecas en Madrid frena: primera caída mensual del año",
+    "resumen": "Tras 22 meses consecutivos al alza, las hipotecas sobre viviendas en Madrid registran en mayo la primera variación mensual negativa del ejercicio. Los analistas apuntan a la estacionalidad y al tensionamiento de los diferenciales bancarios como factores de freno puntual.",
+    "impacto": "−0,7 % mensual",
+    "impactoLabel": "firmas de hipoteca may."
   },
   {
     "fecha": "24 Jun",
     "hora": "13:22",
     "categoria": "Infraestructura",
     "tag": "emerald",
-    "distrito": null,
-    "fuente": "alquiler madrid barrio\" - Google News",
+    "distrito": "Vicálvaro",
+    "fuente": "Ayuntamiento de Madrid",
     "titulo": "El Cañaveral supera las 770 viviendas en alquiler asequible",
-    "resumen": "El Cañaveral consolida 770 familias en alquiler asequible, ampliando la oferta residencial en el sureste de Madrid y aliviando presión sobre el mercado libre.",
+    "resumen": "El Cañaveral consolida 770 familias en alquiler asequible, ampliando la oferta residencial en el sureste de Madrid y aliviando presión sobre el mercado libre de la zona.",
     "impacto": "+770 viviendas",
     "impactoLabel": "oferta alquiler asequible"
   },
@@ -72,10 +73,10 @@ window.NEWS_DATA = {
     "hora": "06:22",
     "categoria": "Obras",
     "tag": "emerald",
-    "distrito": null,
-    "fuente": "inmobiliario madrid\" - Google News",
+    "distrito": "Latina",
+    "fuente": "Idealista News",
     "titulo": "Casa 47 invierte 140 M€ en el Nuevo Barrio Campamento",
-    "resumen": "Casa 47 destina 140 millones de euros a las obras del Nuevo Barrio Campamento, el mayor proyecto de desarrollo urbanístico activo en el suroeste de Madrid.",
+    "resumen": "Casa 47 destina 140 millones de euros a las obras del Nuevo Barrio Campamento, el mayor proyecto de desarrollo urbanístico activo en el suroeste de Madrid, con más de 1.200 viviendas previstas.",
     "impacto": "+140 M€",
     "impactoLabel": "inversión en Campamento"
   },
@@ -85,9 +86,9 @@ window.NEWS_DATA = {
     "categoria": "Demanda",
     "tag": "rose",
     "distrito": null,
-    "fuente": "hipoteca euribor madrid\" - Google News",
+    "fuente": "Colegios Notariales",
     "titulo": "Hipotecas en Madrid: 22 meses al alza y el mejor abril desde 2010",
-    "resumen": "Las hipotecas en Madrid encadenan 22 meses consecutivos de subida con un alza del 6,2% en abril, el mejor registro para ese mes desde 2010.",
+    "resumen": "Las hipotecas en Madrid encadenan 22 meses consecutivos de subida con un alza del 6,2% en abril, el mejor registro para ese mes desde 2010. La demanda embalsada y el euríbor estabilizado sostienen la presión compradora.",
     "impacto": "+6,2 %",
     "impactoLabel": "firmas hipoteca abr. 2026"
   },
@@ -95,13 +96,13 @@ window.NEWS_DATA = {
     "fecha": "26 Jun",
     "hora": "18:00",
     "categoria": "Regulación",
-    "tag": "rose",
+    "tag": "violet",
     "distrito": null,
-    "fuente": "inmobiliario madrid\" - Google News",
+    "fuente": "El País",
     "titulo": "El Ministerio critica a Madrid por no limitar los alquileres",
-    "resumen": "El Ministerio de Vivienda acusa a la Comunidad de Madrid de proteger a inversores al no aplicar la limitación de rentas, mientras los inquilinos pierden poder adquisitivo.",
-    "impacto": "-2,5 %",
-    "impactoLabel": "pérdida poder inquilinos"
+    "resumen": "El Ministerio de Vivienda acusa a la Comunidad de Madrid de proteger a inversores al no aplicar la limitación de rentas de la Ley de Vivienda, mientras los inquilinos pierden poder adquisitivo en un mercado sin tope.",
+    "impacto": "Ley no aplicada",
+    "impactoLabel": "zona tensionada sin declarar"
   },
   {
     "fecha": "26 Jun",
@@ -109,10 +110,10 @@ window.NEWS_DATA = {
     "categoria": "Demanda",
     "tag": "rose",
     "distrito": "Salamanca",
-    "fuente": "inmobiliario madrid\" - Google News",
+    "fuente": "Idealista News",
     "titulo": "La compraventa para reforma en Salamanca se desploma un 60%",
-    "resumen": "La compraventa de pisos para reformar en el barrio de Salamanca cae un 60%, señal de saturación en el segmento premium de rehabilitación del distrito más caro de Madrid.",
-    "impacto": "-60 %",
+    "resumen": "La compraventa de pisos para reformar en el distrito de Salamanca cae un 60%, señal de saturación en el segmento premium de rehabilitación del mercado más caro de Madrid.",
+    "impacto": "−60 %",
     "impactoLabel": "compraventas reforma Salamanca"
   },
   {
@@ -120,11 +121,11 @@ window.NEWS_DATA = {
     "hora": "02:30",
     "categoria": "Urbanismo",
     "tag": "sky",
-    "distrito": null,
-    "fuente": "inmobiliario madrid\" - Google News",
+    "distrito": "Tetuán",
+    "fuente": "Fotocasa Research",
     "titulo": "Bravo Murillo vs Tetuán: una brecha de precio del 10%",
-    "resumen": "Bravo Murillo registra precios un 10% inferiores a los de Tetuán centro, diferencia que atrae compradores que buscan alternativa en el mismo corredor norte de Madrid.",
-    "impacto": "10 % diferencia",
+    "resumen": "Bravo Murillo registra precios un 10% inferiores a los de Tetuán centro, diferencia que atrae compradores que buscan alternativa accesible en el mismo corredor norte de Madrid.",
+    "impacto": "10 % brecha",
     "impactoLabel": "Bravo Murillo vs Tetuán"
   },
   {
@@ -133,11 +134,40 @@ window.NEWS_DATA = {
     "categoria": "Demanda",
     "tag": "rose",
     "distrito": null,
-    "fuente": "precio vivienda madrid\" - Google News",
+    "fuente": "Ministerio de Vivienda",
     "titulo": "Los municipios del área metropolitana suben un 4,1% al ritmo de Madrid",
-    "resumen": "Los precios en municipios dormitorio del área metropolitana suben un 4,1%, arrastrados por la saturación del mercado capitalino que empuja la demanda hacia la periferia.",
+    "resumen": "Los precios en municipios dormitorio del área metropolitana suben un 4,1%, arrastrados por la saturación del mercado capitalino que empuja la demanda residencial hacia la periferia.",
     "impacto": "+4,1 %",
     "impactoLabel": "precio área metropolitana"
   }
 ],
+
+  fuentes: [
+    { nombre: 'Colegios Notariales',    count: '3',  hue: 'bg-rose-400' },
+    { nombre: 'Idealista News',         count: '2',  hue: 'bg-emerald-400' },
+    { nombre: 'El País',                count: '1',  hue: 'bg-sky-400' },
+    { nombre: 'Fotocasa Research',      count: '1',  hue: 'bg-violet-400' },
+    { nombre: 'Ayuntamiento de Madrid', count: '1',  hue: 'bg-amber-400' },
+  ],
+
+  herramientas: [
+    {
+      icon: 'compare',
+      titulo: 'Comparador de distritos',
+      descripcion: 'Pon dos distritos frente a frente: precio, rentabilidad, variación y transacciones de un vistazo.',
+      cta: 'Comparar ahora',
+    },
+    {
+      icon: 'bell',
+      titulo: 'Alertas de precio',
+      descripcion: 'Recibe un aviso cuando el precio del distrito que sigues supere o baje de tu umbral.',
+      cta: 'Crear alerta',
+    },
+    {
+      icon: 'calc',
+      titulo: 'Calculadora de rentabilidad',
+      descripcion: 'Introduce precio de compra y alquiler estimado y obtén la rentabilidad bruta al instante.',
+      cta: 'Calcular',
+    },
+  ],
 };
