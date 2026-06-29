@@ -6,9 +6,18 @@ function VariationD() {
   const D = window.HOME_DATA;
   const { meta, distritos, masSuben, masBaratos, noticiasDestacadas, macro } = D;
 
-  const spotlight = distritos.find((d) => d.slug === 'san-blas-canillejas');
+  const spotlight = [...distritos].sort((a, b) => b.varAnual - a.varAnual)[0];
   const top3Movers = [...distritos].sort((a, b) => b.varAnual - a.varAnual).slice(0, 3);
   const heatmapSorted = [...distritos].sort((a, b) => b.varAnual - a.varAnual);
+
+  const mapContainerRef = React.useRef(null);
+  const [mapHeight, setMapHeight] = React.useState(720);
+  React.useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const obs = new ResizeObserver(([e]) => setMapHeight(e.contentRect.height));
+    obs.observe(mapContainerRef.current);
+    return () => obs.disconnect();
+  }, []);
 
   const BEEHIIV_URL = ''; // TODO: añadir URL de suscripción de Beehiiv aquí
 
@@ -72,35 +81,24 @@ function VariationD() {
         }} />
 
         <div className="relative max-w-6xl mx-auto px-8 pt-10 pb-14">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-700 font-bold mb-3 flex items-center gap-2">
-                Radar en vivo · {meta.fecha}
-              </p>
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-[1.05] max-w-2xl" style={{ textWrap: 'balance' }}>
-                Madrid en una mirada.<br />
-                <span className="text-emerald-600">21 distritos. 131 barrios.</span>
-              </h1>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <button className="px-3 py-1.5 rounded-full bg-slate-900 text-white font-semibold text-[11px]">Variación</button>
-                <button className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 font-medium text-[11px]">€/m²</button>
-                <button className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 font-medium text-[11px]">Alquiler</button>
-                <button className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 font-medium text-[11px]">Rent.</button>
-              </div>
-              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Toca o pasa el ratón sobre un distrito</p>
-            </div>
+          <div className="mb-6">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-700 font-bold mb-3 flex items-center gap-2">
+              Radar en vivo · {meta.fecha}
+            </p>
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-[1.05] max-w-2xl" style={{ textWrap: 'balance' }}>
+              Madrid en una mirada.<br />
+              <span className="text-emerald-600">21 distritos. 131 barrios.</span>
+            </h1>
           </div>
 
           {/* THE BIG MAP */}
           <div className="relative">
             <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-              <div className="relative" style={{ height: 720 }}>
+              <div ref={mapContainerRef} className="relative" style={{ height: 'clamp(420px, 56vw, 720px)' }}>
                 <div className="absolute inset-0">
                   <window.MadridGeoMap
                     distritos={distritos}
-                    height={720}
+                    height={mapHeight}
                     labelsFor={['salamanca', 'san-blas-canillejas', 'villaverde', 'centro']}
                     highlight={spotlight.slug}
                   />
@@ -123,7 +121,7 @@ function VariationD() {
                 {/* Spotlight callout — compacto y discreto */}
                 <div
                   className="absolute bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm w-52"
-                  style={{ top: 420, right: 28 }}
+                  style={{ bottom: 28, right: 28 }}
                 >
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <span className="w-1 h-1 rounded-full bg-emerald-500" />
@@ -161,7 +159,7 @@ function VariationD() {
 
           <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
             <span>Fuentes: Idealista, Fotocasa, Ayuntamiento de Madrid · {meta.fecha}</span>
-            <a className="text-emerald-700 font-semibold hover:underline underline-offset-4">Abrir mapa completo →</a>
+            <a className="text-emerald-700 font-semibold hover:underline underline-offset-4 cursor-pointer" onClick={() => window.navTo && window.navTo('/distritos')}>Abrir mapa completo →</a>
           </div>
         </div>
       </section>
@@ -267,7 +265,7 @@ function VariationD() {
                   formatColor="text-slate-900"
                 />
               </div>
-              <a className="inline-block mt-4 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline">Ver los 131 barrios →</a>
+              <a className="inline-block mt-4 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline cursor-pointer" onClick={() => window.navTo && window.navTo('/distritos')}>Ver los 131 barrios →</a>
             </div>
           </div>
         </div>
@@ -348,7 +346,7 @@ function VariationD() {
                     )}
                     <p className="text-slate-500 text-xs flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-slate-400" />
-                      ~2.400 lectores · 1 envío/mes · sin spam
+                      1 envío/mes · sin spam
                     </p>
                   </>
                 )}
@@ -361,7 +359,7 @@ function VariationD() {
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
       <footer className="bg-white border-t border-slate-200 py-10">
         <div className="max-w-6xl mx-auto px-8 flex items-center justify-between text-xs text-slate-500">
-          <span className="flex items-center gap-1.5"><span className="text-emerald-600">●</span> Radar Madrid · © 2026</span>
+          <span className="flex items-center gap-1.5"><span className="text-emerald-600">●</span> Radar Inmobiliario Madrid · © 2026</span>
           <span>Datos orientativos. No es asesoramiento financiero.</span>
         </div>
       </footer>
