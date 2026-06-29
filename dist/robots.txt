@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://radarinmobiliario.com/sitemap.xml
+Sitemap: https://radarinmobiliario.com/news-sitemap.xml

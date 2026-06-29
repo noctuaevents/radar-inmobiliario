@@ -13,16 +13,20 @@ SALIDA:
   dist/assets/fonts/*.woff2    ← fuentes Inter
   dist/data/news.js            ← noticias (cambia en cada edición)
   dist/data/distritos.js       ← distritos (casi estático)
+  dist/noticia/[slug]/index.html ← páginas estáticas por artículo (OG tags para bots)
+  dist/news-sitemap.xml        ← News Sitemap para Google News
 
 Uso: python3 pipeline/distribute.py
 """
-import base64, gzip, json, re, sys, urllib.request, time
+import base64, gzip, json, re, sys, urllib.request
+from datetime import date
 from pathlib import Path
 
 ROOT     = Path(__file__).parent.parent
 HTML_IN  = ROOT / "Radar Inmobiliario Madrid.html"
 DIST     = ROOT / "dist"
 MAP_FILE = ROOT / "src" / "manifest.map.json"
+NEWS_JS  = ROOT / "src" / "data" / "news.js"
 
 REACT_VER    = "18.3.1"
 REACT_URL    = f"https://cdn.jsdelivr.net/npm/react@{REACT_VER}/umd/react.production.min.js"
@@ -48,6 +52,173 @@ def download(url: str, dest: Path, label: str) -> None:
 def escape_script(src: str) -> str:
     """Escape </script> inside inline script content so the HTML parser doesn't break."""
     return src.replace("</script>", r"<\/script>")
+
+
+# ── SEO helpers ────────────────────────────────────────────────────────────────
+
+def extract_news_articles() -> list:
+    """Parse src/data/news.js and return list of article dicts from items[]."""
+    if not NEWS_JS.exists():
+        return []
+    text = NEWS_JS.read_text(encoding="utf-8")
+
+    items_m  = re.search(r'\bitems:\s*\[', text)
+    fuentes_m = re.search(r'\],\s*\n\s*fuentes:', text)
+    if not items_m or not fuentes_m:
+        return []
+
+    items_text = text[items_m.end():fuentes_m.start()]
+    articles = []
+
+    for m in re.finditer(r'"slug":\s*"([^"]+)"', items_text):
+        slug = m.group(1)
+        ctx  = items_text[m.start():m.start() + 2500]
+
+        t  = re.search(r'"titulo":\s*"([^"]+)"',   ctx)
+        r_ = re.search(r'"resumen":\s*"([^"]+)"',   ctx)
+        f  = re.search(r'"fechaISO":\s*"([^"]+)"',  ctx)
+        h  = re.search(r'"hora":\s*"([^"]+)"',      ctx)
+        i  = re.search(r'"imagen":\s*"([^"]+)"',    ctx)
+
+        articles.append({
+            'slug':     slug,
+            'titulo':   t.group(1)  if t  else '',
+            'resumen':  r_.group(1) if r_ else '',
+            'fechaISO': f.group(1)  if f  else '',
+            'hora':     h.group(1)  if h  else '00:00',
+            'imagen':   i.group(1)  if i  else '/og-image.png',
+        })
+
+    return articles
+
+
+def gen_article_pages(articles: list, index_html: str) -> None:
+    """Generate static HTML per article in dist/noticia/[slug]/index.html for social bots."""
+    import html as _html
+
+    noticia_dir = DIST / "noticia"
+    noticia_dir.mkdir(exist_ok=True)
+
+    for art in articles:
+        slug       = art['slug']
+        titulo_raw = art['titulo']
+        resumen_raw = (art.get('resumen') or '')[:160]
+        canonical  = f"https://radarinmobiliario.com/noticia/{slug}"
+        imagen_src = art.get('imagen', '/og-image.png')
+        og_image   = imagen_src if imagen_src.startswith('http') else f"https://radarinmobiliario.com{imagen_src}"
+        full_title  = _html.escape(titulo_raw) + " | Radar Inmobiliario Madrid"
+        resumen_esc = _html.escape(resumen_raw)
+
+        art_html = index_html
+        art_html = re.sub(r'<title>[^<]+</title>',
+                          f'<title>{full_title}</title>', art_html)
+        art_html = re.sub(r'(<meta name="description" content=")[^"]*(")',
+                          rf'\g<1>{resumen_esc}\2', art_html)
+        art_html = re.sub(r'(<link rel="canonical" href=")[^"]*(")',
+                          rf'\g<1>{canonical}\2', art_html)
+        art_html = re.sub(r'(<link rel="alternate" hreflang="es" href=")[^"]*(")',
+                          rf'\g<1>{canonical}\2', art_html)
+        art_html = re.sub(r'(<link rel="alternate" hreflang="x-default" href=")[^"]*(")',
+                          rf'\g<1>{canonical}\2', art_html)
+        art_html = re.sub(r'(<meta property="og:type" content=")[^"]*(")',
+                          r'\g<1>article\2', art_html)
+        art_html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
+                          rf'\g<1>{canonical}\2', art_html)
+        art_html = re.sub(r'(<meta property="og:title" content=")[^"]*(")',
+                          rf'\g<1>{full_title}\2', art_html)
+        art_html = re.sub(r'(<meta property="og:description" content=")[^"]*(")',
+                          rf'\g<1>{resumen_esc}\2', art_html)
+        art_html = re.sub(r'(<meta property="og:image" content=")[^"]*(")',
+                          rf'\g<1>{og_image}\2', art_html)
+        art_html = re.sub(r'(<meta name="twitter:title" content=")[^"]*(")',
+                          rf'\g<1>{full_title}\2', art_html)
+        art_html = re.sub(r'(<meta name="twitter:description" content=")[^"]*(")',
+                          rf'\g<1>{resumen_esc}\2', art_html)
+        art_html = re.sub(r'(<meta name="twitter:image" content=")[^"]*(")',
+                          rf'\g<1>{og_image}\2', art_html)
+
+        article_dir = noticia_dir / slug
+        article_dir.mkdir(exist_ok=True)
+        (article_dir / "index.html").write_text(art_html, encoding="utf-8")
+
+    print(f"✓ {len(articles)} páginas estáticas en dist/noticia/")
+
+
+def gen_news_sitemap(articles: list) -> None:
+    """Generate dist/news-sitemap.xml for Google News."""
+    import html as _html
+
+    entries = []
+    for art in articles:
+        slug    = art['slug']
+        fecha   = art.get('fechaISO', '')
+        hora    = art.get('hora', '00:00')
+        titulo  = _html.escape(art.get('titulo', ''))
+        if not fecha:
+            continue
+        pub_date = f"{fecha}T{hora}:00+02:00"
+        entries.append(
+            f"  <url>\n"
+            f"    <loc>https://radarinmobiliario.com/noticia/{slug}</loc>\n"
+            f"    <news:news>\n"
+            f"      <news:publication>\n"
+            f"        <news:name>Radar Inmobiliario Madrid</news:name>\n"
+            f"        <news:language>es</news:language>\n"
+            f"      </news:publication>\n"
+            f"      <news:publication_date>{pub_date}</news:publication_date>\n"
+            f"      <news:title>{titulo}</news:title>\n"
+            f"    </news:news>\n"
+            f"  </url>"
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
+        '        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n'
+        + "\n".join(entries) + "\n"
+        '</urlset>\n'
+    )
+    (DIST / "news-sitemap.xml").write_text(xml, encoding="utf-8")
+    print(f"✓ dist/news-sitemap.xml ({len(entries)} artículos)")
+
+
+def update_sitemap(articles: list) -> None:
+    """Add/refresh article URLs in dist/sitemap.xml."""
+    sitemap = DIST / "sitemap.xml"
+    if not sitemap.exists():
+        return
+
+    content = sitemap.read_text(encoding="utf-8")
+    # Remove previous article block if present
+    content = re.sub(r'\s*<!-- News articles -->.*?<!-- /News articles -->', '',
+                     content, flags=re.S)
+
+    today = date.today().isoformat()
+    entries_xml = "\n".join(
+        f"  <url>\n"
+        f"    <loc>https://radarinmobiliario.com/noticia/{art['slug']}</loc>\n"
+        f"    <lastmod>{art.get('fechaISO', today)}</lastmod>\n"
+        f"    <changefreq>monthly</changefreq>\n"
+        f"    <priority>0.7</priority>\n"
+        f"  </url>"
+        for art in articles if art.get('slug')
+    )
+    new_content = content.replace(
+        '</urlset>',
+        f'\n  <!-- News articles -->\n{entries_xml}\n  <!-- /News articles -->\n\n</urlset>'
+    )
+    sitemap.write_text(new_content, encoding="utf-8")
+    print(f"✓ dist/sitemap.xml (+{len(articles)} artículos)")
+
+
+def update_robots() -> None:
+    """Add news-sitemap to robots.txt if not already present."""
+    robots = DIST / "robots.txt"
+    content = robots.read_text(encoding="utf-8") if robots.exists() else ""
+    line = "Sitemap: https://radarinmobiliario.com/news-sitemap.xml"
+    if line not in content:
+        robots.write_text(content.rstrip() + f"\n{line}\n", encoding="utf-8")
+        print("✓ dist/robots.txt actualizado (news-sitemap)")
 
 
 # ── main ───────────────────────────────────────────────────────────────────────
@@ -139,6 +310,16 @@ def main():
     head_clean = re.sub(r'\s*<style>\s*\*\s*\{[^}]*\}.*?#__bundler.*?</style>', '', head_clean, flags=re.S)
     # Remove bundler noscript
     head_clean = re.sub(r'\s*<noscript>\s*<style>#__bundler_loading[^<]*</style>[^<]*<div[^<]*</div>\s*</noscript>', '', head_clean, flags=re.S)
+
+    # Extract AdSense script from head — inject before </body> to unblock render
+    adsense_m = re.search(
+        r'\s*<!-- Google AdSense -->\s*<script[\s\S]*?googlesyndication[\s\S]*?</script>',
+        head_clean
+    )
+    adsense_tag = adsense_m.group(0).strip() if adsense_m else ""
+    if adsense_m:
+        head_clean = head_clean[:adsense_m.start()] + head_clean[adsense_m.end():]
+
     head_clean = head_clean.strip()
 
     # ── 7. Extract ALL <style> blocks from template head ─────────────────────
@@ -181,6 +362,7 @@ def main():
     body_data_html = "\n".join(body_tags)
 
     # ── 10. Assemble dist/index.html ─────────────────────────────────────────
+    adsense_body = f"\n  {adsense_tag}" if adsense_tag else ""
     index_html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -200,7 +382,7 @@ def main():
   </div>
 
 {body_data_html}
-{component_scripts_html}
+{component_scripts_html}{adsense_body}
 </body>
 </html>"""
 
@@ -217,6 +399,17 @@ def main():
     separados += react_dest.stat().st_size + reactdom_dest.stat().st_size
     print(f"  Assets separados en dist/: {separados//1024} KB total")
     print(f"  (se cargan en paralelo y se cachean en el navegador)")
+
+    # ── 11. SEO: páginas de artículo + news sitemap ───────────────────────────
+    print("\nGenerando assets SEO…")
+    articles = extract_news_articles()
+    if articles:
+        gen_article_pages(articles, index_html)
+        gen_news_sitemap(articles)
+        update_sitemap(articles)
+        update_robots()
+    else:
+        print("  (no se encontraron artículos en news.js)")
 
 
 if __name__ == "__main__":

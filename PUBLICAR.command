@@ -1,6 +1,6 @@
 #!/bin/bash
 # PUBLICAR.command — Doble clic en Finder para publicar Radar Inmobiliario.
-# Flujo: polish_claude.sh → build.py → git push → Netlify despliega sólo.
+# Flujo: polish_claude.sh → build.py → git push → Vercel despliega sólo.
 
 set -euo pipefail
 export PATH="$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
@@ -47,8 +47,8 @@ else
     echo "Pushing a origin/main…"
     git push origin main
     echo ""
-    echo "✓ Netlify desplegará en ~30 segundos."
-    echo "  https://radarinmobiliario.com"
+    echo "✓ Vercel desplegará en ~30 segundos."
+    echo "  https://www.radarinmobiliario.com"
 fi
 
 echo ""
