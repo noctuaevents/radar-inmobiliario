@@ -1,0 +1,127 @@
+{
+  "de4e60cb-e797-4592-97c1-6718dfecdc17": {
+    "path": "assets/de4e60cb-e797-4592-97c1-6718dfecdc17.javascript",
+    "mime": "text/javascript",
+    "compressed": true
+  },
+  "c190137e-2501-4e01-b6da-ce999a6965c0": {
+    "path": "assets/c190137e-2501-4e01-b6da-ce999a6965c0.javascript",
+    "mime": "text/javascript",
+    "compressed": true
+  },
+  "b7c420da-847a-49bc-a92f-56a20ce91866": {
+    "path": "assets/b7c420da-847a-49bc-a92f-56a20ce91866.javascript",
+    "mime": "text/javascript",
+    "compressed": true
+  },
+  "3884227a-631f-472b-aec7-1747509f7566": {
+    "path": "components/cartogram.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "55a16de2-5209-4fdf-974f-52d9b6215245": {
+    "path": "data/news.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "ec206f8e-91e9-4af6-b241-2e2e3b3d7e86": {
+    "path": "data/distritos.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "f45176d5-c2b4-4168-bd92-c9c93c52909b": {
+    "path": "assets/f45176d5-c2b4-4168-bd92-c9c93c52909b.javascript",
+    "mime": "text/javascript",
+    "compressed": true
+  },
+  "e9187d32-c781-47ae-9388-ec8e90db394c": {
+    "path": "components/noticias-n2.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "eb5a07ad-e34a-408f-973b-61cc134b0290": {
+    "path": "components/home-variation-d.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "bb081ba2-5f91-41ed-9b3b-1d89da38685e": {
+    "path": "components/distritos-d2.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "a18d8a5f-3a78-42bd-a79d-28ef0aa77b4d": {
+    "path": "components/noticia-detalle.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "ce58f2fe-10fa-44cc-b058-c70ea3d8752f": {
+    "path": "data/madrid-geojson.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "61360c19-e933-4472-a37b-ee70febfe036": {
+    "path": "fonts/61360c19-e933-4472-a37b-ee70febfe036.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "b85816b3-1fbb-4dc3-b2ce-1f917c739d3b": {
+    "path": "fonts/b85816b3-1fbb-4dc3-b2ce-1f917c739d3b.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "66dc01c2-5bea-48d4-b263-c7d8a745ad1c": {
+    "path": "fonts/66dc01c2-5bea-48d4-b263-c7d8a745ad1c.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "85cae68d-a52b-41b0-a5b0-b37f00bcf473": {
+    "path": "fonts/85cae68d-a52b-41b0-a5b0-b37f00bcf473.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "555a3f2d-16ab-4c4e-8099-963e656181e5": {
+    "path": "fonts/555a3f2d-16ab-4c4e-8099-963e656181e5.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "468c1f93-f7c1-446a-8cde-f3caf24d9d2c": {
+    "path": "fonts/468c1f93-f7c1-446a-8cde-f3caf24d9d2c.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "3e2cb646-1394-431b-93a0-ad9fcc46b053": {
+    "path": "fonts/3e2cb646-1394-431b-93a0-ad9fcc46b053.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "81dd3904-f526-41e7-beb2-524d77908216": {
+    "path": "fonts/81dd3904-f526-41e7-beb2-524d77908216.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "72d4b695-8053-4b55-9378-5b7f4493753c": {
+    "path": "fonts/72d4b695-8053-4b55-9378-5b7f4493753c.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "d3df0472-3522-458b-8484-ba006349ce73": {
+    "path": "fonts/d3df0472-3522-458b-8484-ba006349ce73.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "2e07be5d-8a49-4c8d-ad5f-c4d8d6d9c0fb": {
+    "path": "fonts/2e07be5d-8a49-4c8d-ad5f-c4d8d6d9c0fb.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "ecc1f90b-d1d7-43e7-879e-61f6e768632c": {
+    "path": "fonts/ecc1f90b-d1d7-43e7-879e-61f6e768632c.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  },
+  "53d63b58-22b0-4860-ab68-bc965fcd5d81": {
+    "path": "fonts/53d63b58-22b0-4860-ab68-bc965fcd5d81.woff2",
+    "mime": "font/woff2",
+    "compressed": false
+  }
+}

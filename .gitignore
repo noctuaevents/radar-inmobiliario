@@ -1,0 +1,8 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+pipeline/input/*.csv
+.claude/
+.wrangler/
+carpeta sin título/

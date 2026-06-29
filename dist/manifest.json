@@ -1,0 +1,16 @@
+{
+  "name": "Radar Inmobiliario Madrid",
+  "short_name": "Radar IM",
+  "description": "Datos del mercado inmobiliario de Madrid por distrito y barrio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf9f5",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23059669'/><g transform='translate(50 50)' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'><path d='M-22,-8 L-14,-19 L-4,-23 L8,-21 L19,-15 L22,-4 L20,8 L14,19 L2,22 L-10,20 L-20,12 L-23,0 Z'/></g><circle cx='50' cy='49' r='4' fill='%23fff'/></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
