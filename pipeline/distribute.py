@@ -217,7 +217,7 @@ def update_robots() -> None:
     """Add news-sitemap to robots.txt if not already present."""
     robots = DIST / "robots.txt"
     content = robots.read_text(encoding="utf-8") if robots.exists() else ""
-    line = "Sitemap: https://radarinmobiliario.com/news-sitemap.xml"
+    line = f"Sitemap: {BASE_URL}/news-sitemap.xml"
     if line not in content:
         robots.write_text(content.rstrip() + f"\n{line}\n", encoding="utf-8")
         print("✓ dist/robots.txt actualizado (news-sitemap)")
