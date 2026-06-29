@@ -5,6 +5,7 @@
 # Genera src/data/news.js listo para build.
 
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COLA_DIR="$HOME/Documents/Radar Inmobiliario/Contenido/Noticias/_cola"
