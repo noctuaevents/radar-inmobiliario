@@ -10,97 +10,31 @@ function VariationD() {
   const top3Movers = [...distritos].sort((a, b) => b.varAnual - a.varAnual).slice(0, 3);
   const heatmapSorted = [...distritos].sort((a, b) => b.varAnual - a.varAnual);
 
+  const BEEHIIV_URL = ''; // TODO: añadir URL de suscripción de Beehiiv aquí
+
   const [nlEmail, setNlEmail] = React.useState('');
   const [nlStatus, setNlStatus] = React.useState('idle'); // idle | loading | ok | error
 
   function handleNlSubmit() {
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nlEmail.trim());
     if (!valid) { setNlStatus('error'); return; }
+    if (!BEEHIIV_URL) {
+      // Sin URL configurada, abrimos la página de Beehiiv directamente
+      window.open('https://beehiiv.com', '_blank');
+      return;
+    }
     setNlStatus('loading');
-    // Placeholder: replace with Beehiiv embed URL when ready
-    setTimeout(() => { setNlStatus('ok'); }, 800);
+    fetch(BEEHIIV_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: nlEmail.trim() }),
+    })
+      .then((r) => { setNlStatus(r.ok ? 'ok' : 'error'); })
+      .catch(() => { setNlStatus('error'); });
   }
 
   return (
     <div className="bg-stone-50 text-slate-900" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* ── PORTADA — página completa al inicio (P5 · color block) ──── */}
-      <section className="relative bg-emerald-600 overflow-hidden flex flex-col" style={{ minHeight: 820 }}>
-        {/* halo blanco */}
-        <div className="absolute -left-40 top-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none" style={{
-          background: 'radial-gradient(circle, white 0%, transparent 65%)',
-        }} />
-        {/* líneas finas verticales */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.12]" style={{
-          backgroundImage: 'linear-gradient(to right, white 1px, transparent 1px)',
-          backgroundSize: '160px 100%',
-        }} />
-
-        {/* masthead arriba */}
-        <div className="relative max-w-6xl mx-auto w-full px-8 pt-10 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.3em] text-white/70">
-          <span className="flex items-center gap-2 font-bold text-white text-sm tracking-normal normal-case">
-            <span className="text-white text-xl leading-none">●</span>
-            Radar Inmobiliario Madrid
-          </span>
-          <span className="hidden md:flex items-center gap-4">
-            <span>Vol. 12 · Nº 05</span>
-            <span className="h-3 w-px bg-white/30" />
-            <span>Edición {meta.fecha}</span>
-            <span className="h-3 w-px bg-white/30" />
-            <span className="flex items-center gap-2 text-white font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              En vivo
-            </span>
-          </span>
-        </div>
-        <div className="relative max-w-6xl mx-auto w-full px-8 mt-6"><div className="h-px bg-white/20" /></div>
-
-        {/* cuerpo de la portada */}
-        <div className="relative max-w-6xl mx-auto w-full px-8 pt-16 grid grid-cols-12 gap-10 items-start flex-1">
-          <div className="col-span-12 md:col-span-8">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-white/80 font-bold mb-6 flex items-center gap-3">
-              <span className="inline-block w-10 h-px bg-white/50" /> Mapa del mes
-            </p>
-            <h1 className="text-[100px] md:text-[164px] font-bold tracking-[-0.06em] leading-[0.82] text-white" style={{ textWrap: 'balance' }}>
-              Madrid<br />
-              sin filtros.
-            </h1>
-            <p className="text-xl text-white/85 max-w-xl mt-8 leading-relaxed" style={{ textWrap: 'pretty' }}>
-              Sin recomendaciones. Sin patrocinios. Solo el precio, el cambio y el porqué — 21 distritos, 131 barrios, cada lunes.
-            </p>
-          </div>
-
-          {/* Lateral derecho: silueta de Madrid */}
-          <div className="col-span-12 md:col-span-4 mt-2 flex items-start justify-center">
-            <div className="relative w-full max-w-[360px]">
-              <p className="text-center text-[10px] font-mono uppercase tracking-[0.3em] text-white/70 mb-4">El término municipal</p>
-              <svg viewBox="0 0 360 360" className="w-full">
-                <g transform="translate(180 180)">
-                  <path d="M-150,-60 L-100,-130 L-30,-160 L60,-150 L130,-110 L160,-30 L150,60 L100,130 L20,160 L-70,150 L-140,90 L-160,0 Z" fill="rgba(255,255,255,0.08)" stroke="white" strokeWidth="2.5" strokeLinejoin="round" />
-                  <path d="M-90,-100 L0,-110 L80,-80 M-80,-30 L0,-40 L100,-10 M-100,40 L0,30 L120,50 M-50,100 L40,90" stroke="white" strokeWidth="0.8" opacity="0.4" fill="none" />
-                  <line x1="0" y1="-160" x2="0" y2="160" stroke="white" strokeWidth="0.5" opacity="0.25" />
-                  <line x1="-160" y1="0" x2="160" y2="0" stroke="white" strokeWidth="0.5" opacity="0.25" />
-                  <circle cx="0" cy="-20" r="5" fill="white" />
-                  <circle cx="-50" cy="60" r="3" fill="white" opacity="0.6" />
-                  <circle cx="70" cy="40" r="3" fill="white" opacity="0.6" />
-                  <circle cx="80" cy="-70" r="3" fill="white" opacity="0.6" />
-                  <circle cx="-80" cy="-50" r="3" fill="white" opacity="0.6" />
-                </g>
-              </svg>
-              <p className="text-center text-[10px] font-mono uppercase tracking-[0.3em] text-white/70 mt-2">606 km² · 3,3 M habitantes</p>
-            </div>
-          </div>
-        </div>
-
-        {/* footer portada: scroll hint */}
-        <div className="relative max-w-6xl mx-auto w-full px-8 pb-6 pt-10 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
-          <span>Sigue scrolleando — la web te espera abajo</span>
-          <span className="flex items-center gap-2">
-            <span>Bajar</span>
-            <span className="inline-block w-px h-6 bg-white/40 animate-pulse" />
-          </span>
-        </div>
-      </section>
-
       {/* ── HEADER ──────────────────────────────────────────────────── */}
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-8 h-14 flex items-center justify-between">
@@ -112,10 +46,6 @@ function VariationD() {
           <nav className="flex items-center gap-6 text-sm text-slate-600">
             <span className="cursor-pointer hover:text-emerald-700" onClick={() => window.navTo && window.navTo('/distritos')}>Distritos</span>
             <span className="cursor-pointer hover:text-emerald-700" onClick={() => window.navTo && window.navTo('/noticias')}>Noticias</span>
-            <span className="cursor-pointer hover:text-emerald-700">Comparar</span>
-            <span className="cursor-pointer hover:text-emerald-700">Calculadora</span>
-            <span className="cursor-pointer hover:text-emerald-700">Rankings</span>
-            <span className="cursor-pointer hover:text-emerald-700">Artículos</span>
             <span className="bg-emerald-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-emerald-500">Newsletter</span>
           </nav>
         </div>
@@ -126,10 +56,8 @@ function VariationD() {
         <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono">
           <DTicker label="MADRID €/m²"    value={meta.precioMedio.toLocaleString('es-ES')} delta={`+${meta.variacionMedia.toFixed(1)}%`} up />
           <DTicker label="EURIBOR 12m"    value={macro.euribor12m.toFixed(2) + '%'} delta={macro.euriborDelta.toFixed(2)} />
-          <DTicker label="BCE TIPO"        value={macro.tipoBCE.toFixed(2) + '%'} delta="±0" />
           <DTicker label="ESFUERZO %"      value={macro.esfuerzoHipoteca.toFixed(1) + '%'} delta={macro.esfuerzoDelta.toFixed(1)} />
           <DTicker label="HIPOTECAS / MES" value={macro.hipotecasMensual.toLocaleString('es-ES')} delta={`+${macro.hipotecasDelta.toFixed(1)}%`} up />
-          <DTicker label="TX 12m"          value={meta.transaccionesAnio.toLocaleString('es-ES')} delta="+8,2%" up />
           <span className="ml-auto flex items-center gap-2 text-emerald-700 text-[10px] uppercase tracking-widest font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             LIVE · {meta.fecha}
@@ -168,11 +96,11 @@ function VariationD() {
           {/* THE BIG MAP */}
           <div className="relative">
             <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-              <div className="relative" style={{ height: 720 }}>
+              <div className="relative" style={{ height: 'clamp(400px, 55vw, 720px)' }}>
                 <div className="absolute inset-0">
                   <window.MadridGeoMap
                     distritos={distritos}
-                    height={720}
+                    height="100%"
                     labelsFor={['salamanca', 'san-blas-canillejas', 'villaverde', 'centro']}
                     highlight={spotlight.slug}
                   />
