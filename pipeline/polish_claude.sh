@@ -91,6 +91,9 @@ Se te dan $COUNT noticias aprobadas en formato JSON. Tu tarea:
    - Reescribe 'resumen' en 1-2 frases directas, datos concretos, estilo periodístico sin adornos. Máx 200 chars.
    - Define 'impacto': el dato clave de impacto en precio (ej: '+6,2 %', '-14 min', '2.800 €/m²'). Máx 20 chars.
    - Define 'impactoLabel': descripción muy corta del dato (ej: 'sobre precio distrito', 'a Atocha'). Máx 35 chars.
+   - Genera 'slug': kebab-case del titular, solo minúsculas, guiones, sin acentos ni caracteres especiales. Máx 70 chars. Ej: 'hipotecas-madrid-22-meses-alza-abril-2010'.
+   - Genera 'fechaISO': fecha en formato ISO 8601 (YYYY-MM-DD). Año actual: 2026.
+   - Genera 'body': array de 3-4 bloques de texto con el artículo completo (~300 palabras). Formato: [{\"type\":\"p\",\"dropcap\":true,\"text\":\"...\"},{\"type\":\"p\",\"text\":\"...\"},{\"type\":\"pullquote\",\"text\":\"cita destacada\"},{\"type\":\"p\",\"text\":\"...\"}]. El primer bloque lleva dropcap:true. Un bloque debe ser pullquote con la frase más impactante.
    - Mantén sin modificar: 'fecha', 'hora', 'categoria', 'distrito', 'fuente', 'tag', 'imagen' del input. 'distrito' puede ser null. 'imagen' puede ser cadena vacía.
 
 2. Elige la noticia más impactante como 'destacada' y añádele:
@@ -105,12 +108,12 @@ Devuelve SOLO el JSON con esta estructura (sin texto extra):
   \"actualizado\": \"$FECHA_CORTA\",
   \"semanaResumen\": { \"publicadas\": $COUNT, \"distritosCubiertos\": <n>, \"movimientoMedio\": \"<±X,X %>\" },
   \"destacada\": {
-    \"fecha\": \"...\", \"hora\": \"...\", \"categoria\": \"...\", \"distrito\": \"...\", \"fuente\": \"...\", \"imagen\": \"...\",
+    \"slug\": \"...\", \"fechaISO\": \"2026-MM-DD\", \"fecha\": \"...\", \"hora\": \"...\", \"categoria\": \"...\", \"distrito\": \"...\", \"fuente\": \"...\", \"imagen\": \"...\",
     \"titulo\": \"...\", \"resumen\": \"...\",
     \"metricas\": [{\"label\": \"...\", \"valor\": \"...\", \"delta\": \"...\", \"up\": true}]
   },
   \"items\": [
-    {\"fecha\":\"...\",\"hora\":\"...\",\"categoria\":\"...\",\"tag\":\"...\",\"distrito\":\"...\",\"fuente\":\"...\",\"imagen\":\"...\",\"titulo\":\"...\",\"resumen\":\"...\",\"impacto\":\"...\",\"impactoLabel\":\"...\"}
+    {\"slug\":\"...\",\"fechaISO\":\"2026-MM-DD\",\"fecha\":\"...\",\"hora\":\"...\",\"categoria\":\"...\",\"tag\":\"...\",\"distrito\":\"...\",\"fuente\":\"...\",\"imagen\":\"...\",\"titulo\":\"...\",\"resumen\":\"...\",\"impacto\":\"...\",\"impactoLabel\":\"...\",\"body\":[{\"type\":\"p\",\"dropcap\":true,\"text\":\"...\"},{\"type\":\"p\",\"text\":\"...\"},{\"type\":\"pullquote\",\"text\":\"...\"},{\"type\":\"p\",\"text\":\"...\"}]}
   ]
 }
 
@@ -121,9 +124,9 @@ echo ""
 echo "Invocando claude -p para pulir $COUNT noticia(s)…"
 CLAUDE_OUTPUT=$(claude -p "$PROMPT" 2>/dev/null)
 
-# ── 4. Inyectar en news.js ────────────────────────────────────────────────────
+# ── 4. Inyectar en news.js (+ descargar imágenes externas a dist/img/) ────────
 python3 - "$NEWS_JS" "$CLAUDE_OUTPUT" <<'PYEOF'
-import sys, json, re
+import sys, json, re, unicodedata, urllib.request, os, time
 from pathlib import Path
 
 news_file = Path(sys.argv[1])
@@ -144,6 +147,40 @@ except json.JSONDecodeError as e:
     print("Output:")
     print(raw[:800])
     sys.exit(1)
+
+# ── Descargar imágenes externas ───────────────────────────────────────────────
+def slugify(text):
+    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode()
+    text = re.sub(r'[^\w\s-]', '', text.lower())
+    return re.sub(r'[-\s]+', '-', text).strip('-')[:80]
+
+def download_img(url, dest):
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=30) as r, open(dest, 'wb') as f:
+        f.write(r.read())
+
+dist_img = news_file.parent.parent / 'dist' / 'img'
+dist_img.mkdir(parents=True, exist_ok=True)
+
+def localise_imagen(art):
+    url = art.get('imagen', '')
+    if not url or not url.startswith('http'):
+        return
+    slug = art.get('slug') or slugify(art.get('titulo', 'noticia'))
+    fname = slug + '.jpg'
+    dest = dist_img / fname
+    try:
+        download_img(url, dest)
+        art['imagen'] = '/img/' + fname
+        print(f"  imagen: {fname} ({dest.stat().st_size // 1024} KB)")
+    except Exception as e:
+        print(f"  WARN: no se pudo descargar {url}: {e}")
+    time.sleep(0.3)
+
+localise_imagen(data.get('destacada', {}))
+for item in data.get('items', []):
+    localise_imagen(item)
 
 # Build the JS file
 js_items = json.dumps(data["items"], indent=2, ensure_ascii=False)
