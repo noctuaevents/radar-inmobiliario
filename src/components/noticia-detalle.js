@@ -873,6 +873,40 @@ function NoticiaDetalleDynamic({ slug }) {
   const metricCards = article.metricas
     || (article.impacto ? [{ label: article.impactoLabel || 'Impacto', valor: article.impacto, delta: '', up: true }] : []);
 
+  const { useEffect: useEffectND } = React;
+  useEffectND(() => {
+    const prev = document.getElementById('ld-article');
+    if (prev) prev.remove();
+    const script = document.createElement('script');
+    script.id = 'ld-article';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": article.titulo,
+      "description": article.resumen ? article.resumen.slice(0, 200) : undefined,
+      "image": article.imagen,
+      "datePublished": article.fechaISO || article.fecha,
+      "dateModified": article.fechaISO || article.fecha,
+      "url": 'https://radarinmobiliario.com/noticia/' + article.slug,
+      "inLanguage": "es",
+      "articleSection": article.categoria,
+      "keywords": article.tags ? article.tags.join(', ') : undefined,
+      "publisher": { "@id": "https://radarinmobiliario.com/#organization" },
+      "mainEntityOfPage": 'https://radarinmobiliario.com/noticia/' + article.slug,
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://radarinmobiliario.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Noticias", "item": "https://radarinmobiliario.com/noticias" },
+          { "@type": "ListItem", "position": 3, "name": article.titulo }
+        ]
+      }
+    });
+    document.head.appendChild(script);
+    return () => { const el = document.getElementById('ld-article'); if (el) el.remove(); };
+  }, [article.slug]);
+
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-white">
       <div className="max-w-6xl mx-auto px-10 pt-10">
@@ -941,7 +975,28 @@ function NoticiaDetalleDynamic({ slug }) {
 
       <div className="max-w-6xl mx-auto px-10 mt-14 grid grid-cols-12 gap-10 pb-20">
         <article className="col-span-8">
-          <p className="text-[16.5px] text-slate-700 leading-[1.7] mb-8">{article.resumen}</p>
+          {article.body ? (
+            article.body.map((block, i) => {
+              if (block.type === 'pullquote') {
+                return (
+                  <blockquote key={i} className="my-8 py-5 border-y border-slate-200">
+                    <span className={`inline-block ${ac.text} text-3xl leading-none align-top mr-2 font-serif`}>"</span>
+                    <span className="text-[1.35rem] font-bold text-slate-900 leading-[1.3]" style={{ textWrap: 'balance' }}>
+                      {block.text}
+                    </span>
+                  </blockquote>
+                );
+              }
+              const isFirst = i === 0 && block.dropcap;
+              return (
+                <p key={i} className={`text-[16.5px] text-slate-700 leading-[1.7] mb-5${isFirst ? ' first-letter:text-[3.4rem] first-letter:font-bold first-letter:text-slate-900 first-letter:mr-1.5 first-letter:float-left first-letter:leading-[0.92] first-letter:mt-1' : ''}`}>
+                  {block.text}
+                </p>
+              );
+            })
+          ) : (
+            <p className="text-[16.5px] text-slate-700 leading-[1.7] mb-8">{article.resumen}</p>
+          )}
           <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
