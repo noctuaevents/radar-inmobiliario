@@ -27,8 +27,8 @@ function NewsV2() {
   const categorias = ['Todas', ...Array.from(new Set(D.items.map(n => n.categoria)))];
   const filtered = filtro === 'Todas' ? D.items : D.items.filter(n => n.categoria === filtro);
 
-  const recientes = filtered.slice(0, 4);
-  const resto = filtered.slice(4);
+  const recientes = filtered.slice(0, 6);
+  const resto = filtered.slice(6);
 
   const heroBar = categoriaBar[D.destacada.categoria] || 'bg-amber-500';
 
@@ -103,35 +103,26 @@ function NewsV2() {
         </div>
       </div>
 
-      {/* CARDS + SIDE PANEL */}
+      {/* CARDS */}
       <div className="max-w-6xl mx-auto px-8 mt-6">
-        <div className="grid grid-cols-12 gap-8">
-          <div className="col-span-8">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-semibold text-slate-700 tracking-tight">
-                {filtro === 'Todas' ? 'Desarrollos recientes' : filtro}
-              </h3>
-              <p className="text-xs text-slate-400">Actualizado {D.actualizado}</p>
-            </div>
-
-            {recientes.length > 0 ? (
-              <div className="grid grid-cols-2 gap-5">
-                {recientes.map((n, i) => (
-                  <NewsV2Card key={i} n={n} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-32 bg-slate-50 border border-slate-200 rounded-2xl">
-                <p className="text-sm text-slate-400">Sin noticias en esta categoría</p>
-              </div>
-            )}
-          </div>
-
-          {/* SIDE PANEL */}
-          <div className="col-span-4">
-            <NewsV2Side D={D} />
-          </div>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-sm font-semibold text-slate-700 tracking-tight">
+            {filtro === 'Todas' ? 'Desarrollos recientes' : filtro}
+          </h3>
+          <p className="text-xs text-slate-400">Actualizado {D.actualizado}</p>
         </div>
+
+        {recientes.length > 0 ? (
+          <div className="grid grid-cols-3 gap-5">
+            {recientes.map((n, i) => (
+              <NewsV2Card key={i} n={n} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-32 bg-slate-50 border border-slate-200 rounded-2xl">
+            <p className="text-sm text-slate-400">Sin noticias en esta categoría</p>
+          </div>
+        )}
       </div>
 
       {/* MÁS ESTA SEMANA */}
