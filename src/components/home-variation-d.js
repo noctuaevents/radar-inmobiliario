@@ -345,6 +345,32 @@ function VariationD() {
         </div>
       </section>
 
+      {/* ── HERRAMIENTAS DE INVESTIGACIÓN ─────────────────────────── */}
+      <section className="bg-white py-20 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-8">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-bold mb-3">Herramientas</p>
+          <h2 className="text-4xl font-bold text-slate-900 tracking-tight mb-8" style={{ textWrap: 'balance' }}>
+            Analiza antes de decidir.
+          </h2>
+          <div className="bg-stone-50 border border-slate-200 rounded-2xl divide-y divide-slate-200">
+            {window.NEWS_DATA && window.NEWS_DATA.herramientas.map((h, i) => (
+              <div key={i} className="flex items-center justify-between px-6 py-5">
+                <div className="flex items-center gap-5">
+                  {window.NewsV2Icon && <window.NewsV2Icon name={h.icon} />}
+                  <div>
+                    <p className="text-base font-semibold text-slate-900 tracking-tight">{h.titulo}</p>
+                    <p className="text-sm text-slate-500 leading-relaxed mt-0.5 max-w-md">{h.descripcion}</p>
+                  </div>
+                </div>
+                <button className="bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap">
+                  {h.cta}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── NEWSLETTER — CLARO ──────────────────────────────────────── */}
       <section className="bg-stone-50 py-28 relative overflow-hidden border-b border-slate-200">
         <div className="absolute -right-32 -top-32 w-[480px] h-[480px] rounded-full opacity-30 pointer-events-none" style={{

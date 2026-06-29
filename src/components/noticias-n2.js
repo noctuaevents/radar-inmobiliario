@@ -134,35 +134,11 @@ function NewsV2() {
         </div>
       </div>
 
-      {/* HERRAMIENTAS */}
-      <div className="max-w-6xl mx-auto px-8 mt-16">
-        <h3 className="text-sm font-semibold text-slate-700 tracking-tight mb-5">Herramientas de investigación</h3>
-        <div className="bg-stone-50 border border-slate-200 rounded-2xl divide-y divide-slate-200">
-          {D.herramientas.map((h, i) => (
-            <div key={i} className="flex items-center justify-between px-6 py-5">
-              <div className="flex items-center gap-5">
-                <NewsV2Icon name={h.icon} />
-                <div>
-                  <p className="text-base font-semibold text-slate-900 tracking-tight">{h.titulo}</p>
-                  <p className="text-sm text-slate-500 leading-relaxed mt-0.5 max-w-md">{h.descripcion}</p>
-                </div>
-              </div>
-              <button className="bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap">
-                {h.cta}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* MÁS ESTA SEMANA */}
       {resto.length > 0 && (
         <div className="max-w-6xl mx-auto px-8 mt-16 pb-20">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-sm font-semibold text-slate-700 tracking-tight">Más esta semana</h3>
-            <a className="text-xs font-semibold text-emerald-700 cursor-pointer hover:underline underline-offset-4">
-              Todas las noticias →
-            </a>
           </div>
           <ul className="border-t border-slate-200">
             {resto.map((n, i) => (
@@ -371,21 +347,6 @@ function NewsV2Side({ D }) {
         </div>
       </div>
 
-      {/* Fuentes este mes */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold mb-4">
-          Fuentes este mes
-        </p>
-        <div className="space-y-2.5">
-          {D.fuentes.map((f, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${f.hue}`} />
-              <span className="text-[13px] text-slate-700 flex-1">{f.nombre}</span>
-              <span className="text-[12px] font-mono tabular-nums text-slate-400">{f.count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -421,3 +382,4 @@ function NewsV2Icon({ name }) {
 }
 
 window.NewsV2 = NewsV2;
+window.NewsV2Icon = NewsV2Icon;
