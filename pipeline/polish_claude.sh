@@ -219,4 +219,4 @@ done
 
 echo ""
 echo "✓ Paso de pulido completado."
-echo "  Siguiente: python3 pipeline/build.py  →  git push"
+echo "  Siguiente: python3 pipeline/build.py  (genera dist/ automáticamente)  →  git push"

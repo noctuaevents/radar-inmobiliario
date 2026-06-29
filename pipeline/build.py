@@ -77,5 +77,17 @@ def main():
     print(f"HTML: {old_kb:.0f} KB → {new_kb:.0f} KB")
 
 
+def distribute():
+    """Call distribute.py to extract assets and regenerate dist/index.html."""
+    import subprocess
+    dist_script = Path(__file__).parent / "distribute.py"
+    if dist_script.exists():
+        print("\nActualizando dist/ con distribute.py…")
+        subprocess.run([sys.executable, str(dist_script)], check=False)
+    else:
+        print(f"AVISO: {dist_script} no encontrado")
+
+
 if __name__ == "__main__":
     main()
+    distribute()
