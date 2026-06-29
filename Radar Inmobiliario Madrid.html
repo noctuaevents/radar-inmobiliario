@@ -140,6 +140,7 @@
       var view = seg[0] || '';
       var slug = seg[1] || '';
       var title, desc, canonical;
+      var ogImage = 'https://radarinmobiliario.com/og-image.png';
 
       if (view === '') {
         title = 'Radar Inmobiliario Madrid | Precios y datos del mercado por distrito';
@@ -170,6 +171,7 @@
         if (art) {
           title = art.titulo + ' | Radar Inmobiliario Madrid';
           desc  = art.resumen ? art.resumen.slice(0, 160) : 'Noticias del mercado inmobiliario de Madrid.';
+          if (art.imagen) ogImage = art.imagen.indexOf('http') === 0 ? art.imagen : 'https://radarinmobiliario.com' + art.imagen;
         } else {
           title = 'Noticia | Radar Inmobiliario Madrid';
           desc  = 'Noticias del mercado inmobiliario de Madrid.';
@@ -201,8 +203,10 @@
       setMeta('meta[property="og:url"]', canonical);
       setMeta('meta[property="og:title"]', title);
       setMeta('meta[property="og:description"]', desc);
+      setMeta('meta[property="og:image"]', ogImage);
       setMeta('meta[name="twitter:title"]', title);
       setMeta('meta[name="twitter:description"]', desc);
+      setMeta('meta[name="twitter:image"]', ogImage);
     }
 
     function tryUpdateMeta(path, attempt) {
