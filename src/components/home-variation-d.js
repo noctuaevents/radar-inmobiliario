@@ -96,11 +96,11 @@ function VariationD() {
           {/* THE BIG MAP */}
           <div className="relative">
             <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-              <div className="relative" style={{ height: 'clamp(400px, 55vw, 720px)' }}>
+              <div className="relative" style={{ height: 720 }}>
                 <div className="absolute inset-0">
                   <window.MadridGeoMap
                     distritos={distritos}
-                    height="100%"
+                    height={720}
                     labelsFor={['salamanca', 'san-blas-canillejas', 'villaverde', 'centro']}
                     highlight={spotlight.slug}
                   />
