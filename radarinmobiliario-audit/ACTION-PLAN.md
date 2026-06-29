@@ -1,223 +1,129 @@
-# Plan de Acción SEO — radarinmobiliario.com
-**Prioridad:** Critical → High → Medium → Low
+# Action Plan — radarinmobiliario.com
+**Fecha:** 29 Jun 2026 | **Score actual:** 69/100 | **Objetivo:** 80/100
 
 ---
 
-## Fase 1: Critical Fixes (Esta semana — 1–2 días de trabajo)
+## Fase 1 — Quick Wins (1–2 días) · +4 pts estimados
 
-### 1.1 Añadir `document.title` + meta canonical dinámicos en el router
-**Issue:** T2, T3, O1, O2, O4  
-**Impacto:** Permite que Google indexe cada página con su propio título y canonical  
-**Esfuerzo:** ~3 horas
+### 1.1 Corregir URL www en schemas ⚡ 5 min
+**Archivos:** `dist/index.html` (NewsArticle JS code + BreadcrumbList)
+Cambiar `https://radarinmobiliario.com/` → `https://www.radarinmobiliario.com/` en:
+- URL del NewsArticle: `"url": 'https://radarinmobiliario.com/noticia/' + ...`
+- Publisher `@id`: `"https://radarinmobiliario.com/#organization"`
+- mainEntityOfPage
 
-Añadir en `window.navTo` (o donde se gestione la navegación):
+**Impacto:** Elimina duplicación www/non-www en knowledge graph de Google.
+
+### 1.2 Añadir `"author"` al NewsArticle schema ⚡ 15 min
+**Archivo:** `dist/index.html` (en el JSON.stringify del NewsArticle)
 ```js
-function updatePageMeta({ title, description, canonical, ogTitle, ogDesc }) {
-  document.title = title;
-  document.querySelector('meta[name="description"]').content = description;
-  document.querySelector('link[rel="canonical"]').href = canonical;
-  document.querySelector('meta[property="og:url"]').content = canonical;
-  document.querySelector('meta[property="og:title"]').content = ogTitle || title;
-  document.querySelector('meta[property="og:description"]').content = ogDesc || description;
-  document.querySelector('meta[name="twitter:title"]').content = ogTitle || title;
-  document.querySelector('meta[name="twitter:description"]').content = ogDesc || description;
-}
+"author": {
+  "@type": "Organization",
+  "name": "Redacción Radar Inmobiliario Madrid",
+  "url": "https://www.radarinmobiliario.com/sobre"
+},
 ```
+**Impacto:** E-E-A-T mejorado, requisito para Google News indexing.
 
-Llamar en cada ruta:
-- `/` → título actual de portada
-- `/distritos` → "Distritos de Madrid: precio €/m² y rentabilidad | Radar Inmobiliario"
-- `/distritos/{slug}` → "Precio vivienda en {Nombre}: {€/m²} €/m² — Radar Inmobiliario Madrid"
-- `/noticias` → "Noticias del mercado inmobiliario de Madrid | Radar Inmobiliario"
-- `/noticia/{slug}` → `article.titulo + " | Radar Inmobiliario Madrid"`
-- `/metodologia` → "Metodología de datos | Radar Inmobiliario Madrid"
-- `/legal` → "Aviso Legal y Privacidad | Radar Inmobiliario Madrid"
-
----
-
-### 1.2 Inyectar `NewsArticle` JSON-LD en artículos
-**Issue:** S1  
-**Impacto:** Habilita Rich Results en Google News y Discover  
-**Esfuerzo:** ~2 horas
-
-En `NoticiaDetalleDynamic`, añadir un `useEffect` que inyecte en `<head>`:
-```js
-useEffect(() => {
-  const existing = document.getElementById('ld-article');
-  if (existing) existing.remove();
-  const script = document.createElement('script');
-  script.id = 'ld-article';
-  script.type = 'application/ld+json';
-  script.textContent = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    "headline": article.titulo,
-    "description": article.resumen,
-    "datePublished": article.fecha,    // convertir a ISO 8601
-    "dateModified": article.fecha,
-    "image": article.imagen,
-    "url": `https://radarinmobiliario.com/noticia/${article.slug}`,
-    "inLanguage": "es",
-    "publisher": { "@id": "https://radarinmobiliario.com/#organization" },
-    "mainEntityOfPage": `https://radarinmobiliario.com/noticia/${article.slug}`,
-    "articleSection": article.categoria,
-    "keywords": article.tags?.join(', ')
-  });
-  document.head.appendChild(script);
-  return () => document.getElementById('ld-article')?.remove();
-}, [article.slug]);
-```
-
----
-
-### 1.3 Añadir `x-default` a hreflang
-**Issue:** T8  
-**Esfuerzo:** 5 minutos  
-En `index.html` (y en el output de `pipeline/build.py`):
+### 1.3 Añadir preconnect para fuentes ⚡ 5 min
+**Archivo:** template HTML head
 ```html
-<link rel="alternate" hreflang="es" href="https://radarinmobiliario.com/">
-<link rel="alternate" hreflang="x-default" href="https://radarinmobiliario.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ```
+**Impacto:** ~50 ms menos en LCP, mejora CWV.
 
----
+### 1.4 Byline visual en artículos ⚡ 30 min
+**Archivo:** `src/components/noticia-detalle.js`
+Añadir debajo del título: `Por Redacción Radar Inmobiliario · {fecha}`
+**Impacto:** E-E-A-T visual, señal de autoría para usuarios y crawlers.
 
-### 1.4 Añadir `Content-Security-Policy` en `netlify.toml`
-**Issue:** T5  
-**Esfuerzo:** 15 minutos  
+### 1.5 Eliminar `potentialAction` del WebSite schema ⚡ 5 min
+Hasta que el buscador esté implementado. Evita confundir a Google.
+
+### 1.6 HSTS con flags completos ⚡ 5 min
+**Archivo:** `netlify.toml`
 ```toml
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://radarinmobiliario.com; connect-src 'self'; frame-src https://googleads.g.doubleclick.net;"
+Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
 ```
-Ajustar según los recursos reales cargados.
 
 ---
 
-## Fase 2: High-Impact Improvements (Semanas 2–3)
+## Fase 2 — Impacto Alto (1 semana) · +5 pts estimados
 
-### 2.1 Reducir el bundle HTML a <300 KB
-**Issue:** P1, P3  
-**Impacto:** Mejora LCP, reduce coste de indexación para Google  
-**Esfuerzo:** 1–2 días de refactoring del pipeline
+### 2.1 NewsArticle JSON-LD estático en artículos 🔧 2–3h
+Durante el `pipeline/build.py`, generar el JSON-LD de NewsArticle como `<script type="application/ld+json">` estático en el `<head>` de cada `/noticia/{slug}/index.html`.
 
-Opciones ordenadas por esfuerzo:
+Datos disponibles en `news.js`: `titulo`, `resumen`, `fechaISO`, `imagen`, `slug`, `categoria`.
 
-**Opción A (recomendada, bajo riesgo):** Step post-build de generación de HTML por ruta  
-Modificar `pipeline/build.py` para generar un `index.html` por cada URL con el `<head>` correcto, y mover los assets JS/CSS a ficheros separados referenciados con `<script src="...">`. Netlify servirá el fichero correcto por ruta.
-
-**Opción B (mayor refactoring):** Convertir a Vite + React con code splitting  
-Abandonar el bundler custom y usar Vite. Cada ruta carga solo su chunk. Trabajo de ~2–3 días.
-
----
-
-### 2.2 Añadir `BreadcrumbList` schema
-**Issue:** S2, O3  
-**Esfuerzo:** 1 hora
-
-Inyectar en cada página de detalle (noticia, distrito):
 ```json
 {
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://radarinmobiliario.com/"},
-    {"@type": "ListItem", "position": 2, "name": "Noticias", "item": "https://radarinmobiliario.com/noticias"},
-    {"@type": "ListItem", "position": 3, "name": "{titulo artículo}"}
-  ]
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "{titulo}",
+  "description": "{resumen[:200]}",
+  "image": "https://www.radarinmobiliario.com/img/{slug}.jpg",
+  "datePublished": "{fechaISO}",
+  "url": "https://www.radarinmobiliario.com/noticia/{slug}",
+  "inLanguage": "es",
+  "author": {"@type":"Organization","name":"Redacción Radar Inmobiliario Madrid","url":"https://www.radarinmobiliario.com/sobre"},
+  "publisher": {"@id":"https://www.radarinmobiliario.com/#organization"},
+  "mainEntityOfPage": "https://www.radarinmobiliario.com/noticia/{slug}"
 }
 ```
 
----
+**Impacto:** Habilita Google News Rich Results sin necesidad de renderizar JS.
 
-### 2.3 Completar cuerpo de artículos
-**Issue:** C1  
-**Impacto:** E-E-A-T, tiempo en página, thin content risk  
-**Esfuerzo:** Editorial — añadir campo `body` en `news.js` para los 7 artículos restantes
+### 2.2 Texto del artículo estático en HTML 🔧 3–4h
+En `pipeline/build.py`, añadir un `<noscript>` o `<script type="application/json">` con el texto del artículo para crawlers que no ejecutan JS. El body array de `news.js` contiene los párrafos ya disponibles.
 
-Estructura mínima por artículo: 3–5 párrafos (~300–500 palabras), 1 pullquote, datos clave.  
-Añadir campo `body` en `news.js` y actualizar `NoticiaDetalleDynamic` para renderizarlo.
+**Impacto:** Passage-level indexing, mejor E-E-A-T, citabilidad por LLMs sin JS.
 
----
-
-### 2.4 Añadir byline / autoría en artículos
-**Issue:** C2  
-**Esfuerzo:** 30 min de código + decisión editorial  
-Añadir "Redacción Radar Inmobiliario" o nombre del editor. Incluir en `NewsArticle` schema como `author`.
-
----
-
-### 2.5 Actualizar `llms.txt` con artículos y datos completos
-**Issue:** G1, G3, G4  
-**Esfuerzo:** 20 minutos
-
-Añadir sección:
-```markdown
-## Noticias recientes
-
-- [Hipotecas en Madrid: 22 meses al alza y el mejor abril desde 2010](https://radarinmobiliario.com/noticia/hipotecas-madrid-22-meses-alza-abril-2010) — 22 Jun 2026
-- [La firma de hipotecas en Madrid frena: primera caída mensual del año](https://radarinmobiliario.com/noticia/hipotecas-madrid-frena-primera-caida-mensual) — 22 Jun 2026
-...
+### 2.3 Imágenes WebP con fallback 🔧 1–2h
+Generar versiones WebP en pipeline:
+```python
+from PIL import Image
+img = Image.open('dist/img/slug.jpg')
+img.save('dist/img/slug.webp', 'WEBP', quality=85)
 ```
-
-Actualizar "Euríbor 12 meses: referencia hipotecaria principal" con el valor real.
-
----
-
-### 2.6 Añadir favicon PNG y PWA icons
-**Issue:** T6, I1, I2  
-**Esfuerzo:** 1 hora
-
-Generar desde el SVG existente:
-- `favicon.ico` (32×32)
-- `apple-touch-icon.png` (180×180)
-- `icon-192.png` (192×192)
-- `icon-512.png` (512×512)
-
-Actualizar `manifest.json` y `<head>` del HTML.
+Usar `<picture>` en componentes con WebP + JPEG fallback.
+**Impacto:** −25–35% peso de imágenes, mejor LCP en móvil.
 
 ---
 
-### 2.7 Mover imágenes de Unsplash a `/dist/img/`
-**Issue:** I3  
-**Esfuerzo:** Modificar `pipeline/fetch_news.py` para descargar y guardar imágenes localmente
+## Fase 3 — Contenido y Autoridad (mes 2) · +4 pts estimados
+
+### 3.1 Páginas estáticas por distrito
+Generar `/distritos/{slug}/index.html` con title único, meta description, JSON-LD Place/Dataset, y párrafo intro estático: "En {nombre}, el precio medio es {precio} €/m², rentabilidad {rent}%, variación +{var}%."
+
+**Impacto:** 21 páginas rankeables individualmente en búsquedas "precio vivienda {distrito} Madrid".
+
+### 3.2 Página /sobre con perfil editorial
+- Misión del proyecto, metodología, dateline de lanzamiento
+- `Person` o `Organization` schema ampliado
+
+### 3.3 Política de privacidad real (RGPD)
+Requerida por Beehiiv (newsletter) y Google AdSense. Incluir política de cookies.
+
+### 3.4 llms-full.txt con 131 barrios
+Expandir llms.txt con datos de barrios cuando el pipeline de barrios esté operativo.
 
 ---
 
-## Fase 3: Content & Authority (Mes 2)
+## Fase 4 — Monitorización (ongoing)
 
-### 3.1 Añadir `Dataset` schema por página de distrito
-Cada `/distritos/{slug}` debería inyectar un schema con los datos específicos del distrito.
-
-### 3.2 Crear `og-image` dinámica por artículo
-Generar OG images por artículo en build time con los datos de precio/titular. Puede hacerse con `node-canvas` o Playwright en el pipeline.
-
-### 3.3 Newsletter con backend (Beehiiv)
-Conectar el formulario actual (`handleNlSubmit` en `home-variation-d.js`) a la API de Beehiiv.
-
-### 3.4 Links internos en artículos
-Enlazar cada artículo a las páginas de distrito mencionadas (ya existen como rutas `/distritos/{slug}`).
-
-### 3.5 Datos de barrios en llms.txt
-Añadir la tabla de 131 barrios (ya en `src/data/distritos.js`) al llms.txt para citabilidad completa.
+- Google Search Console: Coverage, Core Web Vitals, Rich Results — revisar mensualmente
+- PageSpeed Insights tras WebP + preconnect para medir LCP real
+- Verificar Google News indexing tras NewsArticle estático (Rich Results Test)
+- Actualizar llms.txt en cada edición mensual con datos frescos
 
 ---
 
-## Fase 4: Monitoring & Iteration (Ongoing)
+## Resumen de impacto estimado
 
-- Revisar GSC semanalmente: indexación, CTR, queries de posición 11–20 para push
-- Monitorizar `sitemapindex` en GSC — verificar que las páginas de distrito se indexan correctamente
-- Configurar alertas de CWV en GSC (cuando haya suficiente tráfico para datos de campo)
-- Ejecutar este audit mensualmente tras cada edición de datos
-
----
-
-## Resumen de impacto estimado por fase
-
-| Fase | Esfuerzo | Impacto SEO |
-|------|----------|-------------|
-| Fase 1 (Critical) | ~6h | +15–20 puntos en On-Page y Technical |
-| Fase 2 (High) | ~2 días | +10–15 puntos en Contenido y Schema |
-| Fase 3 (Content) | ~1 semana | +5–10 puntos; habilita Google News Rich Results |
-| Fase 4 (Ongoing) | recurrente | Mantener + mejora gradual de autoridad |
-
-Puntuación objetivo tras Fases 1+2: **65–70 / 100**
+| Fase | Esfuerzo | Score proyectado |
+|------|---------|-----------------|
+| Baseline actual | — | 69/100 |
+| Fase 1 Quick Wins | 1–2h | 73/100 |
+| Fase 2 Alto Impacto | 1 semana | 78/100 |
+| Fase 3 Contenido | Mes 2 | 82/100 |

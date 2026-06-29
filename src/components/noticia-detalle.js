@@ -888,17 +888,22 @@ function NoticiaDetalleDynamic({ slug }) {
       "image": article.imagen,
       "datePublished": article.fechaISO || article.fecha,
       "dateModified": article.fechaISO || article.fecha,
-      "url": 'https://radarinmobiliario.com/noticia/' + article.slug,
+      "url": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
       "inLanguage": "es",
       "articleSection": article.categoria,
       "keywords": article.tags ? article.tags.join(', ') : undefined,
-      "publisher": { "@id": "https://radarinmobiliario.com/#organization" },
-      "mainEntityOfPage": 'https://radarinmobiliario.com/noticia/' + article.slug,
+      "author": {
+        "@type": "Organization",
+        "name": "Redacción Radar Inmobiliario Madrid",
+        "url": "https://www.radarinmobiliario.com/sobre"
+      },
+      "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" },
+      "mainEntityOfPage": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://radarinmobiliario.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Noticias", "item": "https://radarinmobiliario.com/noticias" },
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.radarinmobiliario.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Noticias", "item": "https://www.radarinmobiliario.com/noticias" },
           { "@type": "ListItem", "position": 3, "name": article.titulo }
         ]
       }
@@ -934,9 +939,12 @@ function NoticiaDetalleDynamic({ slug }) {
                   </>
                 )}
               </div>
-              <h1 className="text-[2.6rem] font-bold text-slate-900 tracking-[-0.02em] leading-[1.04] mb-5" style={{ textWrap: 'balance' }}>
+              <h1 className="text-[2.6rem] font-bold text-slate-900 tracking-[-0.02em] leading-[1.04] mb-2" style={{ textWrap: 'balance' }}>
                 {article.titulo}
               </h1>
+              <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px', marginTop: '4px' }}>
+                Por <strong style={{ color: '#334155' }}>Redacción Radar Inmobiliario</strong> · {article.fecha || article.fechaISO}
+              </p>
               <p className="text-[16px] text-slate-600 leading-relaxed max-w-xl">{article.resumen}</p>
               <div className="flex items-center gap-5 mt-7 text-[12px] text-slate-500">
                 <span className="font-semibold text-slate-700">{article.fuente}</span>

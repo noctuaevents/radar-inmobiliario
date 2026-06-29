@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- SEO primario -->
@@ -45,15 +47,7 @@
     "url": "https://www.radarinmobiliario.com",
     "description": "Publicación independiente de datos del mercado inmobiliario de Madrid. Precios €/m², rentabilidades y tendencias por distrito y barrio.",
     "inLanguage": "es",
-    "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" },
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://www.radarinmobiliario.com/distritos?q={search_term_string}"
-      },
-      "query-input": "required name=search_term_string"
-    }
+    "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" }
   }
   </script>
 
@@ -772,8 +766,60 @@
   <script src="/assets/react.min.js"></script>
   <script src="/assets/react-dom.min.js"></script>
   <script src="/assets/babel.min.js"></script>
+
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Casa 47 invierte 140 M€ en el Nuevo Barrio Campamento",
+  "description": "Casa 47 destina 140 millones de euros a las obras del Nuevo Barrio Campamento, el mayor proyecto de desarrollo urbanístico activo en el suroeste de Madrid, con ",
+  "image": "https://www.radarinmobiliario.com/img/casa-47-140-millones-campamento.jpg",
+  "datePublished": "2026-06-29",
+  "dateModified": "2026-06-29",
+  "url": "https://www.radarinmobiliario.com/noticia/casa-47-140-millones-campamento",
+  "inLanguage": "es",
+  "articleSection": "Obras",
+  "author": {
+    "@type": "Organization",
+    "name": "Redacción Radar Inmobiliario Madrid",
+    "url": "https://www.radarinmobiliario.com/sobre"
+  },
+  "publisher": {
+    "@id": "https://www.radarinmobiliario.com/#organization"
+  },
+  "mainEntityOfPage": "https://www.radarinmobiliario.com/noticia/casa-47-140-millones-campamento",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://www.radarinmobiliario.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Noticias",
+        "item": "https://www.radarinmobiliario.com/noticias"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Casa 47 invierte 140 M€ en el Nuevo Barrio Campamento"
+      }
+    ]
+  }
+}
+  </script>
 </head>
 <body class="bg-stone-100">
+  
+  <div id="article-body" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+    <p>La promotora Casa 47 ha formalizado una inversión de 140 millones de euros para la ejecución de las obras del Nuevo Barrio Campamento, el gran desarrollo urbanístico del suroeste de Madrid que se extiende sobre los terrenos del antiguo acuartelamiento militar de Campamento, entre los distritos de Latina y Carabanchel. El proyecto prevé más de 1.200 viviendas en su primera fase, con una mezcla de tipologías que incluye obra nueva en venta y vivienda dotacional.</p>
+    <p>Campamento es uno de los últimos grandes bolsones de suelo urbano disponibles dentro del municipio de Madrid. Su desarrollo, que arranca tras años de planificación y tramitación urbanística, tiene el potencial de transformar el tejido residencial del suroeste de la ciudad, históricamente menos presionado en precio que el norte y el este.</p>
+    <p>Para el mercado de Latina, que cotiza actualmente a 3.916 €/m² con una variación interanual del +21%, la entrada de nueva oferta en Campamento podría moderar las expectativas de revalorización a medio plazo. Sin embargo, los plazos de entrega de una promoción de esta escala suelen extenderse entre tres y cinco años, tiempo durante el cual la presión de demanda en el distrito difícilmente remitirá.</p>
+  </div>
   <div id="root">
     <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#faf9f5;font:14px/1 -apple-system,BlinkMacSystemFont,sans-serif;color:#9ca3af;">
       Cargando…
@@ -3238,17 +3284,22 @@ function NoticiaDetalleDynamic({ slug }) {
       "image": article.imagen,
       "datePublished": article.fechaISO || article.fecha,
       "dateModified": article.fechaISO || article.fecha,
-      "url": 'https://radarinmobiliario.com/noticia/' + article.slug,
+      "url": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
       "inLanguage": "es",
       "articleSection": article.categoria,
       "keywords": article.tags ? article.tags.join(', ') : undefined,
-      "publisher": { "@id": "https://radarinmobiliario.com/#organization" },
-      "mainEntityOfPage": 'https://radarinmobiliario.com/noticia/' + article.slug,
+      "author": {
+        "@type": "Organization",
+        "name": "Redacción Radar Inmobiliario Madrid",
+        "url": "https://www.radarinmobiliario.com/sobre"
+      },
+      "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" },
+      "mainEntityOfPage": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://radarinmobiliario.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Noticias", "item": "https://radarinmobiliario.com/noticias" },
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.radarinmobiliario.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Noticias", "item": "https://www.radarinmobiliario.com/noticias" },
           { "@type": "ListItem", "position": 3, "name": article.titulo }
         ]
       }
@@ -3284,9 +3335,12 @@ function NoticiaDetalleDynamic({ slug }) {
                   </>
                 )}
               </div>
-              <h1 className="text-[2.6rem] font-bold text-slate-900 tracking-[-0.02em] leading-[1.04] mb-5" style={{ textWrap: 'balance' }}>
+              <h1 className="text-[2.6rem] font-bold text-slate-900 tracking-[-0.02em] leading-[1.04] mb-2" style={{ textWrap: 'balance' }}>
                 {article.titulo}
               </h1>
+              <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px', marginTop: '4px' }}>
+                Por <strong style={{ color: '#334155' }}>Redacción Radar Inmobiliario</strong> · {article.fecha || article.fechaISO}
+              </p>
               <p className="text-[16px] text-slate-600 leading-relaxed max-w-xl">{article.resumen}</p>
               <div className="flex items-center gap-5 mt-7 text-[12px] text-slate-500">
                 <span className="font-semibold text-slate-700">{article.fuente}</span>

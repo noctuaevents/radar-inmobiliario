@@ -81,14 +81,20 @@ def extract_news_articles() -> list:
         f  = re.search(r'"fechaISO":\s*"([^"]+)"',  ctx)
         h  = re.search(r'"hora":\s*"([^"]+)"',      ctx)
         i  = re.search(r'"imagen":\s*"([^"]+)"',    ctx)
+        ca = re.search(r'"categoria":\s*"([^"]+)"', ctx)
+
+        # Extract paragraph texts from body array
+        body_texts = re.findall(r'"type":\s*"p"[^}]*?"text":\s*"((?:[^"\\]|\\.)*)"', ctx)
 
         articles.append({
-            'slug':     slug,
-            'titulo':   t.group(1)  if t  else '',
-            'resumen':  r_.group(1) if r_ else '',
-            'fechaISO': f.group(1)  if f  else '',
-            'hora':     h.group(1)  if h  else '00:00',
-            'imagen':   i.group(1)  if i  else '/og-image.png',
+            'slug':      slug,
+            'titulo':    t.group(1)   if t   else '',
+            'resumen':   r_.group(1)  if r_  else '',
+            'fechaISO':  f.group(1)   if f   else '',
+            'hora':      h.group(1)   if h   else '00:00',
+            'imagen':    i.group(1)   if i   else '/og-image.png',
+            'categoria': ca.group(1)  if ca  else '',
+            'body_texts': body_texts,
         })
 
     return articles
@@ -138,6 +144,50 @@ def gen_article_pages(articles: list, index_html: str) -> None:
                           rf'\g<1>{resumen_esc}\2', art_html)
         art_html = re.sub(r'(<meta name="twitter:image" content=")[^"]*(")',
                           rf'\g<1>{og_image}\2', art_html)
+
+        # Inject static NewsArticle JSON-LD into <head>
+        fecha_pub = art.get('fechaISO', '')
+        categoria = art.get('categoria', '')
+        ld_author = {"@type": "Organization", "name": "Redacción Radar Inmobiliario Madrid",
+                     "url": f"{BASE_URL}/sobre"}
+        ld_pub    = {"@id": f"{BASE_URL}/#organization"}
+        ld = {
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            "headline": titulo_raw,
+            "description": resumen_raw,
+            "image": og_image,
+            "datePublished": fecha_pub,
+            "dateModified": fecha_pub,
+            "url": canonical,
+            "inLanguage": "es",
+            "articleSection": categoria,
+            "author": ld_author,
+            "publisher": ld_pub,
+            "mainEntityOfPage": canonical,
+            "breadcrumb": {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Inicio", "item": BASE_URL + "/"},
+                    {"@type": "ListItem", "position": 2, "name": "Noticias", "item": BASE_URL + "/noticias"},
+                    {"@type": "ListItem", "position": 3, "name": titulo_raw},
+                ]
+            }
+        }
+        ld_tag = f'\n  <script type="application/ld+json">\n  {json.dumps(ld, ensure_ascii=False, indent=2)}\n  </script>'
+        art_html = art_html.replace('</head>', ld_tag + '\n</head>', 1)
+
+        # Inject article body text as hidden element for crawlers (passage indexing)
+        body_texts = art.get('body_texts', [])
+        if body_texts:
+            body_html_parts = [f'<p>{_html.escape(p)}</p>' for p in body_texts]
+            hidden_body = (
+                '\n  <div id="article-body" style="position:absolute;left:-9999px;top:-9999px;'
+                'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n    '
+                + '\n    '.join(body_html_parts)
+                + '\n  </div>'
+            )
+            art_html = art_html.replace('<div id="root">', hidden_body + '\n  <div id="root">', 1)
 
         article_dir = noticia_dir / slug
         article_dir.mkdir(exist_ok=True)

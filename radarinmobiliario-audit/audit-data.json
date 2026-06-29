@@ -1,262 +1,228 @@
 {
   "summary": {
-    "health_score": 47,
-    "business_type": "Publisher / Data Media — datos inmobiliarios independientes",
-    "domain": "radarinmobiliario.com",
+    "health_score": 69,
+    "previous_score": 47,
+    "score_delta": 22,
     "audit_date": "2026-06-29",
+    "domain": "radarinmobiliario.com",
+    "business_type": "Publisher / Data Media — mercado inmobiliario Madrid",
     "top_findings": [
-      "SPA de archivo único: todos los URLs devuelven el mismo HTML con los mismos metatítulos y canonical",
-      "Bundle HTML de 1,8 MB — contenido solo visible tras ejecutar JavaScript",
-      "Sin NewsArticle schema en artículos — no apto para Google News Rich Results",
-      "Sin actualización de document.title en navegación SPA",
-      "7 de 8 artículos con solo ~100 palabras de resumen (thin content)"
+      "NewsArticle JSON-LD inyectado por JS, no estático — limita Google News Rich Results",
+      "URL inconsistente en schemas: non-www vs canonical www",
+      "Artículos sin texto crawleable en HTML inicial (body renderizado por React)",
+      "Sin autor en artículos — E-E-A-T débil para contenido financiero/inmobiliario",
+      "21 páginas de distrito en sitemap sin contenido diferenciado estático"
     ],
     "quick_wins": [
-      "Añadir document.title + meta canonical dinámicos en window.navTo (~3h)",
-      "Inyectar NewsArticle JSON-LD en NoticiaDetalleDynamic useEffect (~2h)",
-      "Añadir x-default a hreflang (5 min)",
-      "Añadir Content-Security-Policy en netlify.toml (15 min)",
-      "Completar llms.txt con URLs de artículos (20 min)"
+      "Corregir URL www en schemas NewsArticle y publisher @id (5 min)",
+      "Añadir author al NewsArticle schema (15 min)",
+      "Añadir preconnect para Google Fonts (5 min, +50ms LCP)",
+      "Añadir byline visual en artículos (30 min)",
+      "Eliminar potentialAction SearchAction hasta implementar buscador (5 min)"
     ]
   },
   "categories": [
     {
       "name": "Technical SEO",
-      "score": 45,
+      "score": 72,
+      "previous_score": 45,
       "what_works": [
-        "HTTPS con HSTS (max-age=31536000)",
-        "HTTP/2, CDN Netlify Edge — TTFB 137ms",
-        "robots.txt correcto con referencia al sitemap",
-        "Sitemap enviado a Google Search Console",
-        "Canonical estático en <head>",
-        "lang='es' en <html>",
-        "X-Frame-Options: DENY, X-Content-Type-Options, Referrer-Policy, Permissions-Policy"
+        "HTTPS + HSTS 2 años",
+        "Vercel Edge CDN, TTFB ~48ms",
+        "Bundle HTML 210 KB (desde 1.8 MB, -88%)",
+        "8 páginas estáticas por artículo con head únicos",
+        "CSP + X-Frame-Options + X-Content-Type-Options + Referrer-Policy",
+        "hreflang es + x-default en todos los heads",
+        "Favicon completo: .ico + PNG múltiples tamaños"
       ],
       "findings": [
         {
-          "title": "Todos los URLs devuelven el mismo HTML",
-          "severity": "Critical",
-          "description": "netlify.toml redirige /* → /index.html con status 200. content-length: 1828943 idéntico para /, /distritos/salamanca, /noticias, etc.",
-          "recommendation": "Generar HTML individual por ruta en build.py con <head> diferenciado, o implementar dynamic meta injection en window.navTo"
-        },
-        {
-          "title": "Sin actualización de <title> en navegación SPA",
-          "severity": "Critical",
-          "description": "window.navTo cambia la vista pero nunca actualiza document.title. Google siempre lee el mismo título para todas las páginas.",
-          "recommendation": "Llamar document.title = ... en cada transición de ruta"
-        },
-        {
-          "title": "Canonical estático apunta siempre a /",
-          "severity": "Critical",
-          "description": "<link rel='canonical' href='https://radarinmobiliario.com/'> no cambia. /distritos/salamanca tiene canonical en /.",
-          "recommendation": "Actualizar dinamicamente con document.querySelector('link[rel=canonical]').href = currentUrl"
-        },
-        {
-          "title": "Bundle HTML de 1,8 MB",
+          "title": "NewsArticle JSON-LD inyectado por JS",
           "severity": "High",
-          "description": "Archivo único con todos los assets Base64 embebidos. LCP estimado >3s en conexión media.",
-          "recommendation": "Refactorizar pipeline para separar assets en ficheros externos con hash"
+          "description": "document.createElement en useEffect — no en el HTML estático. Googlebot lo ve solo tras renderizado JS.",
+          "recommendation": "Embeber NewsArticle JSON-LD en el <head> estático de cada /noticia/{slug}/index.html durante el build"
         },
         {
-          "title": "Sin Content-Security-Policy header",
+          "title": "URL non-www en schemas",
           "severity": "High",
-          "description": "Las demás cabeceras de seguridad están configuradas pero falta CSP.",
-          "recommendation": "Añadir CSP en [[headers]] de netlify.toml"
+          "description": "NewsArticle usa https://radarinmobiliario.com/ pero canonical es https://www.radarinmobiliario.com/",
+          "recommendation": "Cambiar todas las referencias en el código JS a https://www.radarinmobiliario.com/"
         },
         {
-          "title": "Favicon solo como data URI inline",
+          "title": "Páginas de distrito sin pre-render estático",
           "severity": "Medium",
-          "description": "No existen favicon.ico ni PNG en /dist. PWA manifest usa data URI.",
-          "recommendation": "Generar favicon.ico, apple-touch-icon.png (180x180), icon-192.png, icon-512.png"
+          "description": "/distritos/salamanca devuelve el mismo HTML que la portada.",
+          "recommendation": "Generar /distritos/{slug}/index.html con head único durante build"
         },
         {
-          "title": "hreflang sin x-default",
+          "title": "Sin preconnect para Google Fonts",
           "severity": "Low",
-          "description": "Solo hreflang='es'. Falta hreflang='x-default'.",
-          "recommendation": "Añadir <link rel='alternate' hreflang='x-default' href='https://radarinmobiliario.com/'>"
+          "description": "fonts.googleapis.com y fonts.gstatic.com sin preconnect hint. Coste ~50ms en first render.",
+          "recommendation": "Añadir <link rel='preconnect'> al template head"
+        },
+        {
+          "title": "HSTS sin includeSubDomains ni preload",
+          "severity": "Low",
+          "description": "max-age=63072000 sin flags adicionales.",
+          "recommendation": "Actualizar a max-age=63072000; includeSubDomains; preload"
         }
       ]
     },
     {
       "name": "Content Quality",
-      "score": 52,
+      "score": 63,
+      "previous_score": 52,
       "what_works": [
-        "Datos reales actualizados mensualmente (21 distritos)",
-        "Noticias con fuentes explícitas",
-        "Página de Metodología — buena señal E-E-A-T",
-        "Artículo Madrid Nuevo Norte con cuerpo completo"
+        "Dataset único: 21 distritos con precio, rentabilidad y variación",
+        "8 artículos con body completo (3-4 párrafos ~300 palabras)",
+        "Imágenes locales en /img/ con nombres descriptivos",
+        "Fuentes acreditadas declaradas"
       ],
       "findings": [
         {
-          "title": "7 de 8 artículos sin cuerpo de texto",
-          "severity": "Critical",
-          "description": "Solo el artículo hardcodeado 'Madrid Nuevo Norte' tiene body completo. El resto solo tiene resumen de ~100 palabras.",
-          "recommendation": "Añadir campo body en news.js para cada artículo con 300-500 palabras, y renderizarlo en NoticiaDetalleDynamic"
+          "title": "Body de artículo solo visible tras JS",
+          "severity": "High",
+          "description": "El HTML inicial del artículo no contiene texto crawleable.",
+          "recommendation": "Pre-renderizar texto de artículo como HTML estático en el build"
         },
         {
           "title": "Sin autor identificado en artículos",
           "severity": "High",
-          "description": "No hay byline ni firma de autor. Google News y E-E-A-T penalizan ausencia de autoría.",
-          "recommendation": "Añadir 'Redacción Radar Inmobiliario' o nombre del editor en cada artículo"
+          "description": "Sin byline ni firma. E-E-A-T penalizado en contenido financiero.",
+          "recommendation": "Añadir byline visual + author en NewsArticle schema"
         },
         {
-          "title": "Imágenes de noticias desde Unsplash (externas)",
+          "title": "Páginas de distrito sin texto descriptivo estático",
           "severity": "Medium",
-          "description": "Dependencia externa en images.unsplash.com. Si cambian URLs, imágenes rotas.",
-          "recommendation": "Descargar y alojar imágenes en /dist/img/ desde el pipeline"
+          "description": "Sin párrafos únicos por distrito en el HTML inicial.",
+          "recommendation": "Generar párrafo intro con datos del distrito en el build"
+        },
+        {
+          "title": "Página /sobre sin contenido editorial real",
+          "severity": "Medium",
+          "description": "Sin misión, metodología editorial ni equipo.",
+          "recommendation": "Añadir contenido editorial mínimo con señales E-E-A-T"
         }
       ]
     },
     {
       "name": "On-Page SEO",
-      "score": 35,
+      "score": 68,
+      "previous_score": 35,
       "what_works": [
-        "Título portada optimizado (61 chars con keyword principal)",
-        "Meta description descriptiva (99 chars)",
-        "H1 dinámico en artículos y distritos (JS)",
-        "Links internos con href válidos"
+        "Titles únicos por artículo",
+        "Meta descriptions únicas y con longitud óptima",
+        "OG type article vs website diferenciados",
+        "OG image por artículo"
       ],
       "findings": [
         {
-          "title": "Todas las páginas comparten title y meta description",
-          "severity": "Critical",
-          "description": "Google indexa todas las URLs con el mismo título y descripción.",
-          "recommendation": "Implementar updatePageMeta() en el router para cada ruta"
-        },
-        {
-          "title": "OG tags estáticos para todas las páginas",
-          "severity": "High",
-          "description": "Compartir un artículo en redes muestra el OG de portada.",
-          "recommendation": "Actualizar og:title, og:description, og:url en cada cambio de ruta"
-        },
-        {
-          "title": "Sin BreadcrumbList schema ni breadcrumbs visuales",
-          "severity": "High",
-          "description": "No existe componente de breadcrumb en ninguna página.",
-          "recommendation": "Añadir breadcrumb visual y BreadcrumbList JSON-LD"
-        },
-        {
-          "title": "Sin links internos en cuerpo de artículos",
+          "title": "Títulos de distrito solo dinámicos (JS)",
           "severity": "Medium",
-          "description": "Los artículos no enlazan a páginas de distritos relevantes.",
-          "recommendation": "Al renderizar body del artículo, linkear menciones de distrito a /distritos/{slug}"
+          "description": "Google puede indexar con el título de la portada.",
+          "recommendation": "Generar head HTML estático único por distrito"
+        },
+        {
+          "title": "SearchAction apunta a búsqueda no implementada",
+          "severity": "Low",
+          "description": "potentialAction apunta a /distritos?q= sin funcionalidad real.",
+          "recommendation": "Eliminar potentialAction hasta implementar búsqueda"
         }
       ]
     },
     {
       "name": "Schema / Structured Data",
-      "score": 50,
+      "score": 65,
       "what_works": [
-        "WebSite schema con SearchAction",
-        "NewsMediaOrganization con @id y Wikidata sameAs",
-        "Dataset schema completo con variableMeasured y fuentes"
+        "WebSite + NewsMediaOrganization + Dataset estáticos",
+        "foundingDate ISO 2025-01-01",
+        "areaServed con Wikidata",
+        "Dataset con licencia CC BY-NC 4.0"
       ],
       "findings": [
         {
-          "title": "Sin NewsArticle schema en artículos",
-          "severity": "Critical",
-          "description": "Los artículos no inyectan NewsArticle JSON-LD. Google News requiere este schema.",
-          "recommendation": "Inyectar NewsArticle via useEffect en NoticiaDetalleDynamic"
-        },
-        {
-          "title": "Sin BreadcrumbList schema",
+          "title": "NewsArticle no estático",
           "severity": "High",
-          "description": "Se pierde el rich snippet de breadcrumbs en SERPs.",
-          "recommendation": "Inyectar BreadcrumbList en páginas de detalle"
+          "description": "Inyectado por JS — limita Google News Rich Results.",
+          "recommendation": "Embeber JSON-LD en HTML estático del artículo durante build"
         },
         {
-          "title": "Logo de NewsMediaOrganization apunta a og-image.png",
+          "title": "URL sin www en NewsArticle y publisher @id",
+          "severity": "High",
+          "description": "Inconsistencia con canonical www.",
+          "recommendation": "Usar www consistentemente en todos los schemas"
+        },
+        {
+          "title": "Sin author en NewsArticle",
           "severity": "Medium",
-          "description": "Debería ser el logo real, no la imagen de portada.",
-          "recommendation": "Crear logo PNG 600x60 y actualizar la URL en el schema"
+          "description": "Campo author ausente. Requerido para Google News.",
+          "recommendation": "Añadir author Organization al NewsArticle schema"
         }
       ]
     },
     {
-      "name": "Performance",
-      "score": 40,
+      "name": "Performance (CWV)",
+      "score": 72,
+      "previous_score": 40,
       "what_works": [
-        "TTFB: 137ms — excelente",
-        "HTTP/2",
-        "Compresión gzip/brotli por Netlify",
-        "cache-control correcto para contenido actualizable"
+        "TTFB ~48ms (Vercel Edge CDN)",
+        "Bundle 210KB (desde 1.8MB)",
+        "Cache immutable para assets",
+        "HTTP/2"
       ],
       "findings": [
         {
-          "title": "HTML bundle de 1,8 MB",
-          "severity": "Critical",
-          "description": "Todo el sitio en un fichero: React, Inter font, assets Base64. LCP estimado >3s en conexión media.",
-          "recommendation": "Separar assets en ficheros externos referenciados con <script src>. Ver ACTION-PLAN.md opción A"
+          "title": "LCP estimado en límite (1.8-2.5s)",
+          "severity": "Medium",
+          "description": "210KB HTML + React assets + fuentes antes de pintar LCP.",
+          "recommendation": "Preconnect + WebP + fetchpriority=high en hero image"
         },
         {
-          "title": "Google AdSense en <head>",
-          "severity": "Critical",
-          "description": "Script async en <head> antes del contenido puede retrasar rendering.",
-          "recommendation": "Mover a final de <body> o cargar solo cuando el contenido esté visible"
-        },
-        {
-          "title": "Descompresión Base64+gzip en el navegador",
-          "severity": "High",
-          "description": "El bundle usa DecompressionStream del navegador. En móviles lentos genera CLS y retraso LCP.",
-          "recommendation": "Eliminar la capa de compresión custom moviendo a assets estáticos normales"
+          "title": "Sin formato WebP para imágenes",
+          "severity": "Low",
+          "description": "Solo JPEG. WebP reduce peso 25-35%.",
+          "recommendation": "Generar WebP en pipeline con Pillow + picture element"
         }
       ]
     },
     {
-      "name": "AI Search Readiness",
-      "score": 60,
+      "name": "AI Search Readiness (GEO)",
+      "score": 80,
       "what_works": [
-        "llms.txt presente — tabla de 21 distritos en markdown",
-        "robots.txt permite todos los crawlers IA",
-        "Dataset schema con fuentes citadas",
-        "NewsMediaOrganization con Wikidata sameAs"
+        "llms.txt con tabla de 21 distritos y datos junio 2026",
+        "Licencia CC BY-NC 4.0 declarada",
+        "Todos los AI bots en Allow: /",
+        "Dataset schema con fuentes verificables"
       ],
       "findings": [
         {
-          "title": "llms.txt sin URLs de artículos individuales",
-          "severity": "High",
-          "description": "Los crawlers IA no saben que existen los artículos de noticias.",
-          "recommendation": "Añadir sección '## Noticias recientes' con links a cada artículo"
-        },
-        {
-          "title": "Contenido principal solo en JS",
-          "severity": "High",
-          "description": "ChatGPT Crawler, Perplexity Bot pueden no ejecutar JS.",
-          "recommendation": "Añadir texto estático resumen en el HTML inicial, o completar llms.txt con el contenido"
-        },
-        {
-          "title": "llms.txt con dato de euríbor incompleto",
+          "title": "Sin llms-full.txt con 131 barrios",
           "severity": "Medium",
-          "description": "'Euríbor 12 meses: referencia hipotecaria principal' — sin valor.",
-          "recommendation": "Incluir el valor actual del euríbor en cada edición mensual del llms.txt"
+          "description": "llms.txt cubre distritos pero no barrios — el dato diferencial del sitio.",
+          "recommendation": "Crear llms-full.txt con barrios cuando el pipeline esté disponible"
+        },
+        {
+          "title": "Artículos sin texto estático para passage-level indexing",
+          "severity": "Medium",
+          "description": "Perplexity y ChatGPT necesitan texto en HTML inicial para citar párrafos.",
+          "recommendation": "Pre-renderizar body de artículos como HTML estático"
         }
       ]
     },
     {
       "name": "Images",
-      "score": 55,
+      "score": 72,
       "what_works": [
-        "OG image: 1200x630px, 75KB — dimensiones perfectas",
-        "OG image en og:image y twitter:image"
+        "Imágenes locales en /img/ con nombres por slug",
+        "OG image única por artículo",
+        "Favicon completo en múltiples tamaños"
       ],
       "findings": [
         {
-          "title": "Sin favicon PNG en /dist",
-          "severity": "High",
-          "description": "Solo data URI SVG inline. Navegadores antiguos y link previews no lo muestran.",
-          "recommendation": "Generar favicon.ico y apple-touch-icon.png (180x180)"
-        },
-        {
-          "title": "PWA icons sin PNG",
-          "severity": "High",
-          "description": "manifest.json usa data URI. Play Store y Chrome OS requieren PNG 192x192 y 512x512.",
-          "recommendation": "Generar y referenciar icon-192.png y icon-512.png en manifest.json"
-        },
-        {
-          "title": "Imágenes de noticias desde Unsplash",
-          "severity": "Medium",
-          "description": "Dependencia externa frágil.",
-          "recommendation": "Descargar y alojar en /dist/img/ desde el pipeline"
+          "title": "Sin formato WebP",
+          "severity": "Low",
+          "description": "Solo JPEG. WebP ahorra 25-35% de peso.",
+          "recommendation": "Generar WebP en pipeline y usar picture element"
         }
       ]
     }
@@ -264,53 +230,53 @@
   "action_plan": {
     "phases": [
       {
-        "name": "Fase 1: Critical Fixes",
-        "timeframe": "Esta semana",
+        "name": "Fase 1: Quick Wins",
+        "timeframe": "1-2 días",
+        "projected_score": 73,
         "items": [
-          "Añadir document.title + meta canonical dinámicos en window.navTo (~3h)",
-          "Inyectar NewsArticle JSON-LD en NoticiaDetalleDynamic useEffect (~2h)",
-          "Añadir x-default a hreflang en index.html y build.py (5 min)",
-          "Añadir Content-Security-Policy en netlify.toml (15 min)"
+          "Corregir URL www en NewsArticle schema y publisher @id",
+          "Añadir author Organization al NewsArticle schema",
+          "Añadir preconnect para Google Fonts al template head",
+          "Añadir byline visual en componente noticia-detalle",
+          "Eliminar potentialAction SearchAction",
+          "Actualizar HSTS con includeSubDomains; preload"
         ]
       },
       {
-        "name": "Fase 2: High-Impact Improvements",
-        "timeframe": "Semanas 2-3",
+        "name": "Fase 2: Alto Impacto",
+        "timeframe": "1 semana",
+        "projected_score": 78,
         "items": [
-          "Reducir bundle HTML a <300 KB separando assets en ficheros externos",
-          "Añadir BreadcrumbList schema en páginas de detalle",
-          "Completar cuerpo de 7 artículos restantes (300-500 palabras c/u)",
-          "Añadir byline/autoría en artículos",
-          "Actualizar llms.txt con artículos y datos de euríbor",
-          "Generar favicon PNG y PWA icons",
-          "Mover imágenes de Unsplash a /dist/img/"
+          "NewsArticle JSON-LD estático en /noticia/{slug}/index.html via build",
+          "Texto de artículo pre-renderizado en HTML estático",
+          "Imágenes WebP generadas en pipeline + picture element"
         ]
       },
       {
-        "name": "Fase 3: Content & Authority",
+        "name": "Fase 3: Contenido y Autoridad",
         "timeframe": "Mes 2",
+        "projected_score": 82,
         "items": [
-          "Dataset schema por página de distrito",
-          "OG images dinámicas por artículo",
-          "Newsletter con backend Beehiiv",
-          "Links internos en artículos a páginas de distrito",
-          "Datos de 131 barrios en llms.txt"
+          "Páginas estáticas por distrito con head únicos",
+          "Página /sobre con contenido editorial E-E-A-T",
+          "Política de privacidad RGPD real",
+          "llms-full.txt con 131 barrios"
         ]
       },
       {
-        "name": "Fase 4: Monitoring & Iteration",
+        "name": "Fase 4: Monitorización",
         "timeframe": "Ongoing",
+        "projected_score": null,
         "items": [
-          "Revisar GSC semanalmente: indexación, CTR, queries posición 11-20",
-          "Monitorizar sitemapindex en GSC",
-          "Configurar alertas CWV cuando haya datos de campo",
-          "Ejecutar audit mensualmente tras cada edición"
+          "GSC Coverage y Rich Results mensual",
+          "PageSpeed Insights tras optimizaciones",
+          "Actualizar llms.txt en cada edición mensual"
         ]
       }
     ]
   },
   "artifacts": {
     "findings_dir": "findings/",
-    "screenshots_dir": "screenshots/"
+    "screenshots_dir": null
   }
 }
