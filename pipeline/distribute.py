@@ -141,16 +141,16 @@ def main():
     head_clean = re.sub(r'\s*<noscript>\s*<style>#__bundler_loading[^<]*</style>[^<]*<div[^<]*</div>\s*</noscript>', '', head_clean, flags=re.S)
     head_clean = head_clean.strip()
 
-    # ── 7. Extract @font-face CSS from template ───────────────────────────────
+    # ── 7. Extract ALL <style> blocks from template head ─────────────────────
     template_head_end = template.find('</head>')
-    style_m = re.search(r'<style>(.*?)</style>', template[:template_head_end], re.S)
-    font_css = ""
-    if style_m:
-        css = style_m.group(1)
+    all_styles = re.findall(r'<style>(.*?)</style>', template[:template_head_end], re.S)
+    all_css = ""
+    for css in all_styles:
         for uuid, a in assets.items():
             if a["role"] == "font":
                 css = css.replace(f'url("{uuid}")', f'url("{a["url"]}")')
-        font_css = f'<style>{css}</style>'
+        all_css += css + "\n"
+    font_css = f'<style>{all_css}</style>' if all_css else ""
 
     # ── 8. Build component inline scripts (from template body) ───────────────
     template_body_start = template.find('</head>') + 7

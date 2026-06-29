@@ -6,3 +6,6 @@ pipeline/input/*.csv
 .claude/
 .wrangler/
 carpeta sin título/
+
+# Local Netlify folder
+.netlify
