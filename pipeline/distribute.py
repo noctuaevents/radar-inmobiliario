@@ -28,6 +28,8 @@ DIST     = ROOT / "dist"
 MAP_FILE = ROOT / "src" / "manifest.map.json"
 NEWS_JS  = ROOT / "src" / "data" / "news.js"
 
+BASE_URL = "https://www.radarinmobiliario.com"  # canonical domain (non-www → 308 redirect)
+
 REACT_VER    = "18.3.1"
 REACT_URL    = f"https://cdn.jsdelivr.net/npm/react@{REACT_VER}/umd/react.production.min.js"
 REACTDOM_URL = f"https://cdn.jsdelivr.net/npm/react-dom@{REACT_VER}/umd/react-dom.production.min.js"
@@ -103,9 +105,9 @@ def gen_article_pages(articles: list, index_html: str) -> None:
         slug       = art['slug']
         titulo_raw = art['titulo']
         resumen_raw = (art.get('resumen') or '')[:160]
-        canonical  = f"https://radarinmobiliario.com/noticia/{slug}"
+        canonical  = f"{BASE_URL}/noticia/{slug}"
         imagen_src = art.get('imagen', '/og-image.png')
-        og_image   = imagen_src if imagen_src.startswith('http') else f"https://radarinmobiliario.com{imagen_src}"
+        og_image   = imagen_src if imagen_src.startswith('http') else f"{BASE_URL}{imagen_src}"
         full_title  = _html.escape(titulo_raw) + " | Radar Inmobiliario Madrid"
         resumen_esc = _html.escape(resumen_raw)
 
@@ -159,7 +161,7 @@ def gen_news_sitemap(articles: list) -> None:
         pub_date = f"{fecha}T{hora}:00+02:00"
         entries.append(
             f"  <url>\n"
-            f"    <loc>https://radarinmobiliario.com/noticia/{slug}</loc>\n"
+            f"    <loc>{BASE_URL}/noticia/{slug}</loc>\n"
             f"    <news:news>\n"
             f"      <news:publication>\n"
             f"        <news:name>Radar Inmobiliario Madrid</news:name>\n"
@@ -196,7 +198,7 @@ def update_sitemap(articles: list) -> None:
     today = date.today().isoformat()
     entries_xml = "\n".join(
         f"  <url>\n"
-        f"    <loc>https://radarinmobiliario.com/noticia/{art['slug']}</loc>\n"
+        f"    <loc>{BASE_URL}/noticia/{art['slug']}</loc>\n"
         f"    <lastmod>{art.get('fechaISO', today)}</lastmod>\n"
         f"    <changefreq>monthly</changefreq>\n"
         f"    <priority>0.7</priority>\n"
@@ -320,6 +322,8 @@ def main():
     if adsense_m:
         head_clean = head_clean[:adsense_m.start()] + head_clean[adsense_m.end():]
 
+    # Normalize all canonical URLs to www (non-www → 308, must be consistent)
+    head_clean = head_clean.replace("https://radarinmobiliario.com", BASE_URL)
     head_clean = head_clean.strip()
 
     # ── 7. Extract ALL <style> blocks from template head ─────────────────────
