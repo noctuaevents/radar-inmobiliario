@@ -152,50 +152,62 @@
 
   <!-- News articles -->
   <url>
-    <loc>https://www.radarinmobiliario.com/noticia/hipotecas-madrid-frena-primera-caida-mensual</loc>
-    <lastmod>2026-06-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible</loc>
+    <loc>https://www.radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible-madrid</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.radarinmobiliario.com/noticia/casa-47-140-millones-campamento</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.radarinmobiliario.com/noticia/hipotecas-madrid-22-meses-alza-abril-2010</loc>
-    <lastmod>2026-06-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.radarinmobiliario.com/noticia/ministerio-critica-madrid-alquileres</loc>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-vivienda-protegida-proyectos-urbanisticos-2026</loc>
     <lastmod>2026-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.radarinmobiliario.com/noticia/compraventa-reforma-salamanca-60</loc>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-provincia-mas-cara-espana-vivienda-2025</loc>
     <lastmod>2026-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.radarinmobiliario.com/noticia/bravo-murillo-tetuan-brecha-10</loc>
+    <loc>https://www.radarinmobiliario.com/noticia/casa-47-invierte-140m-nuevo-barrio-campamento-madrid</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.radarinmobiliario.com/noticia/municipios-metropolitanos-alza-4-1</loc>
-    <lastmod>2026-06-16</lastmod>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-aprueba-4000-viviendas-los-cerros-sureste</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/vivienda-critica-madrid-limitar-alquileres-inversores</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/tetuan-bravo-murillo-variacion-precios-junio-2026</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/barrio-de-las-letras-sube-62-precio-lujo-madrid</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-recargo-ibi-pisos-vacios-alquiler-2026</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/pisos-turisticos-madrid-barrios-pierden-vecinos-regulacion</loc>
+    <lastmod>2026-06-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

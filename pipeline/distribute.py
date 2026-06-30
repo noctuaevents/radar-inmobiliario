@@ -65,11 +65,12 @@ def extract_news_articles() -> list:
     text = NEWS_JS.read_text(encoding="utf-8")
 
     items_m  = re.search(r'\bitems:\s*\[', text)
-    fuentes_m = re.search(r'\],\s*\n\s*fuentes:', text)
-    if not items_m or not fuentes_m:
+    if not items_m:
         return []
+    fuentes_m = re.search(r'\],\s*\n\s*fuentes:', text)
+    end_pos = fuentes_m.start() if fuentes_m else len(text)
 
-    items_text = text[items_m.end():fuentes_m.start()]
+    items_text = text[items_m.end():end_pos]
     articles = []
 
     for m in re.finditer(r'"slug":\s*"([^"]+)"', items_text):
