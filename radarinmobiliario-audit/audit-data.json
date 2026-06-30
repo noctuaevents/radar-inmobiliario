@@ -1,228 +1,227 @@
 {
   "summary": {
-    "health_score": 69,
-    "previous_score": 47,
-    "score_delta": 22,
-    "audit_date": "2026-06-29",
     "domain": "radarinmobiliario.com",
-    "business_type": "Publisher / Data Media — mercado inmobiliario Madrid",
+    "canonical_domain": "www.radarinmobiliario.com",
+    "audit_date": "2026-06-30",
+    "audit_revision": 3,
+    "health_score": 75,
+    "previous_score": 69,
+    "score_delta": 6,
+    "business_type": "Publisher / Data Media — Inmobiliario Madrid",
+    "hosting": "Vercel CDN",
     "top_findings": [
-      "NewsArticle JSON-LD inyectado por JS, no estático — limita Google News Rich Results",
-      "URL inconsistente en schemas: non-www vs canonical www",
-      "Artículos sin texto crawleable en HTML inicial (body renderizado por React)",
-      "Sin autor en artículos — E-E-A-T débil para contenido financiero/inmobiliario",
-      "21 páginas de distrito en sitemap sin contenido diferenciado estático"
+      "24 páginas (distritos + secciones) con canonical incorrecto apuntando al homepage",
+      "Babel.min.js 3 MB cargado en producción para compilar JSX en cliente",
+      "Contenido de artículos en div aria-hidden offscreen — riesgo de cloaking",
+      "GeoJSON 363 KB cargado en todas las páginas incluyendo artículos",
+      "Imágenes sin cache a largo plazo (max-age=0)"
     ],
     "quick_wins": [
-      "Corregir URL www en schemas NewsArticle y publisher @id (5 min)",
-      "Añadir author al NewsArticle schema (15 min)",
-      "Añadir preconnect para Google Fonts (5 min, +50ms LCP)",
-      "Añadir byline visual en artículos (30 min)",
-      "Eliminar potentialAction SearchAction hasta implementar buscador (5 min)"
+      "Cache de imágenes a 1 año en vercel.json — 5 minutos",
+      "HSTS explícito en vercel.json — 5 minutos",
+      "Fecha ISO completa en NewsArticle estático — 30 minutos",
+      "Eliminar schema NewsArticle dinámico duplicado — 20 minutos",
+      "Páginas estáticas de 21 distritos — 3-4 horas, +2.5 pts"
     ]
   },
   "categories": [
     {
       "name": "Technical SEO",
-      "score": 72,
-      "previous_score": 45,
+      "score": 74,
       "what_works": [
-        "HTTPS + HSTS 2 años",
-        "Vercel Edge CDN, TTFB ~48ms",
-        "Bundle HTML 210 KB (desde 1.8 MB, -88%)",
-        "8 páginas estáticas por artículo con head únicos",
-        "CSP + X-Frame-Options + X-Content-Type-Options + Referrer-Policy",
-        "hreflang es + x-default en todos los heads",
-        "Favicon completo: .ico + PNG múltiples tamaños"
+        "HTTPS + 308 redirect non-www → www",
+        "HSTS max-age=63072000 activo",
+        "Security headers completos (CSP, X-Frame-Options, XCTO, Referrer-Policy, Permissions-Policy)",
+        "robots.txt con dos sitemaps",
+        "sitemap.xml (32 URLs) + news-sitemap.xml (8 artículos)",
+        "Artículos pre-renderizados como archivos estáticos en /noticia/*/index.html",
+        "Vercel CDN, TTFB 106ms"
       ],
       "findings": [
         {
-          "title": "NewsArticle JSON-LD inyectado por JS",
+          "title": "Canonical incorrecto en 24 páginas",
+          "severity": "Critical",
+          "description": "/noticias, /sobre, /privacidad y los 21 /distritos/* devuelven canonical apuntando a /. Google las marca como duplicados del homepage.",
+          "recommendation": "Generar archivos estáticos /dist/distritos/{slug}/index.html y /dist/noticias/index.html con canonical correcto por ruta."
+        },
+        {
+          "title": "Babel.min.js 3 MB en producción",
+          "severity": "Critical",
+          "description": "La página descarga 3 MB de Babel standalone para compilar JSX en el cliente. Total JS payload: 3.7 MB. Bloquea todo el rendering.",
+          "recommendation": "Pre-compilar JSX con Babel CLI o Vite durante el build. Eliminar babel.min.js y type='text/babel'."
+        },
+        {
+          "title": "GeoJSON 363 KB cargado en artículos",
           "severity": "High",
-          "description": "document.createElement en useEffect — no en el HTML estático. Googlebot lo ve solo tras renderizado JS.",
-          "recommendation": "Embeber NewsArticle JSON-LD en el <head> estático de cada /noticia/{slug}/index.html durante el build"
+          "description": "geojson.js se incluye en el HTML compartido. Los artículos no usan el cartogram pero descargan 363 KB innecesarios.",
+          "recommendation": "Condicionar la carga de geojson.js a las rutas /distritos en el pipeline de build."
         },
         {
-          "title": "URL non-www en schemas",
+          "title": "Cache de imágenes max-age=0",
           "severity": "High",
-          "description": "NewsArticle usa https://radarinmobiliario.com/ pero canonical es https://www.radarinmobiliario.com/",
-          "recommendation": "Cambiar todas las referencias en el código JS a https://www.radarinmobiliario.com/"
+          "description": "Las imágenes en /img/* tienen cache-control: public, max-age=0, must-revalidate. Cada revisita re-descarga las imágenes.",
+          "recommendation": "Añadir regla en vercel.json: /img/* con max-age=31536000, immutable."
         },
         {
-          "title": "Páginas de distrito sin pre-render estático",
-          "severity": "Medium",
-          "description": "/distritos/salamanca devuelve el mismo HTML que la portada.",
-          "recommendation": "Generar /distritos/{slug}/index.html con head único durante build"
-        },
-        {
-          "title": "Sin preconnect para Google Fonts",
-          "severity": "Low",
-          "description": "fonts.googleapis.com y fonts.gstatic.com sin preconnect hint. Coste ~50ms en first render.",
-          "recommendation": "Añadir <link rel='preconnect'> al template head"
-        },
-        {
-          "title": "HSTS sin includeSubDomains ni preload",
-          "severity": "Low",
-          "description": "max-age=63072000 sin flags adicionales.",
-          "recommendation": "Actualizar a max-age=63072000; includeSubDomains; preload"
+          "title": "HSTS no declarado en vercel.json",
+          "severity": "High",
+          "description": "El header HSTS está en la respuesta live pero no en la configuración explícita de vercel.json. Depende del comportamiento por defecto.",
+          "recommendation": "Añadir Strict-Transport-Security explícito en vercel.json headers."
         }
       ]
     },
     {
-      "name": "Content Quality",
-      "score": 63,
-      "previous_score": 52,
+      "name": "Content Quality & E-E-A-T",
+      "score": 68,
       "what_works": [
-        "Dataset único: 21 distritos con precio, rentabilidad y variación",
-        "8 artículos con body completo (3-4 párrafos ~300 palabras)",
-        "Imágenes locales en /img/ con nombres descriptivos",
-        "Fuentes acreditadas declaradas"
+        "8 artículos con cuerpo completo (3-4 párrafos ~300 palabras)",
+        "Texto de artículo en HTML inicial (div pre-renderizado)",
+        "llms.txt comprensivo con tabla de 21 distritos (junio 2026)",
+        "Fuentes citadas: Idealista, Fotocasa, Colegios Notariales, Ayuntamiento Madrid",
+        "Categorías editoriales consistentes"
       ],
       "findings": [
         {
-          "title": "Body de artículo solo visible tras JS",
+          "title": "Contenido de artículo en div aria-hidden offscreen",
+          "severity": "Critical",
+          "description": "El cuerpo del artículo está en <div aria-hidden='true' style='position:absolute;left:-9999px'>. Googlebot puede detectar diferencia entre contenido visible (spinner) y oculto (artículo completo) y tratarlo como cloaking.",
+          "recommendation": "Mover el contenido a un <noscript> tag o a un elemento visible que el CSS de React sobreescriba. Evitar aria-hidden en contenido de texto principal."
+        },
+        {
+          "title": "Sin autor Person en schema",
           "severity": "High",
-          "description": "El HTML inicial del artículo no contiene texto crawleable.",
-          "recommendation": "Pre-renderizar texto de artículo como HTML estático en el build"
+          "description": "Author es Organization. Para E-E-A-T en contenido financiero/inmobiliario Google prefiere Person con nombre y perfil verificable.",
+          "recommendation": "Añadir Person schema con nombre del editor o al menos Organization con sameAs a LinkedIn/Twitter verificado."
         },
         {
-          "title": "Sin autor identificado en artículos",
+          "title": "Páginas /sobre y /privacidad sin SSR",
           "severity": "High",
-          "description": "Sin byline ni firma. E-E-A-T penalizado en contenido financiero.",
-          "recommendation": "Añadir byline visual + author en NewsArticle schema"
-        },
-        {
-          "title": "Páginas de distrito sin texto descriptivo estático",
-          "severity": "Medium",
-          "description": "Sin párrafos únicos por distrito en el HTML inicial.",
-          "recommendation": "Generar párrafo intro con datos del distrito en el build"
-        },
-        {
-          "title": "Página /sobre sin contenido editorial real",
-          "severity": "Medium",
-          "description": "Sin misión, metodología editorial ni equipo.",
-          "recommendation": "Añadir contenido editorial mínimo con señales E-E-A-T"
+          "description": "Devuelven canonical del homepage, sin contenido crawleable sin JS.",
+          "recommendation": "Generar dist/sobre/index.html y dist/privacidad/index.html con contenido estático E-E-A-T."
         }
       ]
     },
     {
       "name": "On-Page SEO",
-      "score": 68,
-      "previous_score": 35,
+      "score": 62,
       "what_works": [
-        "Titles únicos por artículo",
-        "Meta descriptions únicas y con longitud óptima",
-        "OG type article vs website diferenciados",
-        "OG image por artículo"
+        "Artículos: title único, meta description, canonical correcto",
+        "Artículos: OG tags completos con imagen por artículo",
+        "Homepage: OG tags base correctos"
       ],
       "findings": [
         {
-          "title": "Títulos de distrito solo dinámicos (JS)",
-          "severity": "Medium",
-          "description": "Google puede indexar con el título de la portada.",
-          "recommendation": "Generar head HTML estático único por distrito"
+          "title": "24 páginas con title y canonical del homepage",
+          "severity": "Critical",
+          "description": "Todas las rutas SPA sin archivo estático sirven el mismo title y canonical que el homepage.",
+          "recommendation": "Generar archivos estáticos con meta tags únicos por ruta (mismo approach que /noticia/)."
         },
         {
-          "title": "SearchAction apunta a búsqueda no implementada",
-          "severity": "Low",
-          "description": "potentialAction apunta a /distritos?q= sin funcionalidad real.",
-          "recommendation": "Eliminar potentialAction hasta implementar búsqueda"
+          "title": "H1 no crawleable en homepage y secciones",
+          "severity": "High",
+          "description": "Los H1 son renderizados por React. Primera pasada de Googlebot solo ve 'Cargando...'.",
+          "recommendation": "Incluir H1 en el HTML estático de cada página generada."
         }
       ]
     },
     {
       "name": "Schema / Structured Data",
-      "score": 65,
+      "score": 82,
       "what_works": [
-        "WebSite + NewsMediaOrganization + Dataset estáticos",
-        "foundingDate ISO 2025-01-01",
-        "areaServed con Wikidata",
-        "Dataset con licencia CC BY-NC 4.0"
+        "WebSite, NewsMediaOrganization, Dataset schemas en homepage",
+        "NewsArticle + BreadcrumbList estáticos en cada artículo",
+        "URLs www consistentes en todos los schemas",
+        "Author incluido en NewsArticle",
+        "areaServed con sameAs a Wikidata"
       ],
       "findings": [
         {
-          "title": "NewsArticle no estático",
+          "title": "NewsArticle dinámico y estático coexisten",
           "severity": "High",
-          "description": "Inyectado por JS — limita Google News Rich Results.",
-          "recommendation": "Embeber JSON-LD en HTML estático del artículo durante build"
+          "description": "El React component inyecta un segundo NewsArticle JSON-LD en runtime via useEffect. El head estático ya tiene uno completo. Dos schemas en conflicto.",
+          "recommendation": "Eliminar el useEffect que inyecta el schema dinámico. El estático es suficiente y mejor."
         },
         {
-          "title": "URL sin www en NewsArticle y publisher @id",
-          "severity": "High",
-          "description": "Inconsistencia con canonical www.",
-          "recommendation": "Usar www consistentemente en todos los schemas"
-        },
-        {
-          "title": "Sin author en NewsArticle",
+          "title": "description truncado mid-sentence",
           "severity": "Medium",
-          "description": "Campo author ausente. Requerido para Google News.",
-          "recommendation": "Añadir author Organization al NewsArticle schema"
+          "description": "La descripción del NewsArticle corta a 160 chars en medio de una oración.",
+          "recommendation": "Truncar en el último punto antes del límite de 200 caracteres."
+        },
+        {
+          "title": "datePublished sin hora ni zona horaria",
+          "severity": "Medium",
+          "description": "Solo fecha '2026-06-22'. Google recomienda ISO 8601 completo.",
+          "recommendation": "Usar '{fechaISO}T{hora}:00+02:00'. Los datos ya están en news.js."
         }
       ]
     },
     {
       "name": "Performance (CWV)",
-      "score": 72,
-      "previous_score": 40,
+      "score": 28,
       "what_works": [
-        "TTFB ~48ms (Vercel Edge CDN)",
-        "Bundle 210KB (desde 1.8MB)",
-        "Cache immutable para assets",
-        "HTTP/2"
+        "TTFB excelente: 106ms (Vercel CDN)",
+        "HTML comprimido en gzip: 44 KB",
+        "Preconnect para Google Fonts"
       ],
       "findings": [
         {
-          "title": "LCP estimado en límite (1.8-2.5s)",
-          "severity": "Medium",
-          "description": "210KB HTML + React assets + fuentes antes de pintar LCP.",
-          "recommendation": "Preconnect + WebP + fetchpriority=high en hero image"
+          "title": "Babel.min.js 3 MB bloquea todo el rendering",
+          "severity": "Critical",
+          "description": "LCP estimado en móvil 4G: 5-8 segundos. En 3G: >15 segundos. Core Web Vitals en campo real esperados: 'Poor' para LCP e INP.",
+          "recommendation": "Pre-compilar JSX. Eliminar Babel del bundle de producción. Migrar a Vite o usar Babel CLI en el build pipeline."
         },
         {
-          "title": "Sin formato WebP para imágenes",
-          "severity": "Low",
-          "description": "Solo JPEG. WebP reduce peso 25-35%.",
-          "recommendation": "Generar WebP en pipeline con Pillow + picture element"
+          "title": "Total JS 3.7 MB uncompressed",
+          "severity": "Critical",
+          "description": "Babel 3MB + react-dom 132KB + geojson 363KB + image-slot 31KB + news 20KB + react 10KB = 3.7MB.",
+          "recommendation": "Después de eliminar Babel, target <300KB total JS. Lazy-load GeoJSON solo en rutas /distritos."
         }
       ]
     },
     {
-      "name": "AI Search Readiness (GEO)",
-      "score": 80,
+      "name": "AI Search Readiness",
+      "score": 78,
       "what_works": [
-        "llms.txt con tabla de 21 distritos y datos junio 2026",
-        "Licencia CC BY-NC 4.0 declarada",
-        "Todos los AI bots en Allow: /",
-        "Dataset schema con fuentes verificables"
+        "llms.txt completo con tabla de 21 distritos actualizada junio 2026",
+        "robots.txt permite GPTBot, Claude-Web, PerplexityBot",
+        "Dataset schema con fuentes declaradas",
+        "Datos numéricos precisos y citables directamente"
       ],
       "findings": [
         {
-          "title": "Sin llms-full.txt con 131 barrios",
-          "severity": "Medium",
-          "description": "llms.txt cubre distritos pero no barrios — el dato diferencial del sitio.",
-          "recommendation": "Crear llms-full.txt con barrios cuando el pipeline esté disponible"
+          "title": "Contenido principal del homepage no crawleable sin JS",
+          "severity": "High",
+          "description": "Los datos del cartogram y lista de distritos solo son visibles tras React render.",
+          "recommendation": "Las páginas de distrito estáticas (fase 2.1) resolverán este problema parcialmente."
         },
         {
-          "title": "Artículos sin texto estático para passage-level indexing",
-          "severity": "Medium",
-          "description": "Perplexity y ChatGPT necesitan texto en HTML inicial para citar párrafos.",
-          "recommendation": "Pre-renderizar body de artículos como HTML estático"
+          "title": "aria-hidden en texto de artículo",
+          "severity": "High",
+          "description": "aria-hidden='true' puede hacer que crawlers AI ignoren el contenido del artículo.",
+          "recommendation": "Usar <noscript> o div visible en lugar de aria-hidden."
         }
       ]
     },
     {
       "name": "Images",
-      "score": 72,
+      "score": 58,
       "what_works": [
-        "Imágenes locales en /img/ con nombres por slug",
-        "OG image única por artículo",
-        "Favicon completo en múltiples tamaños"
+        "8 imágenes de artículo en /img/*.jpg — locales",
+        "OG image por artículo correctamente referenciada",
+        "og:image:width y og:image:height declarados"
       ],
       "findings": [
         {
-          "title": "Sin formato WebP",
-          "severity": "Low",
-          "description": "Solo JPEG. WebP ahorra 25-35% de peso.",
-          "recommendation": "Generar WebP en pipeline y usar picture element"
+          "title": "Sin WebP",
+          "severity": "High",
+          "description": "Las URLs .webp retornan HTML (SPA fallback). No hay <picture> con srcset. -25-35% oportunidad perdida.",
+          "recommendation": "Generar .webp en pipeline con Pillow. Usar <picture> en templates de artículo."
+        },
+        {
+          "title": "Cache de imágenes max-age=0",
+          "severity": "High",
+          "description": "Imágenes estáticas sin cache a largo plazo. Cada revisita re-descarga.",
+          "recommendation": "max-age=31536000, immutable en /img/* en vercel.json."
         }
       ]
     }
@@ -231,52 +230,53 @@
     "phases": [
       {
         "name": "Fase 1: Quick Wins",
-        "timeframe": "1-2 días",
-        "projected_score": 73,
+        "timeframe": "Hoy (1-2 horas)",
         "items": [
-          "Corregir URL www en NewsArticle schema y publisher @id",
-          "Añadir author Organization al NewsArticle schema",
-          "Añadir preconnect para Google Fonts al template head",
-          "Añadir byline visual en componente noticia-detalle",
-          "Eliminar potentialAction SearchAction",
-          "Actualizar HSTS con includeSubDomains; preload"
+          "Cache imágenes 1 año en vercel.json",
+          "HSTS explícito en vercel.json",
+          "Fecha ISO completa en NewsArticle estático",
+          "Eliminar schema NewsArticle dinámico duplicado",
+          "Preload de React y React-DOM en head"
         ]
       },
       {
         "name": "Fase 2: Alto Impacto",
-        "timeframe": "1 semana",
-        "projected_score": 78,
+        "timeframe": "Esta semana (2-5 días)",
         "items": [
-          "NewsArticle JSON-LD estático en /noticia/{slug}/index.html via build",
-          "Texto de artículo pre-renderizado en HTML estático",
-          "Imágenes WebP generadas en pipeline + picture element"
+          "Páginas estáticas para 21 distritos con canonical y meta únicos",
+          "Fix canonical de /noticias, /sobre, /privacidad",
+          "WebP con picture en artículos",
+          "No cargar GeoJSON en páginas de artículo"
         ]
       },
       {
-        "name": "Fase 3: Contenido y Autoridad",
-        "timeframe": "Mes 2",
-        "projected_score": 82,
+        "name": "Fase 3: Contenido y Build",
+        "timeframe": "Semana 2-4",
         "items": [
-          "Páginas estáticas por distrito con head únicos",
-          "Página /sobre con contenido editorial E-E-A-T",
-          "Política de privacidad RGPD real",
-          "llms-full.txt con 131 barrios"
+          "Resolver cloaking del div oculto (usar noscript o div visible)",
+          "Página /sobre con contenido E-E-A-T estático",
+          "Pre-compilar JSX — eliminar Babel 3MB (migrar a Vite)"
         ]
       },
       {
         "name": "Fase 4: Monitorización",
-        "timeframe": "Ongoing",
-        "projected_score": null,
+        "timeframe": "Mensual",
         "items": [
-          "GSC Coverage y Rich Results mensual",
-          "PageSpeed Insights tras optimizaciones",
-          "Actualizar llms.txt en cada edición mensual"
+          "Google Search Console: Coverage + Rich Results report",
+          "PageSpeed Insights tras eliminar Babel",
+          "Actualizar llms.txt en cada edición",
+          "CrUX field data review"
         ]
       }
     ]
   },
   "artifacts": {
     "findings_dir": "findings/",
-    "screenshots_dir": null
-  }
+    "screenshots_dir": "screenshots/"
+  },
+  "score_history": [
+    { "revision": 1, "date": "2026-05", "score": 47 },
+    { "revision": 2, "date": "2026-06-29", "score": 69 },
+    { "revision": 3, "date": "2026-06-30", "score": 75 }
+  ]
 }

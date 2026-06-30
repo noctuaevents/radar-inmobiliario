@@ -35,7 +35,7 @@ echo "Reconstruyendo dist/…"
 python3 pipeline/build.py
 echo ""
 
-# ── 3. Git commit + push → Netlify despliega automáticamente ─────────────────
+# ── 3. Git commit + push → Vercel despliega automáticamente ──────────────────
 GIT_STATUS=$(git status --porcelain)
 if [ -z "$GIT_STATUS" ]; then
     echo "Sin cambios en git — no se genera commit."
