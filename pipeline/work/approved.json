@@ -1,17 +1,5 @@
 [
   {
-    "fecha": "22 Jun",
-    "hora": "07:18",
-    "categoria": "Demanda",
-    "distrito": null,
-    "fuente": "hipoteca euribor madrid\" - Google News",
-    "tag": "rose",
-    "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxNYzAzNUFVeWVuUnZrNXoyT00xSkhGemR1UnB2WXN0M1RJLWFBbzlmQ2NDcEl0cU9ObHRhRFlDWHN6YWQ2TUlDc3h0MTByc0c1VGEyUTNmSXZtQS10ejV0Z2RyU2xhaDluVzMtR2lBQVIycVFIUE1yZjZFUlNoVDZuWUJteXF1R0NaMTRrOWJtYURDOGpZREFJN2pWa01sdnV4ejJFY1ZxQnVJT2JiUGhXMEpNQTZaR1BCR0RzMUZBOTRObDlYN1Y0TUtjRGhENEN3TFl1ZnZR?oc=5",
-    "impacto_borrador": "-0,7%",
-    "impactoLabel_borrador": "reducción de firmas",
-    "resumen_borrador": "La firma de hipotecas sobre viviendas en Madrid disminuyó un 0,7% en abril."
-  },
-  {
     "fecha": "24 Jun",
     "hora": "13:22",
     "categoria": "Infraestructura",
@@ -19,9 +7,36 @@
     "fuente": "alquiler madrid barrio\" - Google News",
     "tag": "emerald",
     "url": "https://news.google.com/rss/articles/CBMiqANBVV95cUxPUHN3TktWbzVHVjZFQVZYTUhSY0Y3R3I0M2NEN01RQWpmSWZtTm5JQU95eUN1Zmg2M1ptSld2X1lELXNXVjdjZ3FvVjNfaGQ2OENzYnBiMmNxOWwyc1liclE4bzhtcDhBX3NVTmI2bGN1RzM3RFd0cGhvZDE1eXJEeUVBNkd5N2o3b2pwZDA0bUExbnFkWDdCTkNqMmNnd1lyMDdranNoc2xuNi1BSWVMSjdwRGZjendiOWc4LUNwWFBhRWtITE1VX1Y0dmJUTnZQZnZnb3VTT3BvWlMtb1c1TGZOS1l3ZnlYT3V6YWdjeGNUbkt1aVhFSW9wZ2JGWVdrM3B4RXVVaW1jTnIyejY1NUdLMXI4ZEdvWHg0RXVHcEw2TGFwM0hGS2hyX2pXZXNWb1VGOUhmM3BnZTlhOXhvYndteXhnbWxiSGwwcmhrMVluLUVmV183YWY0UG1xeFhRT0xTY3hWU0dDd25nQ05PanVfeTZRVTRmZDBMNjAxdHgxUTRhWUxwUnl6QnZNZjBNcjZFeGNuSlhRWENUT2xqakYyeDljSVZn?oc=5",
+    "imagen": "",
     "impacto_borrador": "+770 viviendas",
     "impactoLabel_borrador": "aumento de oferta",
-    "resumen_borrador": "El Cañaveral alcanza 770 familias en alquiler asequible, expandiendo opciones residenciales."
+    "resumen_borrador": "El Cañaveral acoge 770 nuevas familias en alquiler asequible."
+  },
+  {
+    "fecha": "26 Jun",
+    "hora": "02:54",
+    "categoria": "Urbanismo",
+    "distrito": null,
+    "fuente": "inmobiliario madrid\" - Google News",
+    "tag": "emerald",
+    "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxORWtmSjJkTXM2WjliWU9ET3lTWGYwakxZcFUtVTNQbF8tRGR5MlpnbUpPbzFSNFE5NWh6VXFYTS01alphNXppb0RiVlp0QnB2c0FfcWd0X1ZxQ0FoTy1YekZzTEJwaVIyQjRadlVCYTFGMVJJMnZWc25DNm0wM3Etd0EtNXI2MGZXS0hJMzVBbEUwSEpndzc0VllnQmYzVUR1WWtvZ3J4NnJYLXVfZWhucnA2Slc4ZnJLaF9ESXl0UnVhQk0zYWUzWWhSMC1odUpNamFnakgyZXJwZENHLXR0VG5EMnZPOEg1SnfSAe8BQVVfeXFMTjZzeHRabTkxS0gtR0JyNFJHX1pwY2p2VVFsYUc2dGt1cmxkWmpMSnFhbHNQQkYzUW8xSG00c2pJZU41X19EeEw1bVFQaXhsMUpzUl9TQ0lzNDc3YTg0MTB0UVVHZU9Dblp1Q1NMbHUwSE5WWUJCQTRoYmNxR1lCcExFVlFiQTQxb2FUTExtQm1WRk9xYldQWlZNeTRzTzV2S1dVSENkbjVnM1pfR1M5SHdaM0s1UjV1VWlKdUJNR2twYkRHSWhIMGd4US1CRExvNlFRQTVEeHNHd1J4bXlfSTQwSlNiVFlTcGNsZjFBOE0?oc=5",
+    "imagen": "",
+    "impacto_borrador": "+6,2%",
+    "impactoLabel_borrador": "aumento de precios",
+    "resumen_borrador": "Madrid potencia vivienda protegida y grandes proyectos inmobiliarios."
+  },
+  {
+    "fecha": "26 Jun",
+    "hora": "08:00",
+    "categoria": "Demanda",
+    "distrito": null,
+    "fuente": "precio vivienda madrid\" - Google News",
+    "tag": "emerald",
+    "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQRWpOX2F4Q01WZ3RmcUcyb2p6QXdaYnB6YW5BTDVNVEotalFxWDZSSm45WlN5bzhVQ0M2YVczQUlRcXFfM0ZBbWhzYVVoQ3M5S3p0Q29WNUZVNFB1TGdOelhBT3hZSHQteXdJZ0J6YTNyZWRzRUE2a0YxZlhDSjVYdFBMbDl4SWoyeGc?oc=5",
+    "imagen": "",
+    "impacto_borrador": "+18.3%",
+    "impactoLabel_borrador": "precio sube 18%",
+    "resumen_borrador": "Madrid se convierte en la provincia más cara de España para viviendas en 2025, superando a Baleares y Guipúzcoa."
   },
   {
     "fecha": "29 Jun",
@@ -31,21 +46,23 @@
     "fuente": "inmobiliario madrid\" - Google News",
     "tag": "emerald",
     "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQVTJBQlZFeU5oY2JTQTJPR2laSVh6eGtqZmRSSldrb1hiMzc4UHY5VWgtd1BvbDNUR1FCTkxYREtFdW10UW45WllVM2lxcEctQTFMUHJmN3lhRVBCNnJEX1BzUWhyUVA0UHg2V2JGMDBhLW5jNjlFZlp0VWtIaDRpZkFiLVdkOXk0SnlZQWdxaFNjOG1TMXVGVjhGX1JvXzFtSWtfV2ZTa0ZodGhmZzctUGtndFRDN0pnbzQycXRoV2Y5RnN0YXV3ZmM4cGg4TkFyWEZHR2N3blZ5eWVjZndDY2xQNkZzVWfSAewBQVVfeXFMTUluR1p0eXRuUk91OTlpbkdkQ1pYOGZ5QzRoZkNrdlFCRHpsX2h6RVNOYzNPM2dtRkhudUVXZlJEVUlpeEcwQTNGc2hpZ3ZiTVN0WjRCNjMtcHZLS0ZrLWw2X2RxWjd4cFF6ci12WFdUREktZG81TFB0M3Fnb3QzeGdEMGNPWVVaVkZuMVFobnZJQ1hrRTJtNFE2WVN6c1Z1d1phTVVobk5KRDh3TnhzRVNKRWVYbVJWVFZWbzF1X2pQalljY1h0aVkzZkRuckJCTlU4U29EY1RlaFdadUprelBudThkV3o3QlkwMF8?oc=5",
-    "impacto_borrador": "+140M€",
-    "impactoLabel_borrador": "inversión significativa",
-    "resumen_borrador": "Casa 47 invierte 140 millones en obras de Nuevo Barrio Campamento."
+    "imagen": "",
+    "impacto_borrador": "+140M €",
+    "impactoLabel_borrador": "inversión inmobiliaria",
+    "resumen_borrador": "Casa 47 inyecta 140 millones para Nuevo Barrio Campamento en Madrid."
   },
   {
-    "fecha": "22 Jun",
-    "hora": "09:30",
-    "categoria": "Demanda",
+    "fecha": "30 Jun",
+    "hora": "07:58",
+    "categoria": "Urbanismo",
     "distrito": null,
-    "fuente": "hipoteca euribor madrid\" - Google News",
-    "tag": "rose",
-    "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxQWEw3cHczVzdVRWxDRXhWbjJiYlQtdzNqX3dsNUFlSkxnai0xVEJqcnpWcUVOdnVCTkc4NDhGOVR5dFF0WEpXc1ZDeUItT3VWVFlOdjhOMllERUJISUxnMXNvUW53dzFYVDdlMk5TRGdkd1JxbXQyQ2U5Q0J5MW4yZHFnbktLQnhlaS05OExaM3h3QU0wa3p0dXJ0Rl9sUnhldGg0ek14VDgtRFRTeld6X1pDR08takFhZ3RZbTB1cGZLQ2ZwMXRTeNIB3AFBVV95cUxQUVFpelgycWliRzdaZkRCLVE4NDQ1SHN5ZTBXaEJxejRIbUJ2dnhhVEI4TmJWb3Qxci1ReVNibzdCWGhkWEtZWXNPTW4tX2U5SHBHUHppeC1qbVo0M25NUzNTQ0FITFdsLWhHTGhtY1I0cEViSUgtLTAzWFplMFNvWkhpSy1KWkVqS3EzVS1zTGRINDZIWDA2TDZCVXRsejhHNXA0RXNDLUhuZXdIUWVFTTBmUV8tTFN5cUVRbkpOUk1PTFNKMU81OEhmczJDSG9vSHhJNGh6NXYyeU96?oc=5",
-    "impacto_borrador": "+6,2%",
-    "impactoLabel_borrador": "Incremento en tasas",
-    "resumen_borrador": "Las hipotecas suben por 22 meses consecutivos, alcanzando su mejor abril desde 2010."
+    "fuente": "inmobiliario madrid\" - Google News",
+    "tag": "emerald",
+    "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQeXJxTm1QT09GYXM0NldVWVphc3lYeTRKS3ZFMlVJN1dmaXpGTzZOTjRTVzhfWUNwY0NKV2FhZnVDOVFmZVpudmNzTlRzVldhQmZuMGRDWGs1aUJseThtMXl6bU1TZmxRSWJ4SUNnMUN2R2dmdXJlMzJZZDdhN1YyQTY1Q09GRzZGZDU1bW15ZndrbkJPX1BGMHFtVEVZaEpGRTA1SVh2cTh4eDE4RE1uX0E3cmVLbmN2b3BTS2Jua3puM0gtWFJKV3BKUW91cTNyMzV4SV9qanRDRWFPUnNUemtMUl9JUTjSAewBQVVfeXFMTWhGdUs4eFJ1MDB2MjNQaHB5UXpJcnlRdVRRUTZHZmluZmdiTGluekEzdk0xMzlmYWpQTkJ1SnR0MXRWVUJaOHROYURwTjNIMGUxaXRmdWZYRS14RV9RVkotaXdaSE90TXlsbjl2bWZOXzFYMU1JbVB3U0U1QktQWldmVlBjeHU3LVRwRGlVYlZhUGd2dF8zNVZtRWNrdExRZF8yQldBT2hCRkhCMV9aT1FJYXN2N3dVS2t0QUh0QXJUQlhPajFyOXhfdllOYm5EUzdvVEFzbzgzZkk4NGkyTU1fWGpjbHF1R291NF8?oc=5",
+    "imagen": "",
+    "impacto_borrador": "+4.000 viviendas",
+    "impactoLabel_borrador": "aumento oferta",
+    "resumen_borrador": "Aprobadas obras para 4.000 viviendas en Los Cerros, Madrid."
   },
   {
     "fecha": "26 Jun",
@@ -55,44 +72,61 @@
     "fuente": "inmobiliario madrid\" - Google News",
     "tag": "rose",
     "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNQVZ6dFVZSkd2YTRtVkZwbEJtV2JXU1k3dkxxNmItZFNlc2lrUWhQZlh6WGhBQU1zZ2wzWTJXazRyeVU4Mi15R2lqRVVsZDNPdUt6YnVIUzZpcm53UWRJZVNwM1RDUmpnaGN1THNjRmZsV0dQTUpmdWJ5SHY1VDRBaWN6QnNaVzdsS0pFQkxiOWs3RnlDZlJVSXZxN2xYZUpBMk90VUdWWQ?oc=5",
-    "impacto_borrador": "-2,5%",
-    "impactoLabel_borrador": "caída inquilinos",
+    "imagen": "",
+    "impacto_borrador": "-2.5%",
+    "impactoLabel_borrador": "reducción demanda inquilina",
     "resumen_borrador": "Vivienda critica a Madrid por no limitar alquileres y favorecer inversores."
-  },
-  {
-    "fecha": "26 Jun",
-    "hora": "23:59",
-    "categoria": "Demanda",
-    "distrito": "Salamanca",
-    "fuente": "inmobiliario madrid\" - Google News",
-    "tag": "rose",
-    "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQZGlzM1lDdkZtWGJtcVNUWGUydjFPbHk5eEtPeEEwUVkyZmNjNnhuSWRVOGNjSGt5Umd4ajFVc0t4bTBnWWotcG5JMWZ3aWU2aDJ0VWxfSExreDhSaGhab2QxSkJubmxIQ0tXQVBYTEU1UlNUVkduSU5NNEpNeHJabzVDQ2VpWUZ1MzNMNEpYdmNWNU84UHA1enlaV0JyY2EyWHFNeVFRcw?oc=5",
-    "impacto_borrador": "-60%",
-    "impactoLabel_borrador": "reducción inmobiliaria",
-    "resumen_borrador": "La compraventa para reformas en el barrio de Salamanca cae un 60%."
   },
   {
     "fecha": "29 Jun",
     "hora": "02:30",
-    "categoria": "Urbanismo",
-    "distrito": null,
+    "categoria": "Infraestructura",
+    "distrito": "Tetuá",
     "fuente": "inmobiliario madrid\" - Google News",
-    "tag": "sky",
+    "tag": "amber",
     "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOaUFWMm41TGZfcFU5ZUZCaHRsb0JjN2tVWFZ4Y05XcTBfRldRWElmSmpVX0xZRW9WclFHMEVJazFhaVFVVi1aU2Jzbm1yZVFPcWM0MjZBZDJpWktaaUtlNVllaDd3UFlvZ3c5TnVfaGNVaEhHSFluMDRjZmdnRERsdndzWUZGWDUwbk5xNjMxTHVtOTVhU3hGbW14WWIxanp0MmxjekJSYlJTRS10SjZvZkRmT3ZfYmN4UVYyVWlaclllVXdjcHF2RHY2LVlfcVXSAdQBQVVfeXFMUGF4LXNudE1fMHR4Zl81Tlh3WkVsUEdobFIxSHIwaDk3X3MyQmJfN193dGNBR0xqZlQwQ0NqTHdqR3dLd2NUTUh6bmpXMWF1NlJqOUVSbGp2elJGVjZUQjNzdlg3ZEVaVEg2Ri1idWRBQUk3UGJrdC1Ca2FyZ2E1WV82djZJUUk2cVN1Z25sOWpPck1kNFpzTGVDQ1VORk9VbmMtdXZtYWprcnBDLVRBRnNGUVotQmV1ZVN6N0JSSTV3YXVhbXVPX2ZCaUJseUUyekZjSmw?oc=5",
-    "impacto_borrador": "+10%",
-    "impactoLabel_borrador": "diferencias regionales",
-    "resumen_borrador": "Comparación de precios y características entre Bravo Murillo y Tetuán."
+    "imagen": "",
+    "impacto_borrador": "+2.5%",
+    "impactoLabel_borrador": "variations en precios",
+    "resumen_borrador": "Bravo Murillo y Tetuán presentan variaciones en precios y tamaños de viviendas."
   },
   {
-    "fecha": "16 Jun",
-    "hora": "07:00",
+    "fecha": "25 Jun",
+    "hora": "03:25",
     "categoria": "Demanda",
+    "distrito": "Barrio de las Letras",
+    "fuente": "inmobiliario madrid\" - Google News",
+    "tag": "emerald",
+    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNNDA5YnBldGpVYTVKakVsRnp4NEdmV1lRNjF4aUpzRFNkVGZOckZPeFVBbUFRQzJOUzNvZW1NVWtqMko5QkE1V21VNVhmNXlhQy1ZWkdEaG02M0lJb3pXc2FSY3hUZDlLbUo0TmNCMTBfSDVMc1FuYjNETktHV0k1dC1DOE4xUGZEejFPVGV1eUxHUEdLdTh6Skh1N3FMVDZjckFfU2FXSDVVZ9IBrwFBVV95cUxOZG5aWkFZbzhvTnRUbTRNSnE1dHVscGZ2WkVnQ1JGLTl0WlpuYWtyUldyRTE2VGJ6dVBySEh6QkxuaTlmQlhIMzY4QWV3cEdheVB3OXJzT2pWTnRxa3J6NC03cEJIRU9zLXFwZGY4VWhGWVk3U1RCT2poVUNiTkppd0dEdHR1U0RoSy1XbW9ocDF6TVRDaC1WamtoZjB0NTM4Nm9STFczY2Y3RjM4MWln?oc=5",
+    "imagen": "",
+    "impacto_borrador": "+6,2%",
+    "impactoLabel_borrador": "precio subido distrito",
+    "resumen_borrador": "El Barrio de las Letras se convierte en nuevo foco de lujo inmobiliario en Madrid."
+  },
+  {
+    "fecha": "29 Jun",
+    "hora": "08:45",
+    "categoria": "Fiscalidad",
     "distrito": null,
-    "fuente": "precio vivienda madrid\" - Google News",
+    "fuente": "inmobiliario madrid\" - Google News",
     "tag": "rose",
-    "url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxPVThwQ3RZOFZiYmNTMWZwQl9wV2FwdGFVVW5sVnVDaFdkZU9qUVBHUkxxNExXamdpZlItci1xRWxrS2h4Q04wWVcxd0U3RXg3WnBVSmNQNEk0Q1ZfOFEzdkR6aDhrZ2ZYNldXd2Jfd1ZMSU9mTmlsVlZLLW9aajRndG93QUxVNmdwQWg3Qy1yNEpsU2VsUkZIdGhjczEtSWlFR041U1ZYTTQ3cWh3Y1M1VlpCa3BCa0VTbjNfT25mYlZjUTZSS1FobkdGMUhBX3ZCbmfSAdIBQVVfeXFMTlp0N1pIOUVSbW1zVDJqMXVCdGQ4bEROUFlLR0NQYnI3UzdROWhkQTRNQmlFVWtYZmF0MlV0cEx1LUQ1LTlacVM1cDNfRlNMYTFsY1R6bWRwMlcycnR0YXVyc1otN3pjWWpmSWNJTnNDM1JGNF9xUVVLUi1nX25ReWZCbUFDMDh0czUtRGRsNkxPX0pkR29GSVowMkVQUjJjcy1CdTEyRl9MUHlZYzRtNC1XQlYyZ2VmejFEazBoSXB1TVJFNmJJR1hZd0VEWHZmbk5n?oc=5",
-    "impacto_borrador": "+4,1%",
-    "impactoLabel_borrador": "sobre precio media ciudad",
-    "resumen_borrador": "Los precios en ciudades dormitorio de Madrid comienzan a dispararse tras la subida en Madrid y Barcelona."
+    "url": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxNek5LREV0MUhncFp3dlJHb2RMd1FvemNpeW1oaE5MSlFtLWVaRHhkdk41ejBkRXM3SnFXUFIyLWV6dnNZRlFmUDA0Vi1vRHBPb001dUZ3RW5xTnNJQlZJdXJQcEhyR1lQZFQzSlE1dnlyZ3BUSDhNaDhwcU9vZDRXUU5uQ3hhdURDSlgxZUNob1lTSXIxSEFOa0VSdHFoWkZzV09JMDd1c3pVcDhIRkJtRUNoWVIxZzBjakpabjJCaHAxT2xUWGhRYXNzd25sbmlyWldUWElBdGRkei0wYUNYMDhyNGlEQTJOWXhyT01vSXQteTjSAYcCQVVfeXFMTkUwWEpWTXQyb1dxcDduemlXbi1aMTU0emI2VXFMNTdwZER1NzBuLTVqVmdjdnVyRERGeWVXUVlPaEpScHpBT195U3lBdWRlemwxOW5yblYzQm9OYS1QYmJoeEg2R1Nicmx6QmR2bndmX1Y2Y2J6emtGSHRJSzNScHd6cVZibUFGXzJ4T1RfS1QyVUtVV1NqWWpqRHJPUWR0dnFlSlhtM2h4aU1VY1JjdnZocDBoWVdrdFl1aWEyU3MwYXdHUDBWTWxERjFXMnVrblFfSU1SMzVPelpxZk93MnFnOE0zQmxFVklHa3djY25rdWFtNF8zNmhSRV8tamVHcFNGbUpJS3M?oc=5",
+    "imagen": "",
+    "impacto_borrador": "-3%",
+    "impactoLabel_borrador": "reducción alquileres",
+    "resumen_borrador": "Aviso sobre nuevas regulaciones fiscales para inmuebles vacíos en Madrid."
+  },
+  {
+    "fecha": "29 Jun",
+    "hora": "08:03",
+    "categoria": "Regulación",
+    "distrito": null,
+    "fuente": "inmobiliario madrid\" - Google News",
+    "tag": "rose",
+    "url": "https://news.google.com/rss/articles/CBMilAJBVV95cUxPYTlNQjE4cVdzWkw0MkJRVFo1aGRUUHRWY20tTGlYUGx6ei16bWhVQm5XajVLb3lDMU4ycGozTlhsZF9QQkEyZHgyMnNFVWo4dHkxTnhhOWVjWlRNUVktSW1hNHZHS3pnMG9pdXpHNDRkT0N3b0NPM1dYV3F0S3JHOGNoVHIzVUlMRUsteW9Bc0ZMMU1CV0sweVd4V1EzaFlFbnBWbGdjREw2SWtGNUhVTlluM0NmT3cyVm05LUJhajNTUl9fVHlpdHV0VURkNkxMMmhybk1lZ3hiblZxU1U5bVdoWnhUaURwX3QyQ3JBcDNJMlZlQ3BtMVZRZVpSQ05sUmZkcF9aNHhWWUYwbEJMdUdTOEfSAa8CQVVfeXFMT1dNNnNDR2VKNDhveVpXWU9na0dlZEZGcUMtOXVGN2hmMEFMOV9Ub09QYkdIdnZUMm9aaWxwZmNiZ2gtRnhrZ0N2czUwRExXYklpLWJDT04xSXhGUHFTRlEtQ2xqcENzelhWYkZlRC1WZk5US0YwTEdaLXh2MG5UN2FnbnJoZ1FnUUVPN2w0X0NtSTJJeWIzYnJFYWtWOTNuNnhNMDRZOTlQYTEyX3ZGcDAyQ3RZeUE0RVh5aTdibHlaMzBzcGpvV0JlRTJQNTBNU29qM2djNGVxRktmZXQwS2hVWktPNHgzazdxRTkycUs3aXQyTVpMZlRfQmFESFFlRU1xTWhMS1NkejZVOUxsaVpORGpjdVE2ZVgyX01OekhFeXctX1hQMWdGejdIRC1v?oc=5",
+    "imagen": "",
+    "impacto_borrador": "-6.2%",
+    "impactoLabel_borrador": "reducción habitantes",
+    "resumen_borrador": "Barrios de Madrid combaten contra el auge de los pisos turísticos, temiendo la pérdida de vecinos y vida urbana."
   }
 ]
