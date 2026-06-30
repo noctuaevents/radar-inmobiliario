@@ -1480,7 +1480,7 @@ function VariationD() {
             Analiza antes de decidir.
           </h2>
           <div className="bg-stone-50 border border-slate-200 rounded-2xl divide-y divide-slate-200">
-            {window.NEWS_DATA && window.NEWS_DATA.herramientas.map((h, i) => (
+            {window.NEWS_DATA && window.NEWS_DATA.herramientas && window.NEWS_DATA.herramientas.map((h, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-5">
                 <div className="flex items-center gap-5">
                   {window.NewsV2Icon && <window.NewsV2Icon name={h.icon} />}
