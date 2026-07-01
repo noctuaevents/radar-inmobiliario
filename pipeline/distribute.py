@@ -904,6 +904,108 @@ def update_robots() -> None:
         print("✓ dist/robots.txt actualizado (news-sitemap)")
 
 
+def gen_tool_pages(index_html: str) -> None:
+    """Static SEO pages for the tools routes (monetización — Fase 3):
+    /herramientas/simulador (imán SEO gratuito) y /herramientas/comparador (Pro).
+    Mismo patrón off-screen aria-hidden que gen_section_pages, con directorio
+    anidado (parents=True). El SPA usa hash-routing; estas páginas dan a los bots
+    el H1 + descripción crawlable de cada herramienta."""
+    import html as _html
+
+    tools = [
+        {
+            'route': 'herramientas/simulador',
+            'title': 'Simulador de hipoteca en Madrid: calcula tu cuota mensual | Radar Inmobiliario',
+            'desc': ('Calculadora de hipoteca gratuita para Madrid: cuota mensual, intereses y coste '
+                     'total a tipo fijo o variable (Euríbor), partiendo del precio real por distrito.'),
+            'h1': 'Simulador de hipoteca en Madrid',
+            'body': ('Calcula gratis la cuota mensual de tu hipoteca en Madrid a partir del precio de '
+                     'la vivienda, la entrada, el plazo y el tipo de interés (fijo o variable referenciado '
+                     'al Euríbor). Estima los intereses totales y el coste total del préstamo partiendo del '
+                     'precio medio por metro cuadrado real de cada distrito de Madrid.'),
+        },
+        {
+            'route': 'herramientas/comparador',
+            'title': 'Comparador de distritos de Madrid: precio y rentabilidad | Radar Inmobiliario',
+            'desc': ('Compara hasta 3 distritos de Madrid por precio €/m², rentabilidad bruta, variación '
+                     'interanual y transacciones. Herramienta Pro de Radar Inmobiliario Madrid.'),
+            'h1': 'Comparador de distritos de Madrid',
+            'body': ('Compara hasta tres distritos de Madrid a la vez: precio medio por metro cuadrado, '
+                     'rentabilidad bruta por alquiler, variación interanual y volumen de transacciones. '
+                     'Una herramienta para decidir en qué zona de Madrid comprar o invertir con datos.'),
+        },
+    ]
+
+    for tool in tools:
+        route = tool['route']
+        canonical = f"{BASE_URL}/{route}"
+        t_html = _rewrite_head_meta(index_html, canonical, tool['title'], tool['desc'], og_type="website")
+        inner = (
+            f'<h1>{_html.escape(tool["h1"])}</h1>\n'
+            f'    <p>{_html.escape(tool["body"])}</p>\n'
+            f'    <nav>\n    '
+            f'<a href="{BASE_URL}/distritos">Distritos</a>\n    '
+            f'<a href="{BASE_URL}/">Inicio</a>\n    '
+            f'</nav>'
+        )
+        t_html = _inject_hidden_block(t_html, "tool-static", inner)
+        tool_dir = DIST / route
+        tool_dir.mkdir(parents=True, exist_ok=True)
+        (tool_dir / "index.html").write_text(t_html, encoding="utf-8")
+
+    print(f"✓ {len(tools)} páginas estáticas de herramientas (simulador/comparador)")
+
+
+def update_sitemap_tools() -> None:
+    """Add/refresh the /herramientas/* URLs in dist/sitemap.xml (marker block,
+    idempotente — mismo patrón que update_sitemap para las noticias)."""
+    sitemap = DIST / "sitemap.xml"
+    if not sitemap.exists():
+        return
+    content = sitemap.read_text(encoding="utf-8")
+    content = re.sub(r'\s*<!-- Tools -->.*?<!-- /Tools -->', '', content, flags=re.S)
+    today = date.today().isoformat()
+    tools = ['herramientas/simulador', 'herramientas/comparador']
+    entries_xml = "\n".join(
+        f"  <url>\n"
+        f"    <loc>{BASE_URL}/{t}</loc>\n"
+        f"    <lastmod>{today}</lastmod>\n"
+        f"    <changefreq>monthly</changefreq>\n"
+        f"    <priority>0.7</priority>\n"
+        f"  </url>"
+        for t in tools
+    )
+    new_content = content.replace(
+        '</urlset>',
+        f'\n  <!-- Tools -->\n{entries_xml}\n  <!-- /Tools -->\n\n</urlset>'
+    )
+    sitemap.write_text(new_content, encoding="utf-8")
+    print("✓ dist/sitemap.xml (+2 herramientas)")
+
+
+def inject_waitlist_form() -> None:
+    """Inyecta el <form> estático oculto de Netlify Forms en dist/index.html para
+    que la detección en build de Netlify registre `pro-waitlist`. distribute.py
+    reconstruye index.html desde cero, así que el form estático del template no se
+    arrastra — se inyecta aquí. El form React de PricingPage hace POST url-encoded
+    a `/` con form-name=pro-waitlist contra este form registrado."""
+    index_path = DIST / "index.html"
+    if not index_path.exists():
+        return
+    html_ = index_path.read_text(encoding="utf-8")
+    marker = '<form name="pro-waitlist" data-netlify="true"'
+    if marker in html_:
+        return
+    form = (
+        '\n  <form name="pro-waitlist" data-netlify="true" netlify hidden>\n'
+        '    <input type="email" name="email" />\n'
+        '  </form>'
+    )
+    html_ = html_.replace('<div id="root">', form + '\n  <div id="root">', 1)
+    index_path.write_text(html_, encoding="utf-8")
+    print("✓ dist/index.html: form oculto Netlify pro-waitlist inyectado")
+
+
 # ── main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -1102,6 +1204,11 @@ def main():
 
     distritos, dist_meta = extract_districts()
     gen_district_pages(distritos, dist_meta, index_html)
+
+    # Monetización (Fase 3): páginas estáticas de herramientas + sitemap + form Netlify
+    gen_tool_pages(index_html)
+    update_sitemap_tools()
+    inject_waitlist_form()
 
 
 if __name__ == "__main__":

@@ -285,17 +285,42 @@ function VariationD() {
             Analiza antes de decidir.
           </h2>
           <div className="bg-stone-50 border border-slate-200 rounded-2xl divide-y divide-slate-200">
-            {window.NEWS_DATA && window.NEWS_DATA.herramientas && window.NEWS_DATA.herramientas.map((h, i) => (
+            {[
+              {
+                icon: 'doc',
+                titulo: 'Simulador de hipoteca',
+                descripcion: 'Cuota mensual, intereses y coste total con Euríbor o tipo fijo, por distrito.',
+                badge: 'Gratis',
+                action: () => window.navTo && window.navTo('/herramientas/simulador'),
+              },
+              {
+                icon: 'compare',
+                titulo: 'Comparador de distritos',
+                descripcion: 'Cruza precio, rentabilidad y variación anual de hasta 3 distritos a la vez.',
+                badge: 'Pro',
+                action: () => window.navTo && window.navTo('/herramientas/comparador'),
+              },
+              {
+                icon: 'bell',
+                titulo: 'Alertas de barrio',
+                descripcion: 'Recibe un aviso cuando el precio de tu barrio se mueva más de lo habitual.',
+                badge: 'Pro',
+                action: () => window.showProModal && window.showProModal('Alertas de barrio'),
+              },
+            ].map((h, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-5">
                 <div className="flex items-center gap-5">
                   {window.NewsV2Icon && <window.NewsV2Icon name={h.icon} />}
                   <div>
-                    <p className="text-base font-semibold text-slate-900 tracking-tight">{h.titulo}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-semibold text-slate-900 tracking-tight">{h.titulo}</p>
+                      <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${h.badge === 'Gratis' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{h.badge}</span>
+                    </div>
                     <p className="text-sm text-slate-500 leading-relaxed mt-0.5 max-w-md">{h.descripcion}</p>
                   </div>
                 </div>
-                <button disabled className="bg-stone-50 border border-slate-200 text-slate-400 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap cursor-not-allowed">
-                  Próximamente
+                <button onClick={h.action} className="bg-white border border-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:border-emerald-400 hover:text-emerald-700 transition-colors">
+                  {h.badge === 'Gratis' ? 'Abrir →' : 'Ver más →'}
                 </button>
               </div>
             ))}

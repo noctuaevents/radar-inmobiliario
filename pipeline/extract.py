@@ -17,6 +17,7 @@ ROOT = Path(__file__).parent.parent
 HTML_FILE = ROOT / "Radar Inmobiliario Madrid.html"
 SRC_DIR = ROOT / "src"
 MAP_FILE = SRC_DIR / "manifest.map.json"
+TEMPLATE_FILE = SRC_DIR / "template.html"
 
 # Rutas fijas para los dos ficheros de datos (identificados por cabecera)
 DATA_HEADERS = {
@@ -89,7 +90,21 @@ def main():
 
     MAP_FILE.write_text(json.dumps(manifest_map, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nManifest map guardado en {MAP_FILE.relative_to(ROOT)}")
-    print("De-bundle completo. Edita src/data/distritos.js y src/data/news.js")
+
+    # ── Bloque __bundler/template → src/template.html ────────────────────────
+    # El template es un string JSON (~58 KB) con el HTML real de la página
+    # (router App(), PricingPage, showProModal, tags <script> de componentes).
+    # build.py lo re-serializa de vuelta al bloque. Darle "casa" en src/ permite
+    # editar el HTML de la página sin tocar el bundle a mano.
+    t = re.search(r'<script\b[^>]*type="__bundler/template"[^>]*>(.*?)</script>', html, re.S)
+    if t:
+        template_html = json.loads(t.group(1))
+        TEMPLATE_FILE.write_text(template_html, encoding="utf-8")
+        print(f"Template extraído en {TEMPLATE_FILE.relative_to(ROOT)} ({len(template_html):,} bytes)")
+    else:
+        print("AVISO: no se encontró <script type=\"__bundler/template\"> — template no extraído")
+
+    print("De-bundle completo. Edita src/data/distritos.js, src/data/news.js o src/template.html")
 
 
 if __name__ == "__main__":

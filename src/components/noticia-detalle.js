@@ -1005,6 +1005,11 @@ function NoticiaDetalleDynamic({ slug }) {
           ) : (
             <p className="text-[16.5px] text-slate-700 leading-[1.7] mb-8">{article.resumen}</p>
           )}
+          {window.AffiliateBlock && (
+            <div className="mb-8">
+              <window.AffiliateBlock context="hipoteca" />
+            </div>
+          )}
           <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>

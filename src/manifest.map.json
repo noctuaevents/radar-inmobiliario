@@ -59,6 +59,26 @@
     "mime": "application/javascript",
     "compressed": true
   },
+  "82f7fa11-ad7b-4311-af99-09a6eb97bd7e": {
+    "path": "data/config.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "a8dc2ce3-2776-42dc-9647-6dbb40cb9dd8": {
+    "path": "components/monetize.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "647df7e0-e276-40aa-9acc-70e0f5260794": {
+    "path": "components/herramientas.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
+  "896a3eea-9796-4c37-b6bc-f60af15aa35f": {
+    "path": "components/distrito-detalle.js",
+    "mime": "application/javascript",
+    "compressed": true
+  },
   "61360c19-e933-4472-a37b-ee70febfe036": {
     "path": "fonts/61360c19-e933-4472-a37b-ee70febfe036.woff2",
     "mime": "font/woff2",

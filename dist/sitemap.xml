@@ -213,4 +213,20 @@
   </url>
   <!-- /News articles -->
 
+
+  <!-- Tools -->
+  <url>
+    <loc>https://www.radarinmobiliario.com/herramientas/simulador</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/herramientas/comparador</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- /Tools -->
+
 </urlset>

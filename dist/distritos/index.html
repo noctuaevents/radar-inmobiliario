@@ -943,6 +943,7 @@
   <script src="/assets/geojson.js"></script>
   <script src="/data/news.js"></script>
   <script src="/assets/image-slot.js"></script>
+  <script src="/assets/82f7fa11-ad7b-4311-af99-09a6eb97bd7e.js"></script>
 
 <script type="text/babel">
 // Stylized cartogram of Madrid's 21 districts.
@@ -1363,6 +1364,463 @@ window.MadridGeoMap = MadridGeoMap;
 
 </script>
 <script type="text/babel">
+// monetize.js — Fase 2: gate Pro (MVP client-side), modal de upsell, bloque de afiliados.
+// Debe cargarse ANTES del router y de herramientas.js / distrito-detalle.js.
+
+// ─── Gate Pro (MVP): código único hasheado en SHA-256, persistido en localStorage ───
+window.hasPro = function hasPro() {
+  try {
+    return window.localStorage.getItem('radar_pro') === '1';
+  } catch (e) {
+    return false;
+  }
+};
+
+async function sha256Hex(text) {
+  const enc = new TextEncoder().encode(text);
+  const digest = await window.crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function ProUnlockForm({ onUnlock }) {
+  const [code, setCode] = React.useState('');
+  const [status, setStatus] = React.useState('idle'); // idle | checking | error
+
+  async function handleSubmit() {
+    const trimmed = code.trim();
+    if (!trimmed) { setStatus('error'); return; }
+    setStatus('checking');
+    const hash = await sha256Hex(trimmed);
+    const codes = (window.RADAR_CONFIG && window.RADAR_CONFIG.proCodes) || [];
+    if (codes.includes(hash)) {
+      try { window.localStorage.setItem('radar_pro', '1'); } catch (e) {}
+      setStatus('idle');
+      if (onUnlock) onUnlock();
+    } else {
+      setStatus('error');
+    }
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md mx-auto text-center">
+      <p className="text-sm font-semibold text-slate-900 mb-1">¿Ya tienes un código de acceso fundador?</p>
+      <p className="text-xs text-slate-500 mb-4">Introdúcelo para desbloquear el comparador de distritos.</p>
+      <div className="flex gap-2">
+        <input
+          className={`flex-1 bg-white border text-slate-900 placeholder-slate-400 rounded-lg px-4 py-2.5 text-sm focus:ring-1 outline-none ${status === 'error' ? 'border-rose-200 focus:border-rose-200 focus:ring-rose-200' : 'border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'}`}
+          placeholder="Código de acceso"
+          value={code}
+          onChange={(e) => { setCode(e.target.value); if (status === 'error') setStatus('idle'); }}
+          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={status === 'checking'}
+          className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold px-4 py-2.5 rounded-lg text-sm whitespace-nowrap transition-opacity"
+        >
+          {status === 'checking' ? '…' : 'Desbloquear'}
+        </button>
+      </div>
+      {status === 'error' && <p className="text-rose-600 text-xs mt-2">Código no válido.</p>}
+      <button
+        onClick={() => window.navTo('/pro')}
+        className="mt-4 text-emerald-700 text-xs font-semibold hover:underline underline-offset-4"
+      >
+        Ver planes →
+      </button>
+    </div>
+  );
+}
+window.ProUnlockForm = ProUnlockForm;
+
+// ─── Modal de upsell Pro ───────────────────────────────────────────────────
+function ProModal({ feature, onClose }) {
+  const founder = (window.RADAR_CONFIG && window.RADAR_CONFIG.founder) || { yearlyPrice: 49, normalYearly: 79, seats: 100 };
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl p-8 max-w-sm w-full relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-sm"
+          aria-label="Cerrar"
+        >
+          ✕
+        </button>
+        <div className="text-[11px] uppercase tracking-[0.2em] text-emerald-700 font-bold mb-3">Función Pro</div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2" style={{ textWrap: 'balance' }}>
+          {feature || 'Esta función'} es parte de Radar Pro
+        </h2>
+        <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+          Desbloquea el comparador de distritos, los 131 barrios y el histórico completo.
+        </p>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-5">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-slate-900">{founder.yearlyPrice}€</span>
+            <span className="text-slate-400 text-sm" style={{ textDecoration: 'line-through' }}>{founder.normalYearly}€</span>
+            <span className="text-slate-500 text-xs">/año</span>
+          </div>
+          <p className="text-emerald-700 text-xs font-semibold mt-1">
+            Precio fundador — primeros {founder.seats} suscriptores, para siempre
+          </p>
+        </div>
+        <button
+          onClick={() => { onClose(); window.navTo('/pro'); }}
+          className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-colors"
+        >
+          Ver planes →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+let _proModalRoot = null;
+window.showProModal = function showProModal(feature) {
+  if (!_proModalRoot) {
+    const el = document.createElement('div');
+    el.id = 'pro-modal-root';
+    document.body.appendChild(el);
+    _proModalRoot = ReactDOM.createRoot(el);
+  }
+  const close = () => _proModalRoot.render(null);
+  _proModalRoot.render(<ProModal feature={feature} onClose={close} />);
+};
+
+// ─── Bloque de afiliados, config-driven ────────────────────────────────────
+function AffiliateBlock({ context }) {
+  const affiliates = ((window.RADAR_CONFIG && window.RADAR_CONFIG.affiliates) || [])
+    .filter(a => a.context === context);
+  if (affiliates.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      {affiliates.map((a) => (
+        <div key={a.id} className="bg-stone-50 border border-slate-200 rounded-xl p-5">
+          <p className="text-[10px] uppercase tracking-[0.15em] text-slate-400 font-bold mb-2">Enlace patrocinado</p>
+          <p className="text-sm font-semibold text-slate-900 mb-3">{a.label}</p>
+          <a
+            href={a.url}
+            target="_blank"
+            rel="sponsored nofollow"
+            className="inline-block bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-2 rounded-lg text-sm"
+          >
+            {a.cta || 'Ver más →'}
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+}
+window.AffiliateBlock = AffiliateBlock;
+
+// ─── Página de agradecimiento (success-URL de los Payment Links) ──────────
+function GraciasPage() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+      <div className="text-center max-w-sm">
+        <div className="text-emerald-600 text-5xl mb-4">✓</div>
+        <h1 className="text-2xl font-bold text-slate-900 mb-3">Pago recibido</h1>
+        <p className="text-slate-500 mb-8">Te enviaremos tu código de acceso fundador por email en menos de 24h.</p>
+        <button onClick={() => window.navTo('/')} className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-500 transition-colors">Volver al inicio</button>
+      </div>
+    </div>
+  );
+}
+window.GraciasPage = GraciasPage;
+
+</script>
+<script type="text/babel">
+// herramientas.js — Fase 2: Simulador de hipoteca (gratis) + Comparador de distritos (Pro, gateado).
+// Depende de window.HOME_DATA, window.RADAR_CONFIG, window.hasPro, window.ProUnlockForm (monetize.js).
+
+// ─── Simulador de hipoteca (GRATIS) ────────────────────────────────────────
+function SimuladorHipoteca() {
+  const distritos = (window.HOME_DATA && window.HOME_DATA.distritos) || [];
+  const euribor = (window.RADAR_CONFIG && window.RADAR_CONFIG.euribor)
+    || (window.HOME_DATA && window.HOME_DATA.macro && window.HOME_DATA.macro.euribor12m)
+    || 2.51;
+
+  const [distritoSlug, setDistritoSlug] = React.useState('');
+  const [precio, setPrecio] = React.useState(300000);
+  const [entradaPct, setEntradaPct] = React.useState(20);
+  const [anios, setAnios] = React.useState(25);
+  const [tipoModo, setTipoModo] = React.useState('fijo'); // fijo | variable
+  const [tipoFijo, setTipoFijo] = React.useState(3);
+  const [diferencial, setDiferencial] = React.useState(1);
+
+  React.useEffect(() => {
+    document.title = 'Simulador de hipoteca Madrid — cuota mensual con Euríbor | Radar Inmobiliario';
+  }, []);
+
+  function handleDistrito(slug) {
+    setDistritoSlug(slug);
+    const d = distritos.find(x => x.slug === slug);
+    if (d) setPrecio(Math.round(d.precioMedio * 90)); // referencia: piso ~90 m² en ese distrito
+  }
+
+  const tipoAnual = tipoModo === 'fijo' ? Number(tipoFijo) : (euribor + Number(diferencial));
+  const entrada = precio * (entradaPct / 100);
+  const financiado = Math.max(precio - entrada, 0);
+  const i = tipoAnual / 100 / 12;
+  const n = anios * 12;
+  const cuota = i > 0
+    ? (financiado * i) / (1 - Math.pow(1 + i, -n))
+    : financiado / n;
+  const costeTotal = cuota * n;
+  const interesesTotales = costeTotal - financiado;
+
+  const fmt = (v) => v.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+
+  return (
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">
+      <div className="max-w-4xl mx-auto px-8 py-16">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-700 font-bold mb-3">Herramienta gratuita</p>
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-3" style={{ textWrap: 'balance' }}>
+          Simulador de hipoteca en Madrid
+        </h1>
+        <p className="text-slate-500 text-base max-w-xl mb-10 leading-relaxed">
+          Calcula la cuota mensual de tu hipoteca con el Euríbor actual ({euribor.toFixed(2)}%) o a tipo fijo. Elige un distrito para partir de un precio de referencia.
+        </p>
+
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-7 bg-white border border-slate-200 rounded-2xl p-8 space-y-6">
+            <div>
+              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Distrito de referencia (opcional)</label>
+              <select
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                value={distritoSlug}
+                onChange={(e) => handleDistrito(e.target.value)}
+              >
+                <option value="">Importe libre</option>
+                {distritos.map(d => (
+                  <option key={d.slug} value={d.slug}>{d.nombre} · {d.precioMedio.toLocaleString('es-ES')} €/m²</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Precio de la vivienda (€)</label>
+              <input
+                type="number"
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                value={precio}
+                min={0}
+                step={1000}
+                onChange={(e) => { setDistritoSlug(''); setPrecio(Number(e.target.value) || 0); }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Entrada (%)</label>
+                <input
+                  type="number"
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                  value={entradaPct}
+                  min={0}
+                  max={100}
+                  onChange={(e) => setEntradaPct(Number(e.target.value) || 0)}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Plazo (años)</label>
+                <input
+                  type="number"
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                  value={anios}
+                  min={1}
+                  max={40}
+                  onChange={(e) => setAnios(Number(e.target.value) || 1)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Tipo de interés</label>
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setTipoModo('fijo')}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${tipoModo === 'fijo' ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-slate-300 text-slate-600'}`}
+                >
+                  Fijo
+                </button>
+                <button
+                  onClick={() => setTipoModo('variable')}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${tipoModo === 'variable' ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-slate-300 text-slate-600'}`}
+                >
+                  Variable (Euríbor + diferencial)
+                </button>
+              </div>
+              {tipoModo === 'fijo' ? (
+                <input
+                  type="number"
+                  step={0.05}
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                  value={tipoFijo}
+                  onChange={(e) => setTipoFijo(Number(e.target.value) || 0)}
+                />
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-500">Euríbor 12m: <strong className="text-slate-900">{euribor.toFixed(2)}%</strong> +</span>
+                  <input
+                    type="number"
+                    step={0.05}
+                    className="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                    value={diferencial}
+                    onChange={(e) => setDiferencial(Number(e.target.value) || 0)}
+                  />
+                  <span className="text-sm text-slate-500">%</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="col-span-5">
+            <div className="bg-emerald-600 rounded-2xl p-7 text-white sticky" style={{ top: '80px' }}>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-100 font-bold mb-2">Cuota mensual estimada</p>
+              <div className="text-4xl font-bold mb-6 tabular-nums">{fmt(cuota)} €<span className="text-lg font-normal text-emerald-200">/mes</span></div>
+              <div className="space-y-2.5 text-sm border-t border-white/20 pt-5">
+                <div className="flex justify-between"><span className="text-emerald-100">Importe financiado</span><span className="font-semibold tabular-nums">{fmt(financiado)} €</span></div>
+                <div className="flex justify-between"><span className="text-emerald-100">Tipo anual aplicado</span><span className="font-semibold tabular-nums">{tipoAnual.toFixed(2)} %</span></div>
+                <div className="flex justify-between"><span className="text-emerald-100">Intereses totales</span><span className="font-semibold tabular-nums">{fmt(interesesTotales)} €</span></div>
+                <div className="flex justify-between"><span className="text-emerald-100">Coste total del préstamo</span><span className="font-semibold tabular-nums">{fmt(costeTotal)} €</span></div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-5">
+              <p className="text-sm font-semibold text-slate-900 mb-2">¿Quieres comparar distritos?</p>
+              <p className="text-xs text-slate-500 mb-4 leading-relaxed">El comparador de distritos (Pro) cruza precio, rentabilidad y variación anual de hasta 3 zonas a la vez.</p>
+              <button
+                onClick={() => window.navTo('/herramientas/comparador')}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-semibold transition-colors"
+              >
+                Ir al comparador →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-slate-400 text-xs mt-8 max-w-xl leading-relaxed">
+          Cálculo orientativo mediante sistema de amortización francés (cuota constante). No incluye gastos de apertura, tasación, notaría, ni seguros vinculados. El tipo variable usa el último Euríbor a 12 meses publicado.
+        </p>
+      </div>
+    </div>
+  );
+}
+window.SimuladorHipoteca = SimuladorHipoteca;
+
+// ─── Comparador de distritos (PRO, gateado) ────────────────────────────────
+function ComparadorDistritos() {
+  const distritos = (window.HOME_DATA && window.HOME_DATA.distritos) || [];
+  const [pro, setPro] = React.useState(window.hasPro ? window.hasPro() : false);
+  const [sel, setSel] = React.useState(['salamanca', 'carabanchel', 'tetuan'].filter(s => distritos.some(d => d.slug === s)));
+
+  React.useEffect(() => {
+    document.title = 'Comparador de distritos de Madrid — precio, rentabilidad y variación | Radar Inmobiliario';
+  }, []);
+
+  function toggleDistrito(slug) {
+    setSel(prev => {
+      if (prev.includes(slug)) return prev.filter(s => s !== slug);
+      if (prev.length >= 3) return prev; // máx 3
+      return [...prev, slug];
+    });
+  }
+
+  const seleccionados = sel.map(s => distritos.find(d => d.slug === s)).filter(Boolean);
+
+  const rows = [
+    { label: 'Precio medio €/m²', get: (d) => d.precioMedio.toLocaleString('es-ES') + ' €' },
+    { label: 'Variación interanual', get: (d) => (d.varAnual >= 0 ? '+' : '') + d.varAnual.toFixed(1) + ' %' },
+    { label: 'Alquiler medio €/m²', get: (d) => d.alquilerM2.toLocaleString('es-ES') + ' €' },
+    { label: 'Rentabilidad bruta', get: (d) => d.rent.toFixed(2) + ' %' },
+    { label: 'Transacciones/año', get: (d) => d.tx.toLocaleString('es-ES') },
+    { label: 'Ranking de precio', get: (d) => '#' + d.ranking },
+  ];
+
+  const Table = (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-stone-50 border-b border-slate-200">
+            <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-[0.15em] text-slate-400 font-bold">Métrica</th>
+            {seleccionados.map(d => (
+              <th key={d.slug} className="text-right px-5 py-3.5 text-sm font-bold text-slate-900">{d.nombre}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b border-slate-100 last:border-0">
+              <td className="px-5 py-3 text-slate-500">{r.label}</td>
+              {seleccionados.map(d => (
+                <td key={d.slug} className="px-5 py-3 text-right font-semibold text-slate-900 tabular-nums">{r.get(d)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">
+      <div className="max-w-5xl mx-auto px-8 py-16">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-700 font-bold mb-3">Herramienta Pro</p>
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-3" style={{ textWrap: 'balance' }}>
+          Comparador de distritos
+        </h1>
+        <p className="text-slate-500 text-base max-w-xl mb-8 leading-relaxed">
+          Compara hasta 3 distritos de Madrid: precio, rentabilidad, variación anual y transacciones.
+        </p>
+
+        <div className="flex flex-wrap gap-2 mb-8">
+          {distritos.map(d => (
+            <button
+              key={d.slug}
+              onClick={() => toggleDistrito(d.slug)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors ${sel.includes(d.slug) ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-slate-300 text-slate-600 hover:border-emerald-400'}`}
+            >
+              {d.nombre}
+            </button>
+          ))}
+        </div>
+
+        {pro ? (
+          Table
+        ) : (
+          <div className="relative">
+            <div style={{ filter: 'blur(6px)', userSelect: 'none', pointerEvents: 'none' }}>
+              {Table}
+            </div>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md max-w-sm text-center">
+                <p className="text-sm font-bold text-slate-900 mb-1">Comparador disponible en Radar Pro</p>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed">Desbloquea la comparación completa de distritos con un código de acceso fundador o suscríbete.</p>
+                <button
+                  onClick={() => window.showProModal('Comparador de distritos')}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold transition-colors mb-3"
+                >
+                  Hazte Pro →
+                </button>
+                <window.ProUnlockForm onUnlock={() => setPro(true)} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+window.ComparadorDistritos = ComparadorDistritos;
+
+</script>
+<script type="text/babel">
 // Variation D — Híbrido (C + B), FULL CLARO
 // Base: Mapa-first / espacial (C). Toma de B: ticker macro + heatmap denso de distritos.
 // Todo en tono claro: bg-white / bg-stone-50 / bg-emerald-50 alternados, acento emerald-600.
@@ -1650,17 +2108,42 @@ function VariationD() {
             Analiza antes de decidir.
           </h2>
           <div className="bg-stone-50 border border-slate-200 rounded-2xl divide-y divide-slate-200">
-            {window.NEWS_DATA && window.NEWS_DATA.herramientas && window.NEWS_DATA.herramientas.map((h, i) => (
+            {[
+              {
+                icon: 'doc',
+                titulo: 'Simulador de hipoteca',
+                descripcion: 'Cuota mensual, intereses y coste total con Euríbor o tipo fijo, por distrito.',
+                badge: 'Gratis',
+                action: () => window.navTo && window.navTo('/herramientas/simulador'),
+              },
+              {
+                icon: 'compare',
+                titulo: 'Comparador de distritos',
+                descripcion: 'Cruza precio, rentabilidad y variación anual de hasta 3 distritos a la vez.',
+                badge: 'Pro',
+                action: () => window.navTo && window.navTo('/herramientas/comparador'),
+              },
+              {
+                icon: 'bell',
+                titulo: 'Alertas de barrio',
+                descripcion: 'Recibe un aviso cuando el precio de tu barrio se mueva más de lo habitual.',
+                badge: 'Pro',
+                action: () => window.showProModal && window.showProModal('Alertas de barrio'),
+              },
+            ].map((h, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-5">
                 <div className="flex items-center gap-5">
                   {window.NewsV2Icon && <window.NewsV2Icon name={h.icon} />}
                   <div>
-                    <p className="text-base font-semibold text-slate-900 tracking-tight">{h.titulo}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-semibold text-slate-900 tracking-tight">{h.titulo}</p>
+                      <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${h.badge === 'Gratis' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{h.badge}</span>
+                    </div>
                     <p className="text-sm text-slate-500 leading-relaxed mt-0.5 max-w-md">{h.descripcion}</p>
                   </div>
                 </div>
-                <button disabled className="bg-stone-50 border border-slate-200 text-slate-400 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap cursor-not-allowed">
-                  Próximamente
+                <button onClick={h.action} className="bg-white border border-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:border-emerald-400 hover:text-emerald-700 transition-colors">
+                  {h.badge === 'Gratis' ? 'Abrir →' : 'Ver más →'}
                 </button>
               </div>
             ))}
@@ -3519,6 +4002,11 @@ function NoticiaDetalleDynamic({ slug }) {
           ) : (
             <p className="text-[16.5px] text-slate-700 leading-[1.7] mb-8">{article.resumen}</p>
           )}
+          {window.AffiliateBlock && (
+            <div className="mb-8">
+              <window.AffiliateBlock context="hipoteca" />
+            </div>
+          )}
           <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
@@ -3689,6 +4177,124 @@ window.LegalPage = LegalPage;
 
 </script>
 <script type="text/babel">
+// distrito-detalle.js — Fase 1: ficha de distrito (arregla el 404 en /distritos/:slug).
+// Depende de window.HOME_DATA, window.NEWS_DATA, window.NotFoundPage-equivalent, window.AffiliateBlock (monetize.js).
+
+function DistritoDetalle({ slug }) {
+  const distritos = (window.HOME_DATA && window.HOME_DATA.distritos) || [];
+  const d = distritos.find(x => x.slug === slug);
+
+  React.useEffect(() => {
+    document.title = d
+      ? `${d.nombre} — precio m², rentabilidad y noticias | Radar Inmobiliario Madrid`
+      : 'Distrito no encontrado | Radar Inmobiliario Madrid';
+  }, [slug, d]);
+
+  if (!d) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <div className="text-emerald-600 text-6xl font-bold mb-4">404</div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Distrito no encontrado</h1>
+          <p className="text-slate-500 mb-8">No existe ningún distrito con ese identificador. Puede que el enlace esté roto.</p>
+          <button onClick={() => window.navTo('/distritos')} className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-500 transition-colors">Ver todos los distritos</button>
+        </div>
+      </div>
+    );
+  }
+
+  const news = (window.NEWS_DATA && window.NEWS_DATA.items) || [];
+  const relacionadas = news.filter(n => n.distrito === d.nombre).slice(0, 6);
+
+  const stats = [
+    { label: 'Precio medio', valor: `${d.precioMedio.toLocaleString('es-ES')} €/m²` },
+    { label: 'Variación interanual', valor: `${d.varAnual >= 0 ? '+' : ''}${d.varAnual.toFixed(1)} %`, up: d.varAnual >= 0 },
+    { label: 'Alquiler medio', valor: `${d.alquilerM2.toLocaleString('es-ES')} €/m²` },
+    { label: 'Rentabilidad bruta', valor: `${d.rent.toFixed(2)} %` },
+    { label: 'Transacciones/año', valor: d.tx.toLocaleString('es-ES') },
+    { label: 'Ranking de precio en Madrid', valor: `#${d.ranking} de 21` },
+  ];
+
+  return (
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">
+      <div className="max-w-5xl mx-auto px-8 pt-10">
+        <nav className="flex items-center gap-2 text-[12px] text-slate-400 mb-6">
+          <a href="/" onClick={(e) => { e.preventDefault(); window.navTo('/'); }} className="hover:text-emerald-700">Inicio</a>
+          <span>›</span>
+          <a href="/distritos" onClick={(e) => { e.preventDefault(); window.navTo('/distritos'); }} className="hover:text-emerald-700">Distritos</a>
+          <span>›</span>
+          <span className="text-slate-600">{d.nombre}</span>
+        </nav>
+
+        <div className="bg-white border border-slate-200 rounded-3xl p-10 mb-10">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-700 font-bold mb-3">Distrito de Madrid</p>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-8" style={{ textWrap: 'balance' }}>{d.nombre}</h1>
+          <div className="grid grid-cols-3 gap-5">
+            {stats.map((s, i) => (
+              <div key={i} className="bg-stone-50 border border-slate-200 rounded-xl px-5 py-4">
+                <p className="text-[11px] text-slate-500 mb-1">{s.label}</p>
+                <p className={`text-xl font-bold tabular-nums ${s.up === false ? 'text-rose-700' : 'text-slate-900'}`}>{s.valor}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-10 flex items-center justify-between gap-6">
+          <div>
+            <p className="text-sm font-bold text-slate-900 mb-1">131 barrios de Madrid — datos detallados en Pro</p>
+            <p className="text-xs text-slate-600">Consulta el desglose por barrio de {d.nombre}: precio, variación y rentabilidad barrio a barrio.</p>
+          </div>
+          <button
+            onClick={() => window.showProModal('Barrios de ' + d.nombre)}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors flex-shrink-0"
+          >
+            Ver barrios →
+          </button>
+        </div>
+
+        <div className="grid grid-cols-12 gap-8 pb-20">
+          <div className="col-span-8">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold mb-4">Noticias de {d.nombre}</p>
+            {relacionadas.length > 0 ? (
+              <div className="space-y-4">
+                {relacionadas.map((n, i) => (
+                  <a
+                    key={i}
+                    href={`/noticia/${n.slug}`}
+                    onClick={(e) => { e.preventDefault(); window.navTo(`/noticia/${n.slug}`); }}
+                    className="block bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-emerald-400 transition-colors cursor-pointer"
+                  >
+                    <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-slate-400 mb-1.5">{n.categoria} · {n.fecha}</p>
+                    <p className="text-sm font-semibold text-slate-900 leading-snug" style={{ textWrap: 'balance' }}>{n.titulo}</p>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-xl px-5 py-8 text-center">
+                <p className="text-sm text-slate-400">Todavía no hay noticias específicas de {d.nombre}.</p>
+                <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }} className="inline-block mt-3 text-sm font-semibold text-emerald-700 hover:underline underline-offset-4">Ver todas las noticias →</a>
+              </div>
+            )}
+          </div>
+          <div className="col-span-4">
+            {window.AffiliateBlock && <window.AffiliateBlock context="hipoteca" />}
+            <a
+              href="/distritos"
+              onClick={(e) => { e.preventDefault(); window.navTo('/distritos'); }}
+              className="block mt-5 text-sm font-semibold text-emerald-700 hover:underline underline-offset-4"
+            >
+              ← Ver todos los distritos
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+window.DistritoDetalle = DistritoDetalle;
+
+</script>
+<script type="text/babel">
 const { useState: useRouteState, useEffect: useRouteEffect } = React;
 
     window.navTo = (path) => { window.location.hash = path; };
@@ -3736,7 +4342,39 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
     /* ---- F-07: PricingPage ---- */
     function PricingPage() {
       const free = ['Portada y análisis mensual','21 distritos de Madrid','Noticias curadas del sector','Cartograma de precios'];
-      const pro  = ['Todo lo anterior','131 barrios con datos detallados','Histórico 24 meses por distrito','Comparador de distritos','Simulador de hipoteca con Euribor','Alertas de barrio por email','Exportación CSV'];
+      const proDisponible = ['Comparador de distritos','Simulador de hipoteca avanzado','Exportación CSV'];
+      const proEnCamino = ['131 barrios con datos detallados','Histórico 24 meses por distrito','Alertas de barrio por email'];
+      const founder = (window.RADAR_CONFIG && window.RADAR_CONFIG.founder) || { yearlyPrice: 49, normalYearly: 79, monthly: 9, seats: 100 };
+      const stripeCfg = (window.RADAR_CONFIG && window.RADAR_CONFIG.stripe) || {};
+      const hasStripeLink = !!(stripeCfg.yearlyFounder || stripeCfg.monthly);
+
+      const [waitlistEmail, setWaitlistEmail] = React.useState('');
+      const [waitlistStatus, setWaitlistStatus] = React.useState('idle'); // idle | loading | ok | error
+
+      function encodeForm(data) {
+        return Object.keys(data).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k])).join('&');
+      }
+
+      function handleWaitlistSubmit() {
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waitlistEmail.trim());
+        if (!valid) { setWaitlistStatus('error'); return; }
+        setWaitlistStatus('loading');
+        fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: encodeForm({ 'form-name': 'pro-waitlist', email: waitlistEmail.trim() }),
+        })
+          .then((r) => { setWaitlistStatus(r.ok ? 'ok' : 'error'); })
+          .catch(() => { setWaitlistStatus('error'); });
+      }
+
+      function handleHazteProClick() {
+        if (stripeCfg.yearlyFounder) { window.location.href = stripeCfg.yearlyFounder; return; }
+        if (stripeCfg.monthly) { window.location.href = stripeCfg.monthly; return; }
+        const el = document.getElementById('waitlist-form');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
       return (
         <div className="min-h-screen bg-slate-50">
           <SiteNav active="pro" />
@@ -3760,20 +4398,67 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
                 <button onClick={() => window.navTo('/')} className="w-full py-3 border border-slate-200 rounded-xl text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">Ir al inicio</button>
               </div>
               <div className="bg-emerald-600 rounded-2xl p-8 text-white relative overflow-hidden">
-                <div className="absolute top-4 right-4 bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">Más popular</div>
+                <div className="absolute top-4 right-4 bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">Precio fundador</div>
                 <div className="text-sm font-semibold text-emerald-100 uppercase tracking-wide mb-3">Pro</div>
-                <div className="text-4xl font-bold mb-1">9€<span className="text-xl font-normal text-emerald-200">/mes</span></div>
-                <div className="text-emerald-200 text-sm mb-8">o 79€/año — ahorra 2 meses</div>
-                <ul className="space-y-3 mb-8">
-                  {pro.map((p,i) => (
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-4xl font-bold">{founder.yearlyPrice}€<span className="text-xl font-normal text-emerald-200">/año</span></span>
+                  <span className="text-emerald-200 text-lg" style={{ textDecoration: 'line-through' }}>{founder.normalYearly}€</span>
+                </div>
+                <div className="text-emerald-200 text-sm mb-1">o {founder.monthly}€/mes</div>
+                <div className="text-emerald-100 text-xs font-semibold mb-8">Precio fundador — primeros {founder.seats} suscriptores, para siempre</div>
+                <p className="text-emerald-100 text-[11px] uppercase tracking-[0.15em] font-bold mb-2">Disponible ya</p>
+                <ul className="space-y-2.5 mb-5">
+                  {proDisponible.map((p,i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-white">
                       <span className="text-emerald-200 mt-0.5 shrink-0">✓</span>{p}
                     </li>
                   ))}
                 </ul>
-                <button onClick={() => alert('Stripe próximamente')} className="w-full py-3 bg-white text-emerald-700 rounded-xl text-sm font-bold hover:bg-emerald-50 transition-colors">Hazte Pro →</button>
+                <p className="text-emerald-100 text-[11px] uppercase tracking-[0.15em] font-bold mb-2">En camino, incluido</p>
+                <ul className="space-y-2.5 mb-8">
+                  {proEnCamino.map((p,i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-emerald-50">
+                      <span className="text-emerald-200 mt-0.5 shrink-0">○</span>{p}
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={handleHazteProClick} className="w-full py-3 bg-white text-emerald-700 rounded-xl text-sm font-bold hover:bg-emerald-50 transition-colors">Hazte Pro →</button>
               </div>
             </div>
+
+            {!hasStripeLink && (
+              <div id="waitlist-form" className="mt-10 bg-white border border-slate-200 rounded-2xl p-6 max-w-md mx-auto text-center">
+                <p className="text-sm font-bold text-slate-900 mb-1">Lista de espera fundador</p>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed">El pago con tarjeta llega pronto. Deja tu email y serás de los primeros {founder.seats} en recibir tu código de acceso al precio fundador.</p>
+                {waitlistStatus === 'ok' ? (
+                  <p className="text-emerald-700 font-semibold text-sm py-2">¡Apuntado! Te avisaremos en cuanto abramos los pagos.</p>
+                ) : (
+                  <>
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        className={`flex-1 bg-white border text-slate-900 placeholder-slate-400 rounded-lg px-4 py-2.5 text-sm focus:ring-1 outline-none ${waitlistStatus === 'error' ? 'border-rose-200 focus:border-rose-200 focus:ring-rose-200' : 'border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'}`}
+                        placeholder="tu@email.com"
+                        type="email"
+                        value={waitlistEmail}
+                        onChange={(e) => { setWaitlistEmail(e.target.value); if (waitlistStatus === 'error') setWaitlistStatus('idle'); }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleWaitlistSubmit()}
+                      />
+                      <button
+                        onClick={handleWaitlistSubmit}
+                        disabled={waitlistStatus === 'loading'}
+                        className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold px-5 py-2.5 rounded-lg text-sm whitespace-nowrap transition-opacity"
+                      >
+                        {waitlistStatus === 'loading' ? '…' : 'Apuntarme'}
+                      </button>
+                    </div>
+                    {waitlistStatus === 'error' && (
+                      <p className="text-rose-600 text-xs">Introduce un email válido.</p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
             <div className="mt-16">
               <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">Preguntas frecuentes</h2>
               <div className="space-y-4 max-w-2xl mx-auto">
@@ -3781,7 +4466,8 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
                   ['¿Cuándo se actualizan los datos?','Mensualmente, con datos de cierre del mes anterior.'],
                   ['¿Puedo cancelar cuando quiera?','Sí, sin compromiso de permanencia.'],
                   ['¿Qué son los 131 barrios?','Madrid se divide en 21 distritos y 131 barrios. El plan Pro incluye datos detallados a nivel de barrio.'],
-                  ['¿Cómo pago?','Tarjeta de crédito o débito vía Stripe. Próximamente disponible.'],
+                  ['¿Cómo pago?','Tarjeta de crédito o débito vía Stripe. Mientras activamos los pagos, apúntate a la lista de espera y te avisamos por email en cuanto esté disponible.'],
+                  ['¿Qué es el precio fundador?','Los primeros ' + founder.seats + ' suscriptores de Radar Pro pagan ' + founder.yearlyPrice + '€/año en lugar de ' + founder.normalYearly + '€/año, para siempre mientras mantengan la suscripción activa.'],
                 ].map(([q,a],i) => (
                   <div key={i} className="bg-white rounded-xl border border-slate-200 p-5">
                     <div className="font-semibold text-slate-900 text-sm mb-1.5">{q}</div>
@@ -3842,6 +4528,10 @@ function App() {
         return () => window.removeEventListener('hashchange', onHash);
       }, []);
 
+      if (r.startsWith('/distritos/')) { const slug = r.slice(11); return (<div><SiteNav active="distritos" /><window.DistritoDetalle slug={slug} /></div>); }
+      if (r === '/herramientas/simulador') return (<div><SiteNav active="" /><window.SimuladorHipoteca /></div>);
+      if (r === '/herramientas/comparador') return (<div><SiteNav active="" /><window.ComparadorDistritos /></div>);
+      if (r === '/gracias') return (<div><SiteNav active="" /><window.GraciasPage /></div>);
       if (r === '/distritos') return (<div><SiteNav active="distritos" /><window.DistritosV2 /></div>);
       if (r === '/noticias')  return (<div><SiteNav active="noticias" /><window.NewsV2 /></div>);
       if (r.startsWith('/noticia/')) { const slug = r.slice(9); return (<div><SiteNav active="noticias" /><window.NoticiaDetalleDynamic slug={slug} /></div>); }
