@@ -81,14 +81,6 @@ window.HOME_DATA = {
     { nombre: 'Buenavista',                                    distrito: 'Carabanchel',         precio: 3456, varAnual:  54.43 },
   ],
 
-  // Featured editorial pieces (placeholders to mock the "noticias destacadas" column)
-  noticiasDestacadas: [
-    { fecha: '18 May', categoria: 'Urbanismo',  titulo: 'La línea 11 de Metro supera el 50% en Arganzuela y empuja la zona sur', distrito: 'Arganzuela' },
-    { fecha: '15 May', categoria: 'Regulación', titulo: 'La Comunidad ratifica que no aplicará zonas tensionadas en 2026',       distrito: null },
-    { fecha: '12 May', categoria: 'Obras',      titulo: 'Operación Madrid Nuevo Norte: licitada la primera fase residencial',    distrito: 'Chamartín' },
-    { fecha: '08 May', categoria: 'Movilidad',  titulo: 'Nuevos cercanías al sureste: Vallecas y Vicálvaro recortan tiempos',    distrito: 'Puente de Vallecas' },
-  ],
-
   // Macro snapshot (terminal-style bar)
   macro: {
     euribor12m: 2.51,

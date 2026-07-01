@@ -296,6 +296,64 @@ def gen_article_pages(articles: list, index_html: str) -> None:
     print(f"✓ {len(articles)} páginas estáticas en dist/noticia/")
 
 
+def gen_home_static(articles: list) -> None:
+    """Inject a static, crawlable block (H1 + intro + internal nav + latest news
+    list) before <div id="root"> in dist/index.html, using the same off-screen
+    aria-hidden pattern as gen_article_pages, so bots that don't run JS still
+    see the home's H1 and internal links."""
+    import html as _html
+
+    index_path = DIST / "index.html"
+    if not index_path.exists():
+        return
+    index_html = index_path.read_text(encoding="utf-8")
+
+    titulo = "Radar Inmobiliario Madrid — precios de vivienda por distrito en Madrid"
+    intro = (
+        "Datos actualizados de precio €/m², rentabilidad y variación anual por "
+        "distrito y barrio en Madrid. Análisis independiente del mercado inmobiliario."
+    )
+
+    nav_links = [
+        (f"{BASE_URL}/distritos", "Distritos"),
+        (f"{BASE_URL}/noticias", "Noticias"),
+        (f"{BASE_URL}/sobre", "Sobre"),
+        (f"{BASE_URL}/metodologia", "Metodología"),
+    ]
+    nav_html = "\n    ".join(
+        f'<a href="{href}">{_html.escape(label)}</a>' for href, label in nav_links
+    )
+
+    valid_articles = [a for a in articles if a.get('slug') and a.get('titulo')]
+    li_items = []
+    for art in valid_articles:
+        slug   = art['slug']
+        titulo_art = _html.escape(art['titulo'])
+        resumen = _html.escape(smart_truncate(art.get('resumen') or '', 155))
+        li_items.append(
+            f'<li><a href="{BASE_URL}/noticia/{slug}">{titulo_art}</a> — {resumen}</li>'
+        )
+    noticias_html = "\n    ".join(li_items)
+
+    home_static = (
+        '\n  <div id="home-static" style="position:absolute;left:-9999px;top:-9999px;'
+        'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n'
+        f'    <h1>{_html.escape(titulo)}</h1>\n'
+        f'    <p>{_html.escape(intro)}</p>\n'
+        f'    <nav>\n    {nav_html}\n    </nav>\n'
+        f'    <h2>Últimas noticias</h2>\n'
+        f'    <ul>\n    {noticias_html}\n    </ul>\n'
+        '  </div>'
+    )
+
+    if 'id="home-static"' not in index_html:
+        index_html = index_html.replace(
+            '<div id="root">', home_static + '\n  <div id="root">', 1
+        )
+        index_path.write_text(index_html, encoding="utf-8")
+        print("✓ dist/index.html: bloque estático de home inyectado (home-static)")
+
+
 def gen_news_sitemap(articles: list) -> None:
     """Generate dist/news-sitemap.xml for Google News."""
     import html as _html
@@ -608,6 +666,7 @@ def main():
     articles = extract_news_articles()
     if articles:
         gen_article_pages(articles, index_html)
+        gen_home_static(articles)
         gen_news_sitemap(articles)
         update_sitemap(articles)
         update_robots()
