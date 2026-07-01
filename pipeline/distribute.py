@@ -27,6 +27,7 @@ HTML_IN  = ROOT / "Radar Inmobiliario Madrid.html"
 DIST     = ROOT / "dist"
 MAP_FILE = ROOT / "src" / "manifest.map.json"
 NEWS_JS  = ROOT / "src" / "data" / "news.js"
+DISTRITOS_JS = ROOT / "src" / "data" / "distritos.js"
 
 BASE_URL = "https://www.radarinmobiliario.com"  # canonical domain (non-www → 308 redirect)
 
@@ -189,6 +190,128 @@ def extract_news_articles() -> list:
     return articles
 
 
+def _balanced_array_text(text: str, array_key_regex: str) -> str:
+    """Find `array_key_regex: [` in text and return the inner text between the
+    balanced '[' ... ']' (respecting quoted strings)."""
+    m = re.search(array_key_regex, text)
+    if not m:
+        return ""
+    start = m.end() - 1
+    depth = 0
+    in_str = False
+    esc = False
+    end = None
+    for i in range(start, len(text)):
+        c = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == '[':
+            depth += 1
+        elif c == ']':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    return text[start + 1:end] if end is not None else text[m.end():]
+
+
+def _regex_district_object(obj_str: str) -> dict:
+    """Best-effort regex parse for a single district object (unquoted numeric
+    values). Field order inside the object doesn't matter."""
+    d = {}
+    for key in ('slug', 'nombre'):
+        mm = re.search(rf'"{key}":\s*\'([^\']*)\'|"{key}":\s*"([^"]*)"', obj_str)
+        if mm:
+            d[key] = mm.group(1) or mm.group(2)
+    # single-quoted JS strings (source uses 'slug': 'centro', 'nombre': 'Centro')
+    for key in ('slug', 'nombre'):
+        if key not in d:
+            mm = re.search(rf"{key}:\s*'([^']*)'", obj_str)
+            if mm:
+                d[key] = mm.group(1)
+    for key in ('precioMedio', 'ranking'):
+        mm = re.search(rf'{key}:\s*(-?\d+)', obj_str)
+        if mm:
+            d[key] = int(mm.group(1))
+    for key in ('alquilerM2', 'rent', 'varAnual', 'tx'):
+        mm = re.search(rf'{key}:\s*(-?\d+(?:\.\d+)?)', obj_str)
+        if mm:
+            val = mm.group(1)
+            d[key] = int(val) if key == 'tx' else float(val)
+    return d
+
+
+def extract_districts() -> tuple:
+    """Parse src/data/distritos.js (window.HOME_DATA) and return
+    (distritos, meta):
+      distritos: list of dicts with slug, nombre, precioMedio (int),
+                 alquilerM2, rent, varAnual, tx, ranking
+      meta: dict with edicion, fecha, precioMedio, variacionMedia
+    Parseo robusto frente al orden de claves: balancea corchetes para aislar
+    el array `distritos: [ ... ]`, luego cada objeto de primer nivel con
+    balanceo de llaves y regex por clave (los valores numéricos no llevan
+    comillas en el fichero fuente).
+    """
+    if not DISTRITOS_JS.exists():
+        return [], {}
+    text = DISTRITOS_JS.read_text(encoding="utf-8")
+
+    # meta block (also unquoted numeric values, single-quoted strings)
+    meta_block_m = re.search(r'\bmeta:\s*\{', text)
+    meta = {}
+    if meta_block_m:
+        depth = 0
+        start = meta_block_m.end() - 1
+        end = None
+        for i in range(start, len(text)):
+            c = text[i]
+            if c == '{':
+                depth += 1
+            elif c == '}':
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+        meta_str = text[start:end + 1] if end is not None else ""
+        edicion_m = re.search(r"edicion:\s*'([^']*)'", meta_str)
+        fecha_m = re.search(r"fecha:\s*'([^']*)'", meta_str)
+        precio_m = re.search(r'precioMedio:\s*(-?\d+(?:\.\d+)?)', meta_str)
+        var_m = re.search(r'variacionMedia:\s*(-?\d+(?:\.\d+)?)', meta_str)
+        meta = {
+            'edicion': edicion_m.group(1) if edicion_m else '',
+            'fecha': fecha_m.group(1) if fecha_m else '',
+            'precioMedio': int(float(precio_m.group(1))) if precio_m else 0,
+            'variacionMedia': float(var_m.group(1)) if var_m else 0.0,
+        }
+
+    # distritos array — find the top-level `distritos: [` (not `window.HOME_DATA = {`)
+    array_text = _balanced_array_text(text, r'\bdistritos:\s*\[')
+    distritos = []
+    for obj_str in _split_top_level_objects(array_text):
+        d = _regex_district_object(obj_str)
+        if d.get('slug') and d.get('nombre'):
+            distritos.append({
+                'slug': d.get('slug', ''),
+                'nombre': d.get('nombre', ''),
+                'precioMedio': int(d.get('precioMedio', 0)),
+                'alquilerM2': d.get('alquilerM2', 0.0),
+                'rent': d.get('rent', 0.0),
+                'varAnual': d.get('varAnual', 0.0),
+                'tx': int(d.get('tx', 0)),
+                'ranking': int(d.get('ranking', 0)),
+            })
+
+    return distritos, meta
+
+
 def gen_article_pages(articles: list, index_html: str) -> None:
     """Generate static HTML per article in dist/noticia/[slug]/index.html for social bots."""
     import html as _html
@@ -277,14 +400,42 @@ def gen_article_pages(articles: list, index_html: str) -> None:
         ld_tag = f'\n  <script type="application/ld+json">\n  {json.dumps(ld, ensure_ascii=False, indent=2)}\n  </script>'
         art_html = art_html.replace('</head>', ld_tag + '\n</head>', 1)
 
+        # Ítem 4 — article:* meta tags (publish/modify time, section, author)
+        hora = art.get('hora') or '00:00'
+        published_time = f"{fecha_pub}T{hora}:00+02:00" if fecha_pub else ""
+        article_meta_parts = []
+        if published_time:
+            article_meta_parts.append(
+                f'<meta property="article:published_time" content="{published_time}">')
+            article_meta_parts.append(
+                f'<meta property="article:modified_time" content="{published_time}">')
+        if categoria:
+            article_meta_parts.append(
+                f'<meta property="article:section" content="{_html.escape(categoria)}">')
+        article_meta_parts.append(
+            '<meta property="article:author" content="Redacción Radar Inmobiliario Madrid">')
+        article_meta_tag = '\n  ' + '\n  '.join(article_meta_parts)
+        art_html = art_html.replace('</head>', article_meta_tag + '\n</head>', 1)
+
         # Inject article body text as hidden element for crawlers (passage indexing)
         body_texts = art.get('body_texts', [])
+        h1_html = f'<h1>{_html.escape(titulo_raw)}</h1>'
         if body_texts:
             body_html_parts = [f'<p>{_html.escape(p)}</p>' for p in body_texts]
             hidden_body = (
                 '\n  <div id="article-body" style="position:absolute;left:-9999px;top:-9999px;'
                 'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n    '
+                + h1_html + '\n    '
                 + '\n    '.join(body_html_parts)
+                + '\n  </div>'
+            )
+            art_html = art_html.replace('<div id="root">', hidden_body + '\n  <div id="root">', 1)
+        else:
+            # Still expose an <h1> for crawlers even without body text
+            hidden_body = (
+                '\n  <div id="article-body" style="position:absolute;left:-9999px;top:-9999px;'
+                'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n    '
+                + h1_html
                 + '\n  </div>'
             )
             art_html = art_html.replace('<div id="root">', hidden_body + '\n  <div id="root">', 1)
@@ -294,6 +445,279 @@ def gen_article_pages(articles: list, index_html: str) -> None:
         (article_dir / "index.html").write_text(art_html, encoding="utf-8")
 
     print(f"✓ {len(articles)} páginas estáticas en dist/noticia/")
+
+
+def _rewrite_head_meta(page_html: str, canonical: str, title: str, desc: str,
+                        og_type: str = "website") -> str:
+    """Rewrite title/description/canonical/hreflang/og/twitter tags in a page's
+    <head>, following the exact regex pattern used by gen_article_pages."""
+    import html as _html
+    title_esc = _html.escape(title)
+    desc_esc = _html.escape(desc)
+
+    page_html = re.sub(r'<title>[^<]+</title>', f'<title>{title_esc}</title>', page_html)
+    page_html = re.sub(r'(<meta name="description" content=")[^"]*(")',
+                        rf'\g<1>{desc_esc}\2', page_html)
+    page_html = re.sub(r'(<link rel="canonical" href=")[^"]*(")',
+                        rf'\g<1>{canonical}\2', page_html)
+    page_html = re.sub(r'(<link rel="alternate" hreflang="es" href=")[^"]*(")',
+                        rf'\g<1>{canonical}\2', page_html)
+    page_html = re.sub(r'(<link rel="alternate" hreflang="x-default" href=")[^"]*(")',
+                        rf'\g<1>{canonical}\2', page_html)
+    page_html = re.sub(r'(<meta property="og:type" content=")[^"]*(")',
+                        rf'\g<1>{og_type}\2', page_html)
+    page_html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
+                        rf'\g<1>{canonical}\2', page_html)
+    page_html = re.sub(r'(<meta property="og:title" content=")[^"]*(")',
+                        rf'\g<1>{title_esc}\2', page_html)
+    page_html = re.sub(r'(<meta property="og:description" content=")[^"]*(")',
+                        rf'\g<1>{desc_esc}\2', page_html)
+    page_html = re.sub(r'(<meta name="twitter:title" content=")[^"]*(")',
+                        rf'\g<1>{title_esc}\2', page_html)
+    page_html = re.sub(r'(<meta name="twitter:description" content=")[^"]*(")',
+                        rf'\g<1>{desc_esc}\2', page_html)
+    return page_html
+
+
+def _inject_ld(page_html: str, ld: dict) -> str:
+    ld_tag = f'\n  <script type="application/ld+json">\n  {json.dumps(ld, ensure_ascii=False, indent=2)}\n  </script>'
+    return page_html.replace('</head>', ld_tag + '\n</head>', 1)
+
+
+def _inject_hidden_block(page_html: str, block_id: str, inner_html: str) -> str:
+    hidden = (
+        f'\n  <div id="{block_id}" style="position:absolute;left:-9999px;top:-9999px;'
+        'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n    '
+        + inner_html +
+        '\n  </div>'
+    )
+    return page_html.replace('<div id="root">', hidden + '\n  <div id="root">', 1)
+
+
+def gen_district_pages(distritos: list, meta: dict, index_html: str) -> None:
+    """Generate dist/distritos/{slug}/index.html per district (Ítem 1) and the
+    dist/distritos/index.html listing page (Ítem 2)."""
+    import html as _html
+
+    if not distritos:
+        print("  (no se encontraron distritos en distritos.js)")
+        return
+
+    distritos_dir = DIST / "distritos"
+    distritos_dir.mkdir(exist_ok=True)
+
+    valid_slugs = {d['slug'] for d in distritos if d.get('slug')}
+    for existing in distritos_dir.iterdir():
+        if existing.is_dir() and existing.name not in valid_slugs:
+            shutil.rmtree(existing)
+            print(f"  ✗ eliminada carpeta huérfana dist/distritos/{existing.name}")
+
+    edicion = meta.get('edicion', '')
+
+    def fmt_price(n):
+        return f"{int(n):,}".replace(",", ".")
+
+    # ── per-district pages ────────────────────────────────────────────────
+    for d in distritos:
+        slug = d['slug']
+        nombre = d['nombre']
+        precio_fmt = fmt_price(d['precioMedio'])
+        canonical = f"{BASE_URL}/distritos/{slug}"
+
+        title = f"Precio vivienda en {nombre}: {precio_fmt} €/m² | Radar Inmobiliario"
+        desc = (
+            f"Precio medio {precio_fmt} €/m², rentabilidad bruta {d['rent']}% y variación "
+            f"interanual +{d['varAnual']}% en {nombre}, Madrid. Datos {edicion}."
+        )
+
+        d_html = _rewrite_head_meta(index_html, canonical, title, desc, og_type="website")
+
+        ld_breadcrumb = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Inicio", "item": BASE_URL + "/"},
+                {"@type": "ListItem", "position": 2, "name": "Distritos", "item": BASE_URL + "/distritos"},
+                {"@type": "ListItem", "position": 3, "name": nombre, "item": canonical},
+            ]
+        }
+        ld_dataset = {
+            "@context": "https://schema.org",
+            "@type": "Dataset",
+            "name": f"Precio de la vivienda en {nombre}, Madrid",
+            "description": desc,
+            "url": canonical,
+            "spatialCoverage": {
+                "@type": "Place",
+                "name": f"{nombre}, Madrid"
+            },
+            "variableMeasured": [
+                {"@type": "PropertyValue", "name": "Precio medio", "value": d['precioMedio'], "unitText": "EUR/m²"},
+                {"@type": "PropertyValue", "name": "Rentabilidad bruta", "value": d['rent'], "unitText": "%"},
+                {"@type": "PropertyValue", "name": "Variación interanual", "value": d['varAnual'], "unitText": "%"},
+                {"@type": "PropertyValue", "name": "Transacciones", "value": d['tx'], "unitText": "unidades/año"},
+            ]
+        }
+        d_html = _inject_ld(d_html, ld_breadcrumb)
+        d_html = _inject_ld(d_html, ld_dataset)
+
+        intro = (
+            f"El precio medio de la vivienda en {nombre} es de {precio_fmt} €/m², con una "
+            f"variación interanual de +{d['varAnual']}% y una rentabilidad bruta por alquiler "
+            f"del {d['rent']}%. En el último año se registraron {d['tx']} transacciones. "
+            f"{nombre} ocupa la posición {d['ranking']} de 21 distritos de Madrid por precio."
+        )
+        stats_html = (
+            f"<li>Precio medio: {precio_fmt} €/m²</li>"
+            f"<li>Alquiler medio: {d['alquilerM2']} €/m²</li>"
+            f"<li>Rentabilidad bruta: {d['rent']}%</li>"
+            f"<li>Variación interanual: +{d['varAnual']}%</li>"
+            f"<li>Transacciones/año: {d['tx']}</li>"
+            f"<li>Ranking: {d['ranking']} de 21 distritos</li>"
+        )
+        inner = (
+            f'<h1>Precio de la vivienda en {_html.escape(nombre)}, Madrid</h1>\n'
+            f'    <p>{_html.escape(intro)}</p>\n'
+            f'    <ul>\n    {stats_html}\n    </ul>\n'
+            f'    <nav>\n    '
+            f'<a href="{BASE_URL}/distritos">Distritos</a>\n    '
+            f'<a href="{BASE_URL}/">Inicio</a>\n    '
+            f'<a href="{BASE_URL}/noticias">Noticias</a>\n    '
+            f'</nav>'
+        )
+        d_html = _inject_hidden_block(d_html, "distrito-static", inner)
+
+        district_dir = distritos_dir / slug
+        district_dir.mkdir(exist_ok=True)
+        (district_dir / "index.html").write_text(d_html, encoding="utf-8")
+
+    print(f"✓ {len(distritos)} páginas estáticas en dist/distritos/")
+
+    # ── listing page (Ítem 2) ────────────────────────────────────────────
+    canonical = f"{BASE_URL}/distritos"
+    title = "Distritos de Madrid: precio €/m² y rentabilidad | Radar Inmobiliario"
+    desc = (
+        "21 distritos de Madrid con precio medio €/m², rentabilidad bruta y variación "
+        f"interanual. Datos {edicion}."
+    )
+    l_html = _rewrite_head_meta(index_html, canonical, title, desc, og_type="website")
+
+    ld_itemlist = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Distritos de Madrid",
+        "url": canonical,
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": i + 1,
+                "name": d['nombre'],
+                "url": f"{BASE_URL}/distritos/{d['slug']}",
+            }
+            for i, d in enumerate(sorted(distritos, key=lambda x: x['ranking']))
+        ]
+    }
+    l_html = _inject_ld(l_html, ld_itemlist)
+
+    intro = (
+        "Consulta el precio medio por metro cuadrado, la rentabilidad bruta por alquiler y "
+        "la variación interanual de los 21 distritos de Madrid."
+    )
+    li_items = "\n    ".join(
+        f'<li><a href="{BASE_URL}/distritos/{d["slug"]}">{_html.escape(d["nombre"])}</a> — '
+        f'{fmt_price(d["precioMedio"])} €/m², +{d["varAnual"]}%</li>'
+        for d in distritos
+    )
+    inner = (
+        '<h1>Distritos de Madrid: precio €/m² y rentabilidad</h1>\n'
+        f'    <p>{_html.escape(intro)}</p>\n'
+        f'    <ul>\n    {li_items}\n    </ul>'
+    )
+    l_html = _inject_hidden_block(l_html, "distritos-static", inner)
+
+    (distritos_dir / "index.html").write_text(l_html, encoding="utf-8")
+    print("✓ dist/distritos/index.html (listado de 21 distritos)")
+
+
+def gen_section_pages(articles: list, index_html: str) -> None:
+    """Generate static section/info pages: /noticias, /metodologia, /sobre, /legal
+    (Ítem 3). Title/desc copied verbatim from the head's updatePageMeta()."""
+    import html as _html
+
+    valid_articles = [a for a in articles if a.get('slug') and a.get('titulo')]
+
+    sections = [
+        {
+            'route': 'noticias',
+            'title': 'Noticias del mercado inmobiliario de Madrid | Radar Inmobiliario',
+            'desc': 'Últimas noticias sobre precios, hipotecas, urbanismo y regulación del mercado inmobiliario de Madrid.',
+            'h1': 'Noticias del mercado inmobiliario de Madrid',
+            'body': None,  # built below (list of articles)
+        },
+        {
+            'route': 'metodologia',
+            'title': 'Metodología de datos | Radar Inmobiliario Madrid',
+            'desc': 'Cómo se calculan los precios €/m², rentabilidades y variaciones interanuales publicados en Radar Inmobiliario.',
+            'h1': 'Metodología de datos',
+            'body': (
+                'Los datos de precio medio por metro cuadrado, rentabilidad bruta y variación '
+                'interanual proceden de fuentes públicas y de mercado —Idealista, Fotocasa y los '
+                'Colegios Notariales— y se actualizan periódicamente, con una edición mensual que '
+                'recoge los cambios de precio, alquiler y transacciones por distrito y barrio de Madrid.'
+            ),
+        },
+        {
+            'route': 'sobre',
+            'title': 'Sobre Radar Inmobiliario Madrid | Publicación independiente de datos',
+            'desc': 'Quiénes somos. Publicación independiente de datos del mercado inmobiliario de Madrid.',
+            'h1': 'Sobre Radar Inmobiliario Madrid',
+            'body': (
+                'Radar Inmobiliario Madrid es una publicación independiente que analiza el mercado '
+                'inmobiliario de la ciudad: precios de vivienda, rentabilidad del alquiler y '
+                'variación interanual por distrito y barrio, junto con noticias sobre el sector.'
+            ),
+        },
+        {
+            'route': 'legal',
+            'title': 'Aviso Legal y Privacidad | Radar Inmobiliario Madrid',
+            'desc': 'Aviso legal, política de privacidad y condiciones de uso de Radar Inmobiliario Madrid.',
+            'h1': 'Aviso Legal y Privacidad',
+            'body': (
+                'Radar Inmobiliario Madrid publica datos de mercado con fines informativos. El uso '
+                'del sitio implica la aceptación de estas condiciones; los datos son orientativos y '
+                'no constituyen asesoramiento financiero, legal ni de inversión.'
+            ),
+        },
+    ]
+
+    for sec in sections:
+        route = sec['route']
+        canonical = f"{BASE_URL}/{route}"
+        s_html = _rewrite_head_meta(index_html, canonical, sec['title'], sec['desc'], og_type="website")
+
+        if route == 'noticias':
+            li_items = "\n    ".join(
+                f'<li><a href="{BASE_URL}/noticia/{a["slug"]}">{_html.escape(a["titulo"])}</a> — '
+                f'{_html.escape(smart_truncate(a.get("resumen") or "", 155))}</li>'
+                for a in valid_articles
+            )
+            inner = (
+                f'<h1>{_html.escape(sec["h1"])}</h1>\n'
+                f'    <ul>\n    {li_items}\n    </ul>'
+            )
+        else:
+            inner = (
+                f'<h1>{_html.escape(sec["h1"])}</h1>\n'
+                f'    <p>{_html.escape(sec["body"])}</p>'
+            )
+
+        s_html = _inject_hidden_block(s_html, "static", inner)
+
+        section_dir = DIST / route
+        section_dir.mkdir(exist_ok=True)
+        (section_dir / "index.html").write_text(s_html, encoding="utf-8")
+
+    print(f"✓ {len(sections)} páginas estáticas de sección (noticias/metodologia/sobre/legal)")
 
 
 def gen_home_static(articles: list) -> None:
@@ -671,9 +1095,13 @@ def main():
         update_sitemap(articles)
         update_robots()
         gen_llms_txt(articles)
+        gen_section_pages(articles, index_html)
         print(f"  {len(list((DIST/'noticia').iterdir()))} páginas de artículo == {len(articles)} vigentes")
     else:
         print("  (no se encontraron artículos en news.js)")
+
+    distritos, dist_meta = extract_districts()
+    gen_district_pages(distritos, dist_meta, index_html)
 
 
 if __name__ == "__main__":
