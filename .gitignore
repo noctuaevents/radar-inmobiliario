@@ -9,3 +9,7 @@ carpeta sin título/
 
 # Local Netlify folder
 .netlify
+
+# Artefactos del orquestador CEO (audits y flujos)
+seo-workflows/
+*-audit/

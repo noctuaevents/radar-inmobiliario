@@ -18,7 +18,7 @@ SALIDA:
 
 Uso: python3 pipeline/distribute.py
 """
-import base64, gzip, json, re, sys, urllib.request
+import base64, gzip, json, re, shutil, sys, urllib.request
 from datetime import date
 from pathlib import Path
 
@@ -58,43 +58,131 @@ def escape_script(src: str) -> str:
 
 # ── SEO helpers ────────────────────────────────────────────────────────────────
 
+def smart_truncate(text: str, limit: int = 155) -> str:
+    """Truncate `text` to at most `limit` chars, breaking on a word boundary.
+    Appends '…' only if the text was actually truncated."""
+    text = text or ''
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    last_space = cut.rfind(' ')
+    if last_space > 0:
+        cut = cut[:last_space]
+    return cut.rstrip(' ,.;:') + '…'
+
+
+def _split_top_level_objects(s: str) -> list:
+    """Split the inner text of a JSON array (between '[' and ']') into a list
+    of substrings, one per top-level `{...}` object, respecting braces that
+    appear inside quoted strings."""
+    objs = []
+    depth = 0
+    start = None
+    in_str = False
+    esc = False
+    for i, c in enumerate(s):
+        if in_str:
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == '{':
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == '}':
+            depth -= 1
+            if depth == 0 and start is not None:
+                objs.append(s[start:i + 1])
+                start = None
+    return objs
+
+
+def _regex_fallback_object(obj_str: str) -> dict:
+    """Best-effort regex parse for a single item object when json.loads fails.
+    Applied to the isolated object text (not a directional window), so field
+    order inside the object no longer matters."""
+    it = {}
+    for key in ('slug', 'titulo', 'resumen', 'fechaISO', 'hora', 'imagen', 'categoria'):
+        mm = re.search(rf'"{key}":\s*"([^"]*)"', obj_str)
+        if mm:
+            it[key] = mm.group(1)
+    it['body'] = [
+        {'type': 'p', 'text': t}
+        for t in re.findall(r'"type":\s*"p"[^}]*?"text":\s*"((?:[^"\\]|\\.)*)"', obj_str)
+    ]
+    return it
+
+
 def extract_news_articles() -> list:
-    """Parse src/data/news.js and return list of article dicts from items[]."""
+    """Parse src/data/news.js and return list of article dicts from items[].
+
+    Robusto frente al orden de claves: aísla el array `items: [...]` balanceando
+    corchetes (respetando strings) y luego cada objeto de primer nivel con
+    balanceo de llaves, parseando cada uno con json.loads. Si un objeto
+    concreto no es JSON válido, cae a un parseo regex best-effort SOLO para
+    ese objeto, para no romper el build completo.
+    """
     if not NEWS_JS.exists():
         return []
     text = NEWS_JS.read_text(encoding="utf-8")
 
-    items_m  = re.search(r'\bitems:\s*\[', text)
+    items_m = re.search(r'\bitems:\s*\[', text)
     if not items_m:
         return []
-    fuentes_m = re.search(r'\],\s*\n\s*fuentes:', text)
-    end_pos = fuentes_m.start() if fuentes_m else len(text)
 
-    items_text = text[items_m.end():end_pos]
+    # Balancear corchetes desde el '[' de apertura para hallar el cierre real
+    start = items_m.end() - 1
+    depth = 0
+    in_str = False
+    esc = False
+    end = None
+    for i in range(start, len(text)):
+        c = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == '[':
+            depth += 1
+        elif c == ']':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    items_text = text[start + 1:end] if end is not None else text[items_m.end():]
+
     articles = []
+    for obj_str in _split_top_level_objects(items_text):
+        try:
+            it = json.loads(obj_str)
+        except json.JSONDecodeError as e:
+            print(f"  ⚠ objeto de news.js no parseable como JSON ({e}); usando fallback regex")
+            it = _regex_fallback_object(obj_str)
 
-    for m in re.finditer(r'"slug":\s*"([^"]+)"', items_text):
-        slug = m.group(1)
-        ctx  = items_text[m.start():m.start() + 2500]
-
-        t  = re.search(r'"titulo":\s*"([^"]+)"',   ctx)
-        r_ = re.search(r'"resumen":\s*"([^"]+)"',   ctx)
-        f  = re.search(r'"fechaISO":\s*"([^"]+)"',  ctx)
-        h  = re.search(r'"hora":\s*"([^"]+)"',      ctx)
-        i  = re.search(r'"imagen":\s*"([^"]+)"',    ctx)
-        ca = re.search(r'"categoria":\s*"([^"]+)"', ctx)
-
-        # Extract paragraph texts from body array
-        body_texts = re.findall(r'"type":\s*"p"[^}]*?"text":\s*"((?:[^"\\]|\\.)*)"', ctx)
-
+        body_texts = [
+            b.get('text', '') for b in it.get('body', [])
+            if b.get('type') == 'p' and b.get('text')
+        ]
         articles.append({
-            'slug':      slug,
-            'titulo':    t.group(1)   if t   else '',
-            'resumen':   r_.group(1)  if r_  else '',
-            'fechaISO':  f.group(1)   if f   else '',
-            'hora':      h.group(1)   if h   else '00:00',
-            'imagen':    i.group(1)   if i   else '/og-image.png',
-            'categoria': ca.group(1)  if ca  else '',
+            'slug':      it.get('slug', ''),
+            'titulo':    it.get('titulo', ''),
+            'resumen':   it.get('resumen', ''),
+            'fechaISO':  it.get('fechaISO', ''),
+            'hora':      it.get('hora') or '00:00',
+            'imagen':    it.get('imagen') or '/og-image.png',
+            'categoria': it.get('categoria', ''),
             'body_texts': body_texts,
         })
 
@@ -108,10 +196,21 @@ def gen_article_pages(articles: list, index_html: str) -> None:
     noticia_dir = DIST / "noticia"
     noticia_dir.mkdir(exist_ok=True)
 
+    # Ítem 2 — eliminar carpetas de artículos que ya no están vigentes en news.js
+    # (index bloat / contenido duplicado con slug viejo).
+    valid_slugs = {art['slug'] for art in articles if art.get('slug')}
+    for existing in noticia_dir.iterdir():
+        if existing.is_dir() and existing.name not in valid_slugs:
+            shutil.rmtree(existing)
+            print(f"  ✗ eliminada carpeta huérfana dist/noticia/{existing.name}")
+
     for art in articles:
         slug       = art['slug']
         titulo_raw = art['titulo']
-        resumen_raw = (art.get('resumen') or '')[:160]
+        resumen_full = art.get('resumen') or ''
+        # Ítem 4 — truncado en frontera de palabra para meta/OG/twitter;
+        # el JSON-LD conserva el resumen completo.
+        resumen_raw = smart_truncate(resumen_full, 155)
         canonical  = f"{BASE_URL}/noticia/{slug}"
         imagen_src = art.get('imagen', '/og-image.png')
         og_image   = imagen_src if imagen_src.startswith('http') else f"{BASE_URL}{imagen_src}"
@@ -156,7 +255,7 @@ def gen_article_pages(articles: list, index_html: str) -> None:
             "@context": "https://schema.org",
             "@type": "NewsArticle",
             "headline": titulo_raw,
-            "description": resumen_raw,
+            "description": resumen_full,
             "image": og_image,
             "datePublished": fecha_pub,
             "dateModified": fecha_pub,
@@ -262,6 +361,55 @@ def update_sitemap(articles: list) -> None:
     )
     sitemap.write_text(new_content, encoding="utf-8")
     print(f"✓ dist/sitemap.xml (+{len(articles)} artículos)")
+
+
+def gen_llms_txt(articles: list) -> None:
+    """Generate dist/llms.txt from live data (no hardcoded/volatile per-district
+    figures — those go stale; link to /distritos instead)."""
+    valid_articles = [a for a in articles if a.get('slug') and a.get('titulo')]
+
+    lines = [
+        "# Radar Inmobiliario Madrid",
+        "> Publicación independiente de datos del mercado inmobiliario de Madrid: "
+        "precio por m², rentabilidad bruta y variación interanual por distrito y barrio.",
+        "",
+        "## Descripción",
+        "Radar Inmobiliario Madrid agrega y publica datos de precios de vivienda, "
+        "rentabilidad de alquiler y variación interanual para los distritos de "
+        "Madrid, con actualización periódica y cobertura de noticias del mercado "
+        "inmobiliario. Los datos son orientativos y no constituyen asesoramiento "
+        "financiero.",
+        "",
+        "## Enlaces clave",
+        f"- [Inicio]({BASE_URL}/)",
+        f"- [Distritos]({BASE_URL}/distritos)",
+        f"- [Noticias]({BASE_URL}/noticias)",
+        f"- [Sobre]({BASE_URL}/sobre)",
+        f"- [Metodología]({BASE_URL}/metodologia)",
+        "",
+        "## Noticias recientes",
+    ]
+
+    for art in valid_articles:
+        resumen_breve = smart_truncate(art.get('resumen') or '', 160)
+        lines.append(f"- [{art['titulo']}]({BASE_URL}/noticia/{art['slug']}): {resumen_breve}")
+
+    lines += [
+        "",
+        "## Fuentes",
+        "Idealista, Fotocasa, Colegios Notariales, Ayuntamiento de Madrid.",
+        "",
+        "## Licencia",
+        "Uso informativo con atribución a Radar Inmobiliario Madrid "
+        "(radarinmobiliario.com). Licencia CC BY-NC 4.0.",
+        "",
+        "## Contacto",
+        "radarinmobiliario.com",
+        "",
+    ]
+
+    (DIST / "llms.txt").write_text("\n".join(lines), encoding="utf-8")
+    print(f"✓ dist/llms.txt ({len(valid_articles)} artículos)")
 
 
 def update_robots() -> None:
@@ -463,6 +611,8 @@ def main():
         gen_news_sitemap(articles)
         update_sitemap(articles)
         update_robots()
+        gen_llms_txt(articles)
+        print(f"  {len(list((DIST/'noticia').iterdir()))} páginas de artículo == {len(articles)} vigentes")
     else:
         print("  (no se encontraron artículos en news.js)")
 

@@ -1,89 +1,33 @@
 # Radar Inmobiliario Madrid
-> Publicación independiente de datos del mercado inmobiliario de Madrid.
-> Precio €/m², rentabilidad bruta y variación interanual para los 21 distritos y 131 barrios.
+> Publicación independiente de datos del mercado inmobiliario de Madrid: precio por m², rentabilidad bruta y variación interanual por distrito y barrio.
 
 ## Descripción
-Radar Inmobiliario Madrid agrega y publica datos de precios de vivienda, rentabilidad de alquiler y variación interanual para todos los distritos de Madrid. Los datos proceden de Idealista, Fotocasa, Colegios Notariales y el Ayuntamiento de Madrid. Actualización mensual. Los datos son orientativos y no constituyen asesoramiento financiero.
+Radar Inmobiliario Madrid agrega y publica datos de precios de vivienda, rentabilidad de alquiler y variación interanual para los distritos de Madrid, con actualización periódica y cobertura de noticias del mercado inmobiliario. Los datos son orientativos y no constituyen asesoramiento financiero.
 
-## Datos por distrito — junio 2026 (precio €/m², rentabilidad bruta, variación interanual)
+## Enlaces clave
+- [Inicio](https://www.radarinmobiliario.com/)
+- [Distritos](https://www.radarinmobiliario.com/distritos)
+- [Noticias](https://www.radarinmobiliario.com/noticias)
+- [Sobre](https://www.radarinmobiliario.com/sobre)
+- [Metodología](https://www.radarinmobiliario.com/metodologia)
 
-| Distrito              | €/m²   | Rentabilidad | Var. interanual |
-|-----------------------|--------|-------------|-----------------|
-| Salamanca             | 10.189 | 2,80 %      | +16,2 %         |
-| Chamberí              |  8.992 | 3,15 %      | +11,2 %         |
-| Chamartín             |  8.187 | 3,30 %      | +13,4 %         |
-| Retiro                |  7.758 | 3,24 %      | +21,4 %         |
-| Centro                |  7.566 | 3,62 %      | +13,6 %         |
-| Moncloa-Aravaca       |  6.376 | 3,97 %      | +14,0 %         |
-| Arganzuela            |  6.334 | 4,34 %      | +20,9 %         |
-| Tetuán                |  6.034 | 4,20 %      | +11,7 %         |
-| Ciudad Lineal         |  5.096 | 4,11 %      | +23,5 %         |
-| Fuencarral-El Pardo   |  5.423 | 4,40 %      | +17,6 %         |
-| Hortaleza             |  5.411 | 4,92 %      | +15,0 %         |
-| Barajas               |  4.901 | 4,78 %      | +15,9 %         |
-| Moratalaz             |  4.533 | 5,10 %      | +26,1 %         |
-| San Blas-Canillejas   |  4.051 | 5,39 %      | +32,8 %         |
-| Vicálvaro             |  3.903 | 6,02 %      | +20,7 %         |
-| Latina                |  3.916 | 5,49 %      | +21,0 %         |
-| Carabanchel           |  3.718 | 6,56 %      | +15,4 %         |
-| Villa de Vallecas     |  3.717 | 5,66 %      | +11,9 %         |
-| Usera                 |  3.609 | 7,49 %      | +20,5 %         |
-| Puente de Vallecas    |  3.325 | 8,24 %      | +18,3 %         |
-| Villaverde            |  3.002 | 7,21 %      | +29,6 %         |
-
-**Media Madrid: 5.527 €/m²**
-
-## Barrios más rentables (junio 2026)
-- Puente de Vallecas: 8,24 % rentabilidad bruta
-- Usera: 7,49 %
-- Villaverde: 7,21 %
-- Carabanchel: 6,56 %
-- Vicálvaro: 6,02 %
-
-## Barrios con mayor subida interanual
-- San Blas-Canillejas: +32,8 %
-- Villaverde: +29,6 %
-- Moratalaz: +26,1 %
-- Ciudad Lineal: +23,5 %
-- Retiro: +21,4 %
-
-## Barrios más caros (top 5, precio €/m²)
-- Castellana (Salamanca): 12.102 €/m²
-- Goya (Salamanca): 11.445 €/m²
-- Lista (Salamanca): 11.263 €/m²
-- Recoletos (Salamanca): 11.229 €/m²
-- Almagro (Chamberí): 10.914 €/m²
-
-## Barrios más baratos (top 5, precio €/m²)
-- San Cristóbal (Villaverde): 2.305 €/m²
-- Orcasur (Usera): 2.480 €/m²
-- Villaverde Alto (Villaverde): 2.804 €/m²
-- Entrevías (Puente de Vallecas): 2.837 €/m²
-- Los Rosales (Villaverde): 3.014 €/m²
-
-## Macrodatos Madrid (junio 2026)
-- Euríbor 12 meses: 2,52 % (junio 2026, referencia hipotecaria principal)
-- Hipotecas firmadas: 22 meses consecutivos al alza (récord desde 2010)
-- Variación mensual hipotecas mayo 2026: −0,7 % (primera caída del año)
-- Demanda embalsada sostenida por estabilización del euríbor
-
-## Noticias recientes (junio 2026)
-
-- [Hipotecas en Madrid: 22 meses al alza y el mejor abril desde 2010](https://radarinmobiliario.com/noticia/hipotecas-madrid-22-meses-alza-abril-2010) — 22 Jun 2026 · Demanda
-- [La firma de hipotecas en Madrid frena: primera caída mensual del año](https://radarinmobiliario.com/noticia/hipotecas-madrid-frena-primera-caida-mensual) — 22 Jun 2026 · Demanda
-- [El Cañaveral supera las 770 viviendas en alquiler asequible](https://radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible) — 24 Jun 2026 · Infraestructura
-- [Casa 47 invierte 140 M€ en el Nuevo Barrio Campamento](https://radarinmobiliario.com/noticia/casa-47-140-millones-campamento) — 29 Jun 2026 · Obras
-- [El Ministerio critica a Madrid por no limitar los alquileres](https://radarinmobiliario.com/noticia/ministerio-critica-madrid-alquileres) — 26 Jun 2026 · Regulación
-- [La compraventa para reforma en Salamanca se desploma un 60%](https://radarinmobiliario.com/noticia/compraventa-reforma-salamanca-60) — 26 Jun 2026 · Demanda
-- [Bravo Murillo vs Tetuán: una brecha de precio del 10%](https://radarinmobiliario.com/noticia/bravo-murillo-tetuan-brecha-10) — 29 Jun 2026 · Urbanismo
-- [Los municipios del área metropolitana suben un 4,1% al ritmo de Madrid](https://radarinmobiliario.com/noticia/municipios-metropolitanos-alza-4-1) — 16 Jun 2026 · Demanda
+## Noticias recientes
+- [El Cañaveral suma 770 viviendas de alquiler asequible en el sureste de Madrid](https://www.radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible-madrid): El barrio de El Cañaveral incorpora 770 nuevas unidades de alquiler asequible, ampliando la oferta residencial en el sureste de la capital en un mercado bajo…
+- [Madrid acelera vivienda protegida y grandes proyectos urbanísticos con precios al alza un 6,2%](https://www.radarinmobiliario.com/noticia/madrid-vivienda-protegida-proyectos-urbanisticos-2026): El Ayuntamiento de Madrid impulsa nuevas promociones de vivienda protegida y grandes desarrollos urbanísticos mientras el precio de la vivienda sube un 6,2%…
+- [Madrid, provincia más cara de España: precio de vivienda sube +18,3 % en 2025](https://www.radarinmobiliario.com/noticia/madrid-provincia-mas-cara-espana-vivienda-2025): Madrid supera a Baleares y Guipúzcoa como la provincia más cara de España, con precios de vivienda que crecen un 18,3 % en 2025.
+- [Casa 47 invierte 140 M€ en el Nuevo Barrio Campamento de Madrid](https://www.radarinmobiliario.com/noticia/casa-47-invierte-140m-nuevo-barrio-campamento-madrid): La promotora Casa 47 inyecta 140 millones de euros en el desarrollo del Nuevo Barrio Campamento, la mayor operación de obra nueva en Madrid en lo que va de…
+- [Madrid aprueba 4.000 viviendas en Los Cerros, el mayor desarrollo urbanístico del sureste](https://www.radarinmobiliario.com/noticia/madrid-aprueba-4000-viviendas-los-cerros-sureste): El Ayuntamiento da luz verde al plan parcial de Los Cerros: 4.000 viviendas nuevas en Vicálvaro-Cañaveral, con el 30% de protección oficial.
+- [Vivienda acusa a Madrid de bloquear la limitación de alquileres y proteger a grandes inversores](https://www.radarinmobiliario.com/noticia/vivienda-critica-madrid-limitar-alquileres-inversores): El Ministerio de Vivienda critica que Madrid rechace declarar zonas tensionadas, dejando sin protección al 2,5% de la demanda inquilina más vulnerable.
+- [Tetuán sube un 2,5 % en junio: Bravo Murillo concentra la mayor variación del distrito](https://www.radarinmobiliario.com/noticia/tetuan-bravo-murillo-variacion-precios-junio-2026): El corredor de Bravo Murillo registra una subida del 2,5 % en precio medio, con tramos junto a Alvarado que alcanzan el 3,8 % de alza.
+- [Barrio de las Letras sube un 6,2% y se consolida como nuevo polo de lujo en Madrid](https://www.radarinmobiliario.com/noticia/barrio-de-las-letras-sube-62-precio-lujo-madrid): El Barrio de las Letras registra una subida del 6,2% en el precio medio por metro cuadrado y emerge como nuevo foco de demanda de lujo en Madrid capital.
+- [Madrid aplica recargo del IBI a pisos vacíos para abaratar alquileres hasta un 3 %](https://www.radarinmobiliario.com/noticia/madrid-recargo-ibi-pisos-vacios-alquiler-2026): La Comunidad de Madrid gravará con hasta un 50 % adicional de IBI los inmuebles desocupados más de dos años, con el objetivo de reducir precios de alquiler un…
+- [Pisos turísticos en Madrid: barrios pierden un 6,2 % de vecinos](https://www.radarinmobiliario.com/noticia/pisos-turisticos-madrid-barrios-pierden-vecinos-regulacion): Los distritos con mayor densidad de apartamentos turísticos registran una caída del 6,2 % de residentes permanentes, avivando el debate regulatorio en el…
 
 ## Fuentes
-Idealista, Fotocasa, Colegios Notariales, Ayuntamiento de Madrid. Datos a junio 2026.
+Idealista, Fotocasa, Colegios Notariales, Ayuntamiento de Madrid.
 
 ## Licencia
-Uso informativo con atribución a Radar Inmobiliario Madrid (radarinmobiliario.com).
-Licencia CC BY-NC 4.0.
+Uso informativo con atribución a Radar Inmobiliario Madrid (radarinmobiliario.com). Licencia CC BY-NC 4.0.
 
 ## Contacto
 radarinmobiliario.com
