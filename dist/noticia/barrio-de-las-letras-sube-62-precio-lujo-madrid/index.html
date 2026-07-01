@@ -1256,7 +1256,12 @@ window.MadridGeoMap = MadridGeoMap;
 
 function VariationD() {
   const D = window.HOME_DATA;
-  const { meta, distritos, masSuben, masBaratos, noticiasDestacadas, macro } = D;
+  const { meta, distritos, masSuben, masBaratos, macro } = D;
+
+  const _news = window.NEWS_DATA || {};
+  const latestNews = (_news.items && _news.items.length
+    ? _news.items
+    : [_news.destacada].filter(Boolean)).slice(0, 4);
 
   const spotlight = [...distritos].sort((a, b) => b.varAnual - a.varAnual)[0];
   const top3Movers = [...distritos].sort((a, b) => b.varAnual - a.varAnual).slice(0, 3);
@@ -1477,9 +1482,9 @@ function VariationD() {
               </h2>
 
               <ul className="space-y-0 border-t border-slate-200">
-                {noticiasDestacadas.map((n, i) => (
-                  <li key={i} className="border-b border-slate-200 py-5 group">
-                    <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticia'); }} className="flex items-baseline gap-5 cursor-pointer">
+                {latestNews.map((n, i) => (
+                  <li key={n.slug || i} className="border-b border-slate-200 py-5 group">
+                    <a href={'/noticia/' + n.slug} onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticia/' + n.slug); }} className="flex items-baseline gap-5 cursor-pointer">
                       <span className="text-xs font-bold tabular-nums text-slate-400 w-12 flex-shrink-0">{n.fecha}</span>
                       <div className="flex-1">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-bold mb-1">
