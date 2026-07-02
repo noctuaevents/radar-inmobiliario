@@ -13,3 +13,7 @@ carpeta sin título/
 # Artefactos del orquestador CEO (audits y flujos)
 seo-workflows/
 *-audit/
+
+# Edición diaria autónoma (launchd)
+pipeline/logs/
+pipeline/work/last_edition.date
