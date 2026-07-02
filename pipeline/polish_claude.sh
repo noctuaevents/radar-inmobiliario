@@ -100,6 +100,7 @@ echo "Puliendo $COUNT noticia(s) con Claude (una a una)…"
 
 python3 - "$NEWS_JS" "$APPROVED_JSON" "$TODAY" "$FECHA_CORTA" "$COUNT" <<'PYEOF'
 import sys, json, re, subprocess, unicodedata, urllib.request, os, time
+import datetime as _dt
 from pathlib import Path
 
 news_file = Path(sys.argv[1])
@@ -176,7 +177,7 @@ Noticia:
             "impacto": art.get('impacto_borrador', ''),
             "impactoLabel": art.get('impactoLabel_borrador', ''),
             "slug": slugify_fallback(borrador_full),
-            "fechaISO": "2026-06-30",
+            "fechaISO": _dt.date.today().isoformat(),
             "body": [{"type": "p", "dropcap": True, "text": borrador_full}]
         }
 

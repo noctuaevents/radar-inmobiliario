@@ -83,8 +83,15 @@ def parse_news_data(text: str) -> dict:
 def merge_items(new_items: list, prev_items: list, cap: int = CAP_ITEMS) -> list:
     def key(it):
         return it.get("url") or it.get("slug") or ""
-    seen = {key(it) for it in new_items}
-    merged = list(new_items)
+    # I4 — dedup TAMBIÉN dentro de new_items (relanzamientos pueden traer el
+    # mismo artículo repetido si el paso previo se ejecutó dos veces).
+    merged, seen = [], set()
+    for it in new_items:
+        k = key(it)
+        if k and k in seen:
+            continue
+        seen.add(k)
+        merged.append(it)
     for it in prev_items:
         k = key(it)
         if k and k in seen:
@@ -113,7 +120,45 @@ window.NEWS_DATA = {{
 """
 
 
+def _metricas_reales(survivors: list) -> list:
+    """I2 — métricas de la destacada calculadas de los supervivientes reales de
+    la puerta 2 (no una reescritura sin verificar del dest_prompt de polish)."""
+    distritos = len({s.get("distrito") for s in survivors if s.get("distrito")})
+    fuentes = len({s.get("fuente") for s in survivors if s.get("fuente")})
+    return [
+        {"label": "Noticias hoy", "valor": str(len(survivors)), "delta": f"+{len(survivors)}", "up": True},
+        {"label": "Distritos", "valor": str(distritos or 1), "delta": f"+{distritos or 1}", "up": True},
+        {"label": "Fuentes", "valor": str(fuentes or 1), "delta": f"+{fuentes or 1}", "up": True},
+    ]
+
+
+def _movimiento_medio(prev: dict) -> str:
+    """I2 — movimientoMedio real: media de varAnual de src/data/distritos.js,
+    formateada es-ES ('+6,2 %'). Si no hay distritos parseables, conserva el
+    valor previo (nunca inventa uno nuevo)."""
+    distritos_js = ROOT / "src" / "data" / "distritos.js"
+    try:
+        text = distritos_js.read_text(encoding="utf-8")
+    except OSError:
+        text = ""
+    valores = [float(v) for v in re.findall(r"varAnual:\s*(-?[\d.]+)", text)]
+    if not valores:
+        return prev.get("semanaResumen", {}).get("movimientoMedio", "")
+    media = sum(valores) / len(valores)
+    return f"{media:+.1f} %".replace(".", ",").replace("+", "+")
+
+
 # ── PUERTA 1: filtro determinista ─────────────────────────────────────────────
+
+_ACCENT_MAP = str.maketrans("áéíóúñ", "aeioun")
+
+
+def _story_tokens(titulo: str) -> set:
+    """I6 — tokens normalizados (sin acentos, min 4 chars) de un titular, para
+    detectar la misma historia contada por fuentes distintas."""
+    t = (titulo or "").lower().translate(_ACCENT_MAP)
+    return {w for w in re.findall(r"[a-z0-9]{4,}", t)}
+
 
 def filter_candidates(candidates, seen_urls, today, min_score=MIN_SCORE,
                       max_articles=MAX_ARTICULOS, blacklist=FUENTES_BLACKLIST):
@@ -123,6 +168,14 @@ def filter_candidates(candidates, seen_urls, today, min_score=MIN_SCORE,
     fresh = {today.isoformat(), (today - timedelta(days=1)).isoformat()}
     ok, ko = [], []
     for c in candidates:
+        tok = _story_tokens(c.get("titulo", ""))
+        dup_historia = None
+        for a in ok:
+            inter = tok & _story_tokens(a.get("titulo", ""))
+            denom = max(1, min(len(tok), len(_story_tokens(a.get("titulo", "")))))
+            if len(inter) / denom > 0.5:
+                dup_historia = a
+                break
         if c.get("fecha_iso") not in fresh:
             ko.append((c, f"más de 48h ({c.get('fecha_iso')})"))
         elif c.get("score", 0) < min_score:
@@ -131,6 +184,8 @@ def filter_candidates(candidates, seen_urls, today, min_score=MIN_SCORE,
             ko.append((c, f"fuente en blacklist: {c.get('fuente')}"))
         elif c.get("url", "") in seen_urls:
             ko.append((c, "duplicado (url ya publicada)"))
+        elif dup_historia is not None:
+            ko.append((c, "historia duplicada de otra fuente"))
         elif len(ok) >= max_articles:
             ko.append((c, f"cupo diario lleno ({max_articles})"))
         else:
@@ -192,6 +247,17 @@ def ollama_alive() -> bool:
 def preflight(report: dict) -> None:
     import shutil as _shutil
     import urllib.request
+    # working tree limpio en src/ y en el bundle (C1): si hay cambios sin
+    # commitear, intentar descartarlos; si persisten, abortar — inspección manual.
+    dirty = sh(["git", "status", "--porcelain", "--", "src",
+                "Radar Inmobiliario Madrid.html"]).stdout.strip()
+    if dirty:
+        sh(["git", "checkout", "--", "src", "Radar Inmobiliario Madrid.html"])
+        dirty = sh(["git", "status", "--porcelain", "--", "src",
+                    "Radar Inmobiliario Madrid.html"]).stdout.strip()
+        if dirty:
+            raise SystemExit("ABORT preflight: working tree sucio en src/ — "
+                             "inspección manual requerida")
     # red
     try:
         with urllib.request.urlopen("https://www.radarinmobiliario.com/robots.txt", timeout=15):
@@ -200,10 +266,13 @@ def preflight(report: dict) -> None:
         raise SystemExit(f"ABORT preflight: sin red ({e})")
     # ollama (intenta arrancarlo si está caído)
     if not ollama_alive():
-        subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL, env=vc._env_with_cli_paths())
-        import time
-        time.sleep(10)
+        try:
+            subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, env=vc._env_with_cli_paths())
+            import time
+            time.sleep(10)
+        except FileNotFoundError:
+            pass  # sin binario ollama — seguirá caído, se usará triage_claude
     report["ollama"] = ollama_alive()
     # CLIs
     env_path = vc._env_with_cli_paths()["PATH"]
@@ -217,6 +286,14 @@ def preflight(report: dict) -> None:
     for f in sorted(COLA.glob("*.md")):
         prefix = f.name[:8]
         if prefix.isdigit() and prefix < limite:
+            f.rename(ARCHIVO / f.name)
+            report.setdefault("archivadas", []).append(f.name)
+
+    # I4 — restos de runs anteriores crasheados: cualquier nota "modo: auto"
+    # que siga en la cola es de una ejecución previa que no llegó a publish();
+    # archivarla para que el relanzamiento no la reprocese duplicada.
+    for f in sorted(COLA.glob("*.md")):
+        if "modo: auto" in f.read_text(encoding="utf-8"):
             f.rename(ARCHIVO / f.name)
             report.setdefault("archivadas", []).append(f.name)
 
@@ -236,7 +313,8 @@ def reject_note(url: str, motivo: str) -> None:
         return
     text = note.read_text(encoding="utf-8")
     text = text.replace("publicar: publicado", "publicar: rechazado", 1)
-    text = text.replace("---\n", f"---\nrechazo_motivo: '{motivo[:180]}'\n", 1)
+    motivo_yaml = motivo[:180].replace("'", "’")
+    text = text.replace("---\n", f"---\nrechazo_motivo: '{motivo_yaml}'\n", 1)
     (RECHAZADAS / note.name).write_text(text, encoding="utf-8")
     note.unlink()
 
@@ -285,7 +363,14 @@ def publish(new_items: list, report: dict) -> None:
         "pipeline/work/candidates.json", "pipeline/work/approved.json"])
     sh(["git", "commit", "-m",
         f"noticias: edición auto {today_h}\n\nAutomated by pipeline/auto_edition.py"])
-    sh(["git", "push", "origin", "main"])
+    # I7 — push robusto: rebase antes de empujar y un reintento si el primer
+    # push falla (carrera con otro push a main entre el rebase y el push).
+    sh(["git", "pull", "--rebase", "origin", "main"])
+    try:
+        sh(["git", "push", "origin", "main"])
+    except subprocess.CalledProcessError:
+        sh(["git", "pull", "--rebase", "origin", "main"])
+        sh(["git", "push", "origin", "main"])
     report["commit"] = sh(["git", "rev-parse", "--short", "HEAD"]).stdout.strip()
     # esperar deploy: poll al primer artículo nuevo
     import time
@@ -345,8 +430,8 @@ def notify(title: str, message: str) -> None:
                         f"display notification {json.dumps(message)} "
                         f"with title {json.dumps(title)}"],
                        capture_output=True, timeout=10)
-    except OSError:
-        pass  # sin GUI (ssh) — el informe ya quedó escrito
+    except (OSError, subprocess.TimeoutExpired):
+        pass  # sin GUI (ssh) o colgado — el informe ya quedó escrito
 
 
 class _NoEdition(Exception):
@@ -370,7 +455,9 @@ def main() -> int:
         # 1. fetch + PUERTA 1
         sh([sys.executable, "pipeline/fetch_news.py"])
         candidates = json.loads((WORK / "candidates.json").read_text(encoding="utf-8"))
-        prev = parse_news_data(NEWS_JS.read_text(encoding="utf-8"))
+        # C1 — prev es siempre lo último PUBLICADO (HEAD), nunca un working
+        # tree a medias.
+        prev = parse_news_data(sh(["git", "show", "HEAD:src/data/news.js"]).stdout)
         seen = collect_seen_urls(prev["items"], [PUBLICADO, RECHAZADAS, ARCHIVO])
         ok, ko = filter_candidates(candidates, seen, today)
         report["descartados_p1"] = [(c["titulo"][:60], motivo) for c, motivo in ko]
@@ -394,6 +481,14 @@ def main() -> int:
                 f.write_text(t.replace("publicar: false", "publicar: true\nmodo: auto", 1),
                              encoding="utf-8")
 
+        # I3 — el triaje puede descartar todos los candidatos (ninguna nota
+        # queda en publicar: true); en ese caso no hay edición que pulir.
+        n_aprobadas = sum(1 for f in COLA.glob("*.md")
+                          if "publicar: true" in f.read_text(encoding="utf-8"))
+        if n_aprobadas == 0:
+            report["resultado"] = "triage descartó todos los candidatos — no hay edición"
+            raise _NoEdition()
+
         # 3. polish (Claude) — mueve las notas a Publicado/ al acabar
         sh(["bash", "pipeline/polish_claude.sh"], timeout=1800)
         approved = json.loads((WORK / "approved.json").read_text(encoding="utf-8"))
@@ -410,14 +505,19 @@ def main() -> int:
                 today_items[i] = repolish_item(item, approved[i], today_h)
 
         # 4. PUERTA 2 — verificación por artículo
-        survivors, sources_ok = [], []
+        survivors = []
         for item, source in zip(today_items, approved):
             verdict, motivo, who = vc.verify_with_fallback(item, source)
             if verdict == "APPROVE":
                 survivors.append(item)
-                sources_ok.append(source)
                 report["publicados"].append(
                     {"titulo": item["titulo"], "slug": item["slug"], "verificador": who})
+            elif who == "ninguno":
+                # I1 — verificador caído no es lo mismo que rechazo editorial:
+                # abortar sin reject_note ni lock, para que el reintento de las
+                # 14:00 vuelva a probar con el material intacto.
+                raise SystemExit("ABORT puerta 2: sin verificador disponible "
+                                 "(codex y claude caídos)")
             else:
                 report["rechazados"].append(
                     {"titulo": item.get("titulo", "?"), "motivo": motivo, "verificador": who})
@@ -431,13 +531,12 @@ def main() -> int:
             report["resultado"] = "todos los artículos rechazados en puerta 2 — no hay edición"
             raise _NoEdition()
 
-        # 5. merge con archivo + destacada
-        destacada = edicion["destacada"]
-        if destacada.get("slug") not in {s["slug"] for s in survivors}:
-            destacada = {**survivors[0], "metricas": destacada.get("metricas", [])}
+        # 5. merge con archivo + destacada (I2 — siempre verificada + métricas
+        # reales, nunca la reescritura sin verificar del dest_prompt de polish)
+        destacada = {**survivors[0], "metricas": _metricas_reales(survivors)}
         distritos = len({s.get("distrito") for s in survivors if s.get("distrito")})
         semana = {"publicadas": len(survivors), "distritosCubiertos": distritos or 1,
-                  "movimientoMedio": edicion["semanaResumen"].get("movimientoMedio", "")}
+                  "movimientoMedio": _movimiento_medio(prev)}
         merged = merge_items(survivors, prev["items"])
         NEWS_JS.write_text(render_news_js(edicion["actualizado"], semana, destacada, merged),
                            encoding="utf-8")
@@ -456,7 +555,12 @@ def main() -> int:
         if not dry_run:
             LOCK.write_text(today.isoformat(), encoding="utf-8")
     except (SystemExit, subprocess.CalledProcessError, Exception) as e:
-        report["error"] = str(e)[:500]
+        # I7 — cuando el fallo es un subprocess con stderr, incluirlo: es la
+        # única pista real de qué rompió (git, build.py, distribute.py…).
+        if isinstance(e, subprocess.CalledProcessError):
+            report["error"] = f"{e} :: stderr: {(e.stderr or '')[-500:]}"
+        else:
+            report["error"] = str(e)[:500]
         report["resultado"] = "ERROR — sin publicar"
         write_report(report, dry_run)
         notify("Radar: edición FALLIDA", str(e)[:150])

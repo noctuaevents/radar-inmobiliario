@@ -76,10 +76,24 @@ def extract_json(text: str):
     return None
 
 
+def _nvm_version_key(p: Path):
+    """Ordena directorios de versión nvm (vX.Y.Z/bin) numéricamente, no
+    lexicográficamente: 'v9.0.0' debe ir DESPUÉS de 'v18.0.0', no antes."""
+    try:
+        return tuple(int(x) for x in p.parent.name.lstrip("v").split(".") if x.isdigit())
+    except (ValueError, AttributeError):
+        return p.parent.name  # fallback: orden lexicográfico si algo no parsea
+
+
 def _env_with_cli_paths():
     env = dict(os.environ)
     extras = [f"{Path.home()}/.local/bin", "/opt/homebrew/bin", "/usr/local/bin"]
-    extras += [str(p) for p in sorted((Path.home() / ".nvm" / "versions" / "node").glob("*/bin"), reverse=True)]
+    nvm_bins = list((Path.home() / ".nvm" / "versions" / "node").glob("*/bin"))
+    try:
+        nvm_bins.sort(key=_nvm_version_key, reverse=True)
+    except TypeError:
+        nvm_bins.sort(key=lambda p: p.parent.name, reverse=True)
+    extras += [str(p) for p in nvm_bins]
     env["PATH"] = ":".join(extras) + ":" + env.get("PATH", "")
     return env
 

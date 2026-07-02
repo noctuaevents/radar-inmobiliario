@@ -319,13 +319,16 @@ def gen_article_pages(articles: list, index_html: str) -> None:
     noticia_dir = DIST / "noticia"
     noticia_dir.mkdir(exist_ok=True)
 
-    # Ítem 2 — eliminar carpetas de artículos que ya no están vigentes en news.js
-    # (index bloat / contenido duplicado con slug viejo).
+    # C2 — NO borrar carpetas huérfanas: los artículos salen del cap de 30 de
+    # news.js con el tiempo, pero sus URLs /noticia/[slug] son archivo histórico
+    # vivo (enlazadas externamente, indexadas) y deben seguir sirviendo 200, no
+    # 404. Solo se informa cuántas hay para visibilidad, no se tocan.
     valid_slugs = {art['slug'] for art in articles if art.get('slug')}
-    for existing in noticia_dir.iterdir():
-        if existing.is_dir() and existing.name not in valid_slugs:
-            shutil.rmtree(existing)
-            print(f"  ✗ eliminada carpeta huérfana dist/noticia/{existing.name}")
+    huerfanas = [e.name for e in noticia_dir.iterdir()
+                 if e.is_dir() and e.name not in valid_slugs]
+    if huerfanas:
+        print(f"  ℹ {len(huerfanas)} carpeta(s) en dist/noticia/ no están en news.js "
+              f"(archivo histórico, se conservan)")
 
     for art in articles:
         slug       = art['slug']
@@ -829,32 +832,69 @@ def gen_news_sitemap(articles: list) -> None:
 
 
 def update_sitemap(articles: list) -> None:
-    """Add/refresh article URLs in dist/sitemap.xml."""
+    """Add/refresh article URLs in dist/sitemap.xml.
+
+    C2 — MERGE, no reemplazo: los artículos que ya no están en news.js (cap de
+    30) siguen teniendo una página viva en dist/noticia/ (ver gen_article_pages)
+    y deben seguir en el sitemap — si no, el archivo histórico se cae del
+    índice de Google aunque la URL siga sirviendo 200. Se extraen las entradas
+    <loc>/<lastmod> del bloque viejo antes de borrarlo, y se re-añaden las que
+    no estén ya cubiertas por los artículos actuales (dedup por loc). El marker
+    block sigue siendo idempotente: cada ejecución reescribe el bloque entero
+    fusionado, así que reejecutar sin cambios no lo modifica más.
+    """
     sitemap = DIST / "sitemap.xml"
     if not sitemap.exists():
         return
 
     content = sitemap.read_text(encoding="utf-8")
+    old_block_m = re.search(r'<!-- News articles -->(.*?)<!-- /News articles -->',
+                            content, flags=re.S)
+    old_entries = {}  # loc -> lastmod, del bloque anterior (archivo histórico)
+    if old_block_m:
+        for url_m in re.finditer(r'<loc>([^<]+)</loc>\s*<lastmod>([^<]*)</lastmod>',
+                                 old_block_m.group(1)):
+            old_entries[url_m.group(1)] = url_m.group(2)
+
     # Remove previous article block if present
     content = re.sub(r'\s*<!-- News articles -->.*?<!-- /News articles -->', '',
                      content, flags=re.S)
 
     today = date.today().isoformat()
-    entries_xml = "\n".join(
+    current_locs = set()
+    current_xml_parts = []
+    for art in articles:
+        if not art.get('slug'):
+            continue
+        loc = f"{BASE_URL}/noticia/{art['slug']}"
+        current_locs.add(loc)
+        current_xml_parts.append(
+            f"  <url>\n"
+            f"    <loc>{loc}</loc>\n"
+            f"    <lastmod>{art.get('fechaISO', today)}</lastmod>\n"
+            f"    <changefreq>monthly</changefreq>\n"
+            f"    <priority>0.7</priority>\n"
+            f"  </url>"
+        )
+
+    archived_xml_parts = [
         f"  <url>\n"
-        f"    <loc>{BASE_URL}/noticia/{art['slug']}</loc>\n"
-        f"    <lastmod>{art.get('fechaISO', today)}</lastmod>\n"
+        f"    <loc>{loc}</loc>\n"
+        f"    <lastmod>{lastmod}</lastmod>\n"
         f"    <changefreq>monthly</changefreq>\n"
-        f"    <priority>0.7</priority>\n"
+        f"    <priority>0.5</priority>\n"
         f"  </url>"
-        for art in articles if art.get('slug')
-    )
+        for loc, lastmod in old_entries.items() if loc not in current_locs
+    ]
+
+    entries_xml = "\n".join(current_xml_parts + archived_xml_parts)
     new_content = content.replace(
         '</urlset>',
         f'\n  <!-- News articles -->\n{entries_xml}\n  <!-- /News articles -->\n\n</urlset>'
     )
     sitemap.write_text(new_content, encoding="utf-8")
-    print(f"✓ dist/sitemap.xml (+{len(articles)} artículos)")
+    print(f"✓ dist/sitemap.xml (+{len(current_xml_parts)} artículos vigentes, "
+          f"+{len(archived_xml_parts)} archivo histórico)")
 
 
 def gen_llms_txt(articles: list) -> None:

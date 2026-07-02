@@ -48,5 +48,14 @@ class TestMerge(unittest.TestCase):
         self.assertEqual(len([m for m in merged if m["url"] == "https://x/3"]), 1)
         self.assertLessEqual(len(merged), 30)
 
+    def test_dedup_dentro_de_new_items(self):
+        # I4 — relanzamientos pueden traer el mismo artículo repetido dentro de
+        # new_items (no solo colisión new vs prev): solo debe sobrevivir 1.
+        new = [{"slug": "a", "url": "https://x/a"},
+               {"slug": "a-bis", "url": "https://x/a"}]  # misma url, distinto slug
+        merged = ae.merge_items(new, [], cap=30)
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["slug"], "a")
+
 if __name__ == "__main__":
     unittest.main()

@@ -46,6 +46,33 @@ class TestGate1(unittest.TestCase):
         ok, _ = ae.filter_candidates(cands, set(), HOY, max_articles=4)
         self.assertEqual(len(ok), 4)
 
+    def test_rechaza_historia_duplicada_de_otra_fuente(self):
+        # I6 — misma historia, dos fuentes distintas, titulares parecidos pero
+        # no idénticos: solo se acepta el mejor (vienen ordenados por score).
+        cands = [
+            cand(url="https://x/1", fuente="Idealista",
+                 titulo="Madrid inicia la construcción de 446 viviendas de "
+                        "alquiler asequible"),
+            cand(url="https://x/2", fuente="Fotocasa",
+                 titulo="Madrid arranca la construcción de 446 pisos de "
+                        "alquiler asequible en Los Berrocales"),
+        ]
+        ok, ko = ae.filter_candidates(cands, set(), HOY)
+        self.assertEqual(len(ok), 1)
+        self.assertEqual(ok[0]["url"], "https://x/1")
+        self.assertIn("historia duplicada", ko[0][1])
+
+    def test_acepta_historias_distintas(self):
+        cands = [
+            cand(url="https://x/1", titulo="El precio de la vivienda sube "
+                                            "un 6% en Chamberí"),
+            cand(url="https://x/2", titulo="El Ayuntamiento aprueba un nuevo "
+                                            "plan de movilidad en Retiro"),
+        ]
+        ok, ko = ae.filter_candidates(cands, set(), HOY)
+        self.assertEqual(len(ok), 2)
+        self.assertEqual(ko, [])
+
 class TestSeenUrls(unittest.TestCase):
     def test_recoge_de_items_y_vault(self):
         with tempfile.TemporaryDirectory() as d:
