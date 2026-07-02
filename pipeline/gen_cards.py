@@ -120,3 +120,50 @@ def draw_card(titulo, categoria, tag, impacto="", impactoLabel="", distrito=None
 
     d.text((x, H - 64), "radarinmobiliario.com", font=_font(28), fill=MUTED)
     return img
+
+
+def process(force: bool = False):
+    """Devuelve (generadas, parcheadas, errores). Parchea news.js solo si cambió algo."""
+    sys.path.insert(0, str(Path(__file__).parent))
+    from auto_edition import parse_news_data, render_news_js
+
+    data = parse_news_data(NEWS_JS.read_text(encoding="utf-8"))
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
+    stats = {"gen": 0, "patched": 0, "err": 0}
+
+    def ensure_card(item):
+        slug = item.get("slug")
+        if not slug or item.get("imagen"):
+            if not slug and not item.get("imagen"):
+                print("  ⚠ artículo sin slug — sin tarjeta")
+            return
+        dest = IMG_DIR / f"card-{slug}.png"
+        try:
+            if force or not dest.exists():
+                draw_card(item.get("titulo", ""), item.get("categoria", ""),
+                          item.get("tag", ""), item.get("impacto") or "",
+                          item.get("impactoLabel") or "",
+                          item.get("distrito")).save(dest, optimize=True)
+                stats["gen"] += 1
+            item["imagen"] = f"/img/card-{slug}.png"
+            stats["patched"] += 1
+        except Exception as e:  # nunca romper la edición por una tarjeta
+            print(f"  ⚠ tarjeta fallida para {slug}: {e}")
+            stats["err"] += 1
+
+    for it in data["items"]:
+        ensure_card(it)
+    ensure_card(data["destacada"])
+
+    if stats["patched"]:
+        NEWS_JS.write_text(render_news_js(data["actualizado"], data["semanaResumen"],
+                                          data["destacada"], data["items"]),
+                           encoding="utf-8")
+    print(f"✓ tarjetas: {stats['gen']} generadas, {stats['patched']} parcheadas, "
+          f"{stats['err']} errores")
+    return stats["gen"], stats["patched"], stats["err"]
+
+
+if __name__ == "__main__":
+    process(force="--force" in sys.argv)
+    sys.exit(0)
