@@ -24,6 +24,19 @@ class TestParse(unittest.TestCase):
         data2 = ae.parse_news_data(out)
         self.assertEqual(data["items"], data2["items"])
         self.assertEqual(data["destacada"], data2["destacada"])
+        self.assertEqual(data["actualizado"], data2["actualizado"])
+        self.assertEqual(data["semanaResumen"], data2["semanaResumen"])
+
+    def test_contenido_hostil_no_rompe_anchors(self):
+        items = [{"slug": "a", "url": "https://x/a", "fechaISO": "2026-07-02",
+                  "titulo": "Vivienda destacada: { la mejor } e items: [ver lista]",
+                  "resumen": "actualizado: 'ayer'", "body": []}]
+        dest = {"slug": "a", "titulo": "destacada: { trampa }"}
+        out = ae.render_news_js("30 Jun ' bis", {"publicadas": 1}, dest, items)
+        data = ae.parse_news_data(out)
+        self.assertEqual(data["items"], items)
+        self.assertEqual(data["destacada"], dest)
+        self.assertEqual(data["actualizado"], "30 Jun ' bis")
 
 class TestMerge(unittest.TestCase):
     def test_new_first_dedup_and_cap(self):
