@@ -95,14 +95,17 @@ solo email puede capturarse hoy. Además no hay analytics instalado.
 - Añadir "Herramientas" al nav si cabe sin apretar (móvil manda); si no, se resuelve en
   Tanda 2 con el nav re-vestido.
 
-### 1.4 Prosa estática indexable en artículos
+### 1.4 Prosa estática VISIBLE en artículos y home (corrige patrón de texto oculto)
 
-- `dist/noticia/<slug>/index.html` hoy expone ~51 palabras a crawlers sin JS.
-  `distribute.py` inyectará el **cuerpo completo** del artículo (campo `body` de
-  `news.js`, ~300 palabras) como HTML semántico de fallback dentro de `#root` (mismo
-  patrón que `gen_home_static()`): H1, entradilla, párrafos, enlace a la fuente
-  original, enlace a la ficha del distrito. React lo sustituye al montar.
-- Beneficia a Google y a crawlers de IA sin JS (ChatGPT/Perplexity) — GEO.
+- Corrección tras leer el código: el cuerpo completo (~312 palabras) YA está en las
+  páginas estáticas, pero en un div off-screen (`position:absolute;left:-9999px` +
+  `aria-hidden`) — patrón de "hidden text" que Google descuenta y puede penalizar,
+  y que los crawlers de IA ignoran a menudo.
+- Cambio: `gen_article_pages()` y `gen_home_static()` pasan a inyectar el fallback
+  **visible dentro de `#root`** (H1, entradilla, párrafos, enlace a fuente original y
+  a la ficha del distrito), sustituyendo al spinner "Cargando…"; React lo reemplaza al
+  montar. Estilo mínimo inline (papel, serifa) para que no "flashee" feo.
+- Beneficia a Google (contenido visible, no descontado) y a crawlers de IA sin JS — GEO.
 
 ### 1.5 Medición
 
