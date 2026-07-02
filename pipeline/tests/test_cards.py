@@ -82,6 +82,9 @@ class TestCli(unittest.TestCase):
                 self.assertEqual(data["items"][0]["imagen"], "/img/x.jpg")
                 gen2, patched2, err2 = gc.process()
                 self.assertEqual((gen2, patched2), (0, 0))
+                # --force regenera la tarjeta aunque imagen ya apunte a ella
+                gen3, patched3, err3 = gc.process(force=True)
+                self.assertEqual((gen3, patched3), (2, 0))  # item + destacada (mismo slug)
             finally:
                 gc.NEWS_JS, gc.IMG_DIR = old_news, old_img
 

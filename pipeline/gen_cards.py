@@ -112,9 +112,10 @@ def draw_card(titulo, categoria, tag, impacto="", impactoLabel="", distrito=None
         f_tit = _font(64, bold=True)
         line_h, max_lines = 82, 4
 
-    for line in _wrap(d, titulo or "", f_tit, max_w, max_lines):
-        if y + line_h > H - 76:
-            break
+    # el wrap decide las líneas con la altura REAL disponible, para que la
+    # elipsis caiga en la última línea visible (no en una que nunca se dibuja)
+    max_lines_fit = max(1, int((H - 76 - y) // line_h))
+    for line in _wrap(d, titulo or "", f_tit, max_w, min(max_lines, max_lines_fit)):
         d.text((x, y), line, font=f_tit, fill=INK)
         y += line_h
 
@@ -133,10 +134,14 @@ def process(force: bool = False):
 
     def ensure_card(item):
         slug = item.get("slug")
-        if not slug or item.get("imagen"):
-            if not slug and not item.get("imagen"):
+        if not slug:
+            if not item.get("imagen"):
                 print("  ⚠ artículo sin slug — sin tarjeta")
             return
+        card_rel = f"/img/card-{slug}.png"
+        imagen = item.get("imagen") or ""
+        if imagen and imagen != card_rel:
+            return  # foto propia (no nuestra tarjeta) — no tocar
         dest = IMG_DIR / f"card-{slug}.png"
         try:
             if force or not dest.exists():
@@ -145,8 +150,9 @@ def process(force: bool = False):
                           item.get("impactoLabel") or "",
                           item.get("distrito")).save(dest, optimize=True)
                 stats["gen"] += 1
-            item["imagen"] = f"/img/card-{slug}.png"
-            stats["patched"] += 1
+            if imagen != card_rel:
+                item["imagen"] = card_rel
+                stats["patched"] += 1
         except Exception as e:  # nunca romper la edición por una tarjeta
             print(f"  ⚠ tarjeta fallida para {slug}: {e}")
             stats["err"] += 1

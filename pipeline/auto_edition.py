@@ -544,6 +544,13 @@ def main() -> int:
         NEWS_JS.write_text(render_news_js(edicion["actualizado"], semana, destacada, merged),
                            encoding="utf-8")
 
+        # 5b. tarjetas de dato para artículos sin imagen (no bloqueante)
+        try:
+            out = sh([sys.executable, "pipeline/gen_cards.py"]).stdout.strip()
+            report["cards"] = out.splitlines()[-1] if out else "ok"
+        except subprocess.CalledProcessError as e:
+            report["cards"] = f"fallo no bloqueante: {(e.stderr or '')[-200:]}"
+
         # 6. PUERTA 3 + publicación
         gate3(report)
         if dry_run:
