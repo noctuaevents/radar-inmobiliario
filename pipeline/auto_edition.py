@@ -307,13 +307,46 @@ def publish(new_items: list, report: dict) -> None:
     report["indexnow"] = (r.stdout or r.stderr).strip()
 
 
-# stubs — Task 7 los sustituye
+def render_report(report: dict) -> str:
+    L = [f"# Edición {report['fecha']}" + (" (dry-run)" if report.get("dry_run") else ""),
+         "", f"**Resultado:** {report.get('resultado', '?')}"]
+    if report.get("error"):
+        L += ["", f"**Error:** `{report['error']}`"]
+    if report.get("publicados"):
+        L += ["", "## Publicados", ""]
+        L += [f"- [{p['titulo']}](https://www.radarinmobiliario.com/noticia/{p['slug']}) "
+              f"— verificado por {p['verificador']}" for p in report["publicados"]]
+    if report.get("rechazados"):
+        L += ["", "## Rechazados (puerta 2)", ""]
+        L += [f"- {r['titulo']} — {r['motivo']} ({r['verificador']})"
+              for r in report["rechazados"]]
+    if report.get("descartados_p1"):
+        L += ["", "## Descartados (puerta 1)", ""]
+        L += [f"- {t} — {m}" for t, m in report["descartados_p1"]]
+    if report.get("archivadas"):
+        L += ["", f"_{len(report['archivadas'])} notas caducadas archivadas._"]
+    meta = [str(report.get(k, "")) for k in ("commit", "deploy", "indexnow")]
+    L += ["", "---", f"Commit: {meta[0]} · Deploy: {meta[1]} · IndexNow: {meta[2]} · "
+          f"Duración: {report.get('duracion_min', '?')} min"]
+    return "\n".join(L) + "\n"
+
+
 def write_report(report: dict, dry_run: bool) -> None:
-    print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+    EDICIONES.mkdir(parents=True, exist_ok=True)
+    suffix = "-dryrun" if dry_run else ""
+    path = EDICIONES / f"{report['fecha']}{suffix}.md"
+    path.write_text(render_report(report), encoding="utf-8")
+    print(f"Informe: {path}")
 
 
 def notify(title: str, message: str) -> None:
-    print(f"[NOTIFY] {title}: {message}")
+    try:
+        subprocess.run(["osascript", "-e",
+                        f"display notification {json.dumps(message)} "
+                        f"with title {json.dumps(title)}"],
+                       capture_output=True, timeout=10)
+    except OSError:
+        pass  # sin GUI (ssh) — el informe ya quedó escrito
 
 
 class _NoEdition(Exception):
