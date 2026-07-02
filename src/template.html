@@ -596,6 +596,7 @@
   <script type="text/babel" src="e9187d32-c781-47ae-9388-ec8e90db394c"></script>
   <script type="text/babel" src="a18d8a5f-3a78-42bd-a79d-28ef0aa77b4d"></script>
   <script type="text/babel" src="896a3eea-9796-4c37-b6bc-f60af15aa35f"></script>
+  <script type="text/babel" src="0f46302f-8112-4771-a799-b59de65f7221"></script>
 
   <!-- Router -->
   <script type="text/babel">
@@ -605,20 +606,34 @@
 
     function route() {
       const h = window.location.hash.replace(/^#/, '');
-      return h || '/';
+      if (h) return h;
+      const p = window.location.pathname.replace(/\/$/, '') || '/';
+      return p;
     }
 
     function SiteNav({ active }) {
-      const link = (key, label, path) => (
-        <span
-          onClick={() => window.navTo(path)}
-          className={`cursor-pointer transition-colors ${active === key ? 'text-emerald-700 font-semibold' : 'text-slate-600 hover:text-emerald-700'}`}
-        >
-          {label}
-        </span>
-      );
+      const link = (key, label, path) => {
+        const isActive = active === key;
+        const isPrensa = active === 'noticias' && isActive;
+        return (
+          <span
+            onClick={() => window.navTo(path)}
+            className={`cursor-pointer transition-colors ${isPrensa ? 'font-semibold' : isActive ? 'text-emerald-700 font-semibold' : 'text-slate-600 hover:text-emerald-700'}`}
+            style={isPrensa ? { color: window.PRENSA.teja } : undefined}
+          >
+            {label}
+          </span>
+        );
+      };
       return (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-sm">
+        <header
+          className="sticky top-0 z-50 backdrop-blur-sm"
+          style={
+            active === 'noticias'
+              ? { background: window.PRENSA.papel, borderBottom: '1px solid #e5ddca' }
+              : { background: '#ffffff', borderBottom: '1px solid #e2e8f0' }
+          }
+        >
           <div className="max-w-6xl mx-auto px-8 h-14 flex items-center justify-between">
             <div
               className="flex items-center gap-2 font-bold text-slate-900 text-sm cursor-pointer"
@@ -632,6 +647,7 @@
               {link('home', 'Inicio', '/')}
               {link('distritos', 'Distritos', '/distritos')}
               {link('noticias', 'Noticias', '/noticias')}
+              {link('jarvis', 'Jarvis', '/jarvis')}
               {link('sobre', 'Sobre', '/sobre')}
               <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.showProModal("Comparador de distritos")}>Comparar</span>
               <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.showProModal("Rankings de barrios")}>Rankings</span>
@@ -842,6 +858,7 @@ function App() {
       if (r === '/noticia')   return (<div><SiteNav active="noticias" /><window.NoticiaDetalleV3 /></div>);
       if (r === '/metodologia') return (<div><SiteNav active="" /><window.MetodologiaPage /></div>);
       if (r === '/legal')     return (<div><SiteNav active="" /><window.LegalPage /></div>);
+      if (r === '/jarvis')    return (<window.JarvisConsole />);
       if (r === '/pro')       return (<PricingPage />);
       if (r === '/sobre')     return (<AboutPage />);
       if (r === '/')          return (<window.VariationD />);
