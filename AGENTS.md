@@ -171,6 +171,32 @@ bash pipeline/run_edition.sh --only-news
 
 ---
 
+### 11. `auto_edition.py` — Edición Diaria Autónoma (piloto automático)
+
+**File:** `pipeline/auto_edition.py` · **Puerta 2:** `pipeline/verify_codex.py`
+**Trigger:** launchd `com.radar.autoedition` (07:30 diaria + reintento 14:00; catch-up al despertar)
+**Diseño:** `docs/superpowers/specs/2026-07-02-auto-edition-design.md`
+
+Ciclo completo SIN humano: fetch → **Puerta 1** (frescura <48h, score ≥5, dedup por URL
+e historia, blacklist, máx 4/día) → triage Ollama `--auto` → polish Claude → **Puerta 2**
+(`verify_codex.py`: Codex como editor jefe adversarial, veredicto APPROVE/REJECT por
+artículo; fallback Claude-adversarial; sin verificador ⇒ ABORT) → merge acumulativo con
+el archivo (cap 30 en news.js; las páginas y el sitemap conservan TODO el histórico) →
+**Puerta 3** (news.js re-parseable, build+distribute exit 0, git limpio) → commit
+`noticias: edición auto <fecha>` + push + IndexNow → informe en
+`~/Documents/Radar Inmobiliario/Contenido/Ediciones/` + notificación macOS.
+
+**Regla de oro:** todo fallo degrada hacia NO publicar. Lock diario en
+`pipeline/work/last_edition.date`. Notas rechazadas → `_rechazadas/` con motivo;
+caducadas o residuales → `_archivo/`.
+
+**Run manual:** `python3 pipeline/auto_edition.py [--dry-run]`
+(dry-run: sin push ni movimientos definitivos, pero polish mueve notas a Publicado/ y
+hay que restaurarlas a mano — ver informe `-dryrun` en Ediciones/).
+**Tests:** `for t in pipeline/tests/test_*.py; do python3 "$t"; done`
+
+---
+
 ## Data flow
 
 ```
