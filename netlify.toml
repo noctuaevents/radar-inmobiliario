@@ -5,10 +5,8 @@
 [functions]
   node_bundler = "esbuild"
 
-[[redirects]]
-  from   = "/*"
-  to     = "/index.html"
-  status = 200
+# Sin redirect catch-all: toda ruta legítima tiene página estática en dist/
+# (el SPA navega por hash) y las rutas desconocidas sirven dist/404.html con status 404.
 
 [[headers]]
   for = "/*"

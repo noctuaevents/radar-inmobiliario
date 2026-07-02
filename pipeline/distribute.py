@@ -19,7 +19,7 @@ SALIDA:
 Uso: python3 pipeline/distribute.py
 """
 import base64, gzip, json, re, shutil, sys, urllib.request
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT     = Path(__file__).parent.parent
@@ -371,6 +371,9 @@ def gen_article_pages(articles: list, index_html: str) -> None:
         # Inject static NewsArticle JSON-LD into <head>
         fecha_pub = art.get('fechaISO', '')
         categoria = art.get('categoria', '')
+        hora = art.get('hora') or '00:00'
+        published_time = f"{fecha_pub}T{hora}:00+02:00" if fecha_pub else ""
+        body_texts = art.get('body_texts', [])
         ld_author = {"@type": "Organization", "name": "Redacción Radar Inmobiliario Madrid",
                      "url": f"{BASE_URL}/sobre"}
         ld_pub    = {"@id": f"{BASE_URL}/#organization"}
@@ -380,14 +383,14 @@ def gen_article_pages(articles: list, index_html: str) -> None:
             "headline": titulo_raw,
             "description": resumen_full,
             "image": og_image,
-            "datePublished": fecha_pub,
-            "dateModified": fecha_pub,
+            "datePublished": published_time or fecha_pub,
+            "dateModified": published_time or fecha_pub,
             "url": canonical,
             "inLanguage": "es",
             "articleSection": categoria,
             "author": ld_author,
             "publisher": ld_pub,
-            "mainEntityOfPage": canonical,
+            "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
             "breadcrumb": {
                 "@type": "BreadcrumbList",
                 "itemListElement": [
@@ -397,12 +400,12 @@ def gen_article_pages(articles: list, index_html: str) -> None:
                 ]
             }
         }
+        if body_texts:
+            ld["articleBody"] = "\n\n".join(body_texts)
         ld_tag = f'\n  <script type="application/ld+json">\n  {json.dumps(ld, ensure_ascii=False, indent=2)}\n  </script>'
         art_html = art_html.replace('</head>', ld_tag + '\n</head>', 1)
 
         # Ítem 4 — article:* meta tags (publish/modify time, section, author)
-        hora = art.get('hora') or '00:00'
-        published_time = f"{fecha_pub}T{hora}:00+02:00" if fecha_pub else ""
         article_meta_parts = []
         if published_time:
             article_meta_parts.append(
@@ -418,7 +421,6 @@ def gen_article_pages(articles: list, index_html: str) -> None:
         art_html = art_html.replace('</head>', article_meta_tag + '\n</head>', 1)
 
         # Inject article body text as hidden element for crawlers (passage indexing)
-        body_texts = art.get('body_texts', [])
         h1_html = f'<h1>{_html.escape(titulo_raw)}</h1>'
         if body_texts:
             body_html_parts = [f'<p>{_html.escape(p)}</p>' for p in body_texts]
@@ -782,6 +784,9 @@ def gen_news_sitemap(articles: list) -> None:
     """Generate dist/news-sitemap.xml for Google News."""
     import html as _html
 
+    tz_es = timezone(timedelta(hours=2))
+    now = datetime.now(tz_es)
+
     entries = []
     for art in articles:
         slug    = art['slug']
@@ -791,6 +796,13 @@ def gen_news_sitemap(articles: list) -> None:
         if not fecha:
             continue
         pub_date = f"{fecha}T{hora}:00+02:00"
+        # Google News solo acepta artículos de las últimas 48h.
+        try:
+            pub_dt = datetime.fromisoformat(pub_date)
+        except ValueError:
+            continue
+        if now - pub_dt > timedelta(hours=48):
+            continue
         entries.append(
             f"  <url>\n"
             f"    <loc>{BASE_URL}/noticia/{slug}</loc>\n"
@@ -956,6 +968,106 @@ def gen_tool_pages(index_html: str) -> None:
     print(f"✓ {len(tools)} páginas estáticas de herramientas (simulador/comparador)")
 
 
+def gen_pro_gracias_pages(index_html: str) -> None:
+    """Static SEO pages for /pro (plan Pro, indexable) y /gracias (confirmación de
+    formulario, noindex). Mismo patrón off-screen aria-hidden que gen_tool_pages."""
+    import html as _html
+
+    # --- /pro ---
+    pro_canonical = f"{BASE_URL}/pro"
+    pro_title = "Radar Pro: datos de 131 barrios de Madrid | Radar Inmobiliario"
+    pro_desc = (
+        "Radar Pro: comparador de distritos, histórico de precios y datos de 131 barrios "
+        "de Madrid. Precio fundador 49€/año."
+    )
+    pro_html = _rewrite_head_meta(index_html, pro_canonical, pro_title, pro_desc, og_type="website")
+    pro_inner = (
+        '<h1>Radar Pro</h1>\n    '
+        '<p>Accede a los datos de los 131 barrios de Madrid, el comparador de distritos '
+        'completo y el histórico de precios con Radar Pro. Precio fundador: 49€/año.</p>\n    '
+        '<nav>\n    '
+        f'<a href="{BASE_URL}/herramientas/comparador">Comparador de distritos</a>\n    '
+        f'<a href="{BASE_URL}/">Inicio</a>\n    '
+        '</nav>'
+    )
+    pro_html = _inject_hidden_block(pro_html, "pro-static", pro_inner)
+    pro_dir = DIST / "pro"
+    pro_dir.mkdir(parents=True, exist_ok=True)
+    (pro_dir / "index.html").write_text(pro_html, encoding="utf-8")
+
+    # --- /gracias ---
+    gracias_canonical = f"{BASE_URL}/gracias"
+    gracias_title = "Gracias | Radar Inmobiliario Madrid"
+    gracias_desc = "Gracias por tu registro en Radar Inmobiliario Madrid."
+    gracias_html = _rewrite_head_meta(index_html, gracias_canonical, gracias_title, gracias_desc, og_type="website")
+    gracias_html = gracias_html.replace(
+        '</head>', '  <meta name="robots" content="noindex">\n</head>', 1
+    )
+    gracias_inner = (
+        '<h1>Gracias</h1>\n    '
+        '<p>Hemos recibido tu solicitud correctamente.</p>\n    '
+        '<nav>\n    '
+        f'<a href="{BASE_URL}/">Inicio</a>\n    '
+        '</nav>'
+    )
+    gracias_html = _inject_hidden_block(gracias_html, "gracias-static", gracias_inner)
+    gracias_dir = DIST / "gracias"
+    gracias_dir.mkdir(parents=True, exist_ok=True)
+    (gracias_dir / "index.html").write_text(gracias_html, encoding="utf-8")
+
+    print("✓ dist/pro/index.html + dist/gracias/index.html (noindex)")
+
+
+def gen_404_page() -> None:
+    """Página 404 ligera y autónoma (sin React). Netlify la sirve con status 404
+    para cualquier ruta sin match una vez retirado el redirect catch-all."""
+    html_404 = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Página no encontrada | Radar Inmobiliario Madrid</title>
+  <style>
+    body {{ font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #0f172a;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+    main {{ text-align: center; padding: 2rem; max-width: 32rem; }}
+    .dot {{ color: #059669; font-size: 1.5rem; }}
+    h1 {{ font-size: 1.6rem; margin: 0.75rem 0 0.5rem; }}
+    p {{ color: #64748b; line-height: 1.6; }}
+    nav {{ margin-top: 1.5rem; display: flex; gap: 1.25rem; justify-content: center; }}
+    a {{ color: #059669; font-weight: 600; text-decoration: none; }}
+    a:hover {{ text-decoration: underline; }}
+  </style>
+</head>
+<body>
+  <main>
+    <div><span class="dot">●</span> <strong>Radar Inmobiliario</strong> <span style="color:#059669">Madrid</span></div>
+    <h1>Página no encontrada</h1>
+    <p>La dirección que buscas no existe o ha cambiado. Estos enlaces te llevan de vuelta a los datos.</p>
+    <nav>
+      <a href="/">Inicio</a>
+      <a href="/distritos">Distritos</a>
+      <a href="/noticias">Noticias</a>
+    </nav>
+  </main>
+</body>
+</html>
+"""
+    (DIST / "404.html").write_text(html_404, encoding="utf-8")
+    print("✓ dist/404.html")
+
+
+# Clave IndexNow (Bing/Copilot). El fichero dist/<key>.txt debe servirse en la raíz
+# del dominio; pipeline/indexnow_submit.py la reutiliza para notificar URLs.
+INDEXNOW_KEY = "be31110c3260a87fc7f098177773bb6c"
+
+
+def gen_indexnow_key() -> None:
+    (DIST / f"{INDEXNOW_KEY}.txt").write_text(INDEXNOW_KEY, encoding="utf-8")
+    print(f"✓ dist/{INDEXNOW_KEY}.txt (IndexNow)")
+
+
 def update_sitemap_tools() -> None:
     """Add/refresh the /herramientas/* URLs in dist/sitemap.xml (marker block,
     idempotente — mismo patrón que update_sitemap para las noticias)."""
@@ -981,6 +1093,41 @@ def update_sitemap_tools() -> None:
     )
     sitemap.write_text(new_content, encoding="utf-8")
     print("✓ dist/sitemap.xml (+2 herramientas)")
+
+
+def update_sitemap_core() -> None:
+    """Add/refresh the core static pages (/sobre, /metodologia, /legal, /pro) in
+    dist/sitemap.xml (marker block, idempotente — mismo patrón que
+    update_sitemap_tools). NO incluye /gracias (noindex, sin valor SEO)."""
+    sitemap = DIST / "sitemap.xml"
+    if not sitemap.exists():
+        return
+    content = sitemap.read_text(encoding="utf-8")
+    # OJO: el sitemap base ya usa "<!-- Core pages -->" como cabecera de sección
+    # sin cierre; este bloque necesita un marcador propio e inconfundible.
+    content = re.sub(r'\s*<!-- Static extra pages -->.*?<!-- /Static extra pages -->', '', content, flags=re.S)
+    today = date.today().isoformat()
+    core_pages = [
+        ('sobre', 0.5),
+        ('metodologia', 0.5),
+        ('legal', 0.5),
+        ('pro', 0.8),
+    ]
+    entries_xml = "\n".join(
+        f"  <url>\n"
+        f"    <loc>{BASE_URL}/{path}</loc>\n"
+        f"    <lastmod>{today}</lastmod>\n"
+        f"    <changefreq>monthly</changefreq>\n"
+        f"    <priority>{priority}</priority>\n"
+        f"  </url>"
+        for path, priority in core_pages
+    )
+    new_content = content.replace(
+        '</urlset>',
+        f'\n  <!-- Static extra pages -->\n{entries_xml}\n  <!-- /Static extra pages -->\n\n</urlset>'
+    )
+    sitemap.write_text(new_content, encoding="utf-8")
+    print(f"✓ dist/sitemap.xml (+{len(core_pages)} páginas core)")
 
 
 def inject_waitlist_form() -> None:
@@ -1208,7 +1355,13 @@ def main():
     # Monetización (Fase 3): páginas estáticas de herramientas + sitemap + form Netlify
     gen_tool_pages(index_html)
     update_sitemap_tools()
+    update_sitemap_core()
     inject_waitlist_form()
+
+    # SEO: /pro + /gracias estáticas, 404 real y clave IndexNow
+    gen_pro_gracias_pages(index_html)
+    gen_404_page()
+    gen_indexnow_key()
 
 
 if __name__ == "__main__":

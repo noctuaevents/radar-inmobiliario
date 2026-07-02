@@ -95,6 +95,30 @@ def parse_date(entry):
     return None
 
 
+def resolve_source(entry, title: str, feed_url: str) -> str:
+    """Determina la fuente real del artículo (publicador), nunca el título del feed de búsqueda.
+
+    1. entry.source.title (Google News RSS <source> con el publicador real).
+    2. Sufijo tras el último " - " del título (formato Google News: "Título - Publicador"),
+       solo si tiene <40 chars y no contiene "Google New".
+    3. Último recurso: dominio del feed.
+    """
+    source_obj = entry.get("source")
+    if source_obj:
+        source_title = getattr(source_obj, "title", None) or (
+            source_obj.get("title") if isinstance(source_obj, dict) else None
+        )
+        if source_title:
+            return source_title.strip()
+
+    if title and " - " in title:
+        suffix = title.rsplit(" - ", 1)[-1].strip()
+        if suffix and len(suffix) < 40 and "Google New" not in suffix:
+            return suffix
+
+    return feed_url.split("/")[2]
+
+
 def main():
     cutoff = datetime.now(tz=timezone.utc) - timedelta(days=14)
     seen_urls: set[str] = set()
@@ -121,7 +145,7 @@ def main():
 
             articles.append({
                 "titulo": title,
-                "fuente": feed.feed.get("title", feed_url.split("/")[2]),
+                "fuente": resolve_source(entry, title, feed_url),
                 "url": url,
                 "fecha_iso": pub.strftime("%Y-%m-%d") if pub else "",
                 "fecha": pub.strftime("%-d %b") if pub else "",

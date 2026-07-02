@@ -557,6 +557,8 @@
 
   <style>
     html, body { font-family: 'Inter', system-ui, sans-serif; }
+    /* Guard móvil: clip (no hidden) para no romper position:sticky del header */
+    html, body { overflow-x: clip; }
   </style>
 
   <script src="de4e60cb-e797-4592-97c1-6718dfecdc17" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -626,7 +628,7 @@
               <span>Radar Inmobiliario</span>
               <span className="text-emerald-600">Madrid</span>
             </div>
-            <nav className="flex items-center gap-6 text-sm">
+            <nav className="flex items-center gap-6 text-sm" style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', minWidth: 0 }}>
               {link('home', 'Inicio', '/')}
               {link('distritos', 'Distritos', '/distritos')}
               {link('noticias', 'Noticias', '/noticias')}

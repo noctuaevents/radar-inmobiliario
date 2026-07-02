@@ -57,7 +57,7 @@ function VariationD() {
             <span>Radar Inmobiliario</span>
             <span className="text-emerald-600">Madrid</span>
           </div>
-          <nav className="flex items-center gap-6 text-sm text-slate-600">
+          <nav className="flex items-center gap-6 text-sm text-slate-600" style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', minWidth: 0 }}>
             <a href="/distritos" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }}>Distritos</a>
             <a href="/noticias" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }}>Noticias</a>
             <a href="/sobre" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/sobre'); }}>Acerca</a>
@@ -68,7 +68,7 @@ function VariationD() {
 
       {/* ── TICKER BAR — CLARO ──────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono">
+        <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono" style={{ flexWrap: 'wrap', rowGap: '6px' }}>
           <DTicker label="MADRID €/m²"    value={meta.precioMedio.toLocaleString('es-ES')} delta={`+${meta.variacionMedia.toFixed(1)}%`} up />
           <DTicker label="EURIBOR 12m"    value={macro.euribor12m.toFixed(2) + '%'} delta={macro.euriborDelta.toFixed(2)} />
           <DTicker label="ESFUERZO %"      value={macro.esfuerzoHipoteca.toFixed(1) + '%'} delta={macro.esfuerzoDelta.toFixed(1)} />

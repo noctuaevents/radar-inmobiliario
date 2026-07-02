@@ -880,25 +880,33 @@ function NoticiaDetalleDynamic({ slug }) {
     const script = document.createElement('script');
     script.id = 'ld-article';
     script.type = 'application/ld+json';
+    const pageUrl = 'https://www.radarinmobiliario.com/noticia/' + article.slug;
+    const dateValue = (article.fechaISO && article.hora)
+      ? (article.fechaISO + 'T' + article.hora + ':00+02:00')
+      : (article.fechaISO || article.fecha);
+    const articleBody = Array.isArray(article.body)
+      ? article.body.filter(b => b.type === 'p').map(b => b.text).join('\n\n')
+      : undefined;
     script.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "NewsArticle",
       "headline": article.titulo,
       "description": article.resumen ? article.resumen.slice(0, 200) : undefined,
       "image": article.imagen,
-      "datePublished": article.fechaISO || article.fecha,
-      "dateModified": article.fechaISO || article.fecha,
-      "url": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
+      "datePublished": dateValue,
+      "dateModified": dateValue,
+      "url": pageUrl,
       "inLanguage": "es",
       "articleSection": article.categoria,
       "keywords": article.tags ? article.tags.join(', ') : undefined,
+      "articleBody": articleBody,
       "author": {
         "@type": "Organization",
         "name": "Redacción Radar Inmobiliario Madrid",
         "url": "https://www.radarinmobiliario.com/sobre"
       },
       "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" },
-      "mainEntityOfPage": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
+      "mainEntityOfPage": { "@type": "WebPage", "@id": pageUrl },
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -1013,7 +1021,17 @@ function NoticiaDetalleDynamic({ slug }) {
           <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
-              <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+              {article.url && article.url.indexOf('http') === 0 ? (
+                <p className="text-[14px] mt-1">
+                  <a href={article.url} target="_blank" rel="noopener nofollow"
+                     className="text-[14px] font-semibold text-emerald-700 hover:underline">
+                    Leer en {article.fuente} ↗
+                  </a>
+                  <span className="text-slate-700"> · {article.fecha}</span>
+                </p>
+              ) : (
+                <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+              )}
             </div>
             <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }}
               className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg text-sm cursor-pointer">

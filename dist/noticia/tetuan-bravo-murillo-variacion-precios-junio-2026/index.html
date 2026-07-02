@@ -760,6 +760,8 @@
 
 
     html, body { font-family: 'Inter', system-ui, sans-serif; }
+    /* Guard móvil: clip (no hidden) para no romper position:sticky del header */
+    html, body { overflow-x: clip; }
   
 </style>
 
@@ -774,8 +776,8 @@
   "headline": "Tetuán sube un 2,5 % en junio: Bravo Murillo concentra la mayor variación del distrito",
   "description": "El corredor de Bravo Murillo registra una subida del 2,5 % en precio medio, con tramos junto a Alvarado que alcanzan el 3,8 % de alza.",
   "image": "https://www.radarinmobiliario.com/og-image.png",
-  "datePublished": "2026-06-30",
-  "dateModified": "2026-06-30",
+  "datePublished": "2026-06-30T02:30:00+02:00",
+  "dateModified": "2026-06-30T02:30:00+02:00",
   "url": "https://www.radarinmobiliario.com/noticia/tetuan-bravo-murillo-variacion-precios-junio-2026",
   "inLanguage": "es",
   "articleSection": "Infraestructura",
@@ -787,7 +789,10 @@
   "publisher": {
     "@id": "https://www.radarinmobiliario.com/#organization"
   },
-  "mainEntityOfPage": "https://www.radarinmobiliario.com/noticia/tetuan-bravo-murillo-variacion-precios-junio-2026",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://www.radarinmobiliario.com/noticia/tetuan-bravo-murillo-variacion-precios-junio-2026"
+  },
   "breadcrumb": {
     "@type": "BreadcrumbList",
     "itemListElement": [
@@ -809,7 +814,8 @@
         "name": "Tetuán sube un 2,5 % en junio: Bravo Murillo concentra la mayor variación del distrito"
       }
     ]
-  }
+  },
+  "articleBody": "El eje Bravo Murillo-Tetuán registra en junio de 2026 una variación del 2,5 % en el precio medio de la vivienda, según datos agregados del mercado madrileño. El corredor, que concentra buena parte de la oferta de pisos de entre 60 y 90 metros cuadrados en el norte de la capital, consolida una tendencia alcista iniciada en el último trimestre de 2025 y vinculada tanto a la mejora progresiva de la accesibilidad como a la presión compradora desplazada desde distritos más céntricos como Chamberí y Salamanca.\n\nLa subida no es uniforme a lo largo del eje. Los tramos más próximos a la estación de metro de Alvarado y al mercado de Maravillas acumulan alzas de hasta el 3,8 %, mientras que los bloques más antiguos situados entre Cuatro Caminos y la plaza de Tetuán registran ajustes más moderados, en torno al 1,2 %. El tamaño medio de las unidades demandadas también ha cambiado: los compradores buscan ahora pisos de entre 75 y 85 metros cuadrados, frente a los 65 metros que predominaban en 2024, reflejo de una mayor capacidad adquisitiva y del impulso de las hipotecas a tipo fijo cerradas el año pasado.\n\nPara el segundo semestre, los agentes activos en Tetuán prevén que la demanda seguirá sostenida siempre que los tipos de interés se mantengan estables tras las últimas decisiones del BCE. La rehabilitación de fachadas financiada por el Plan de Rehabilitación de Madrid, que afecta a más de cuarenta edificios del corredor, añade un argumento adicional de revalorización a medio plazo. El principal riesgo a vigilar es el encarecimiento de las rentas de alquiler, que en algunos portales ya supera los 18 euros por metro cuadrado al mes, una cifra que podría comprimir la rentabilidad del buy-to-let y reducir el apetito inversor en la zona."
 }
   </script>
 
@@ -1773,7 +1779,7 @@ function VariationD() {
             <span>Radar Inmobiliario</span>
             <span className="text-emerald-600">Madrid</span>
           </div>
-          <nav className="flex items-center gap-6 text-sm text-slate-600">
+          <nav className="flex items-center gap-6 text-sm text-slate-600" style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', minWidth: 0 }}>
             <a href="/distritos" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }}>Distritos</a>
             <a href="/noticias" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }}>Noticias</a>
             <a href="/sobre" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/sobre'); }}>Acerca</a>
@@ -1784,7 +1790,7 @@ function VariationD() {
 
       {/* ── TICKER BAR — CLARO ──────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono">
+        <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono" style={{ flexWrap: 'wrap', rowGap: '6px' }}>
           <DTicker label="MADRID €/m²"    value={meta.precioMedio.toLocaleString('es-ES')} delta={`+${meta.variacionMedia.toFixed(1)}%`} up />
           <DTicker label="EURIBOR 12m"    value={macro.euribor12m.toFixed(2) + '%'} delta={macro.euriborDelta.toFixed(2)} />
           <DTicker label="ESFUERZO %"      value={macro.esfuerzoHipoteca.toFixed(1) + '%'} delta={macro.esfuerzoDelta.toFixed(1)} />
@@ -3770,25 +3776,33 @@ function NoticiaDetalleDynamic({ slug }) {
     const script = document.createElement('script');
     script.id = 'ld-article';
     script.type = 'application/ld+json';
+    const pageUrl = 'https://www.radarinmobiliario.com/noticia/' + article.slug;
+    const dateValue = (article.fechaISO && article.hora)
+      ? (article.fechaISO + 'T' + article.hora + ':00+02:00')
+      : (article.fechaISO || article.fecha);
+    const articleBody = Array.isArray(article.body)
+      ? article.body.filter(b => b.type === 'p').map(b => b.text).join('\n\n')
+      : undefined;
     script.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "NewsArticle",
       "headline": article.titulo,
       "description": article.resumen ? article.resumen.slice(0, 200) : undefined,
       "image": article.imagen,
-      "datePublished": article.fechaISO || article.fecha,
-      "dateModified": article.fechaISO || article.fecha,
-      "url": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
+      "datePublished": dateValue,
+      "dateModified": dateValue,
+      "url": pageUrl,
       "inLanguage": "es",
       "articleSection": article.categoria,
       "keywords": article.tags ? article.tags.join(', ') : undefined,
+      "articleBody": articleBody,
       "author": {
         "@type": "Organization",
         "name": "Redacción Radar Inmobiliario Madrid",
         "url": "https://www.radarinmobiliario.com/sobre"
       },
       "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" },
-      "mainEntityOfPage": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
+      "mainEntityOfPage": { "@type": "WebPage", "@id": pageUrl },
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -3903,7 +3917,17 @@ function NoticiaDetalleDynamic({ slug }) {
           <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
-              <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+              {article.url && article.url.indexOf('http') === 0 ? (
+                <p className="text-[14px] mt-1">
+                  <a href={article.url} target="_blank" rel="noopener nofollow"
+                     className="text-[14px] font-semibold text-emerald-700 hover:underline">
+                    Leer en {article.fuente} ↗
+                  </a>
+                  <span className="text-slate-700"> · {article.fecha}</span>
+                </p>
+              ) : (
+                <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+              )}
             </div>
             <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }}
               className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg text-sm cursor-pointer">
@@ -4217,7 +4241,7 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
               <span>Radar Inmobiliario</span>
               <span className="text-emerald-600">Madrid</span>
             </div>
-            <nav className="flex items-center gap-6 text-sm">
+            <nav className="flex items-center gap-6 text-sm" style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', minWidth: 0 }}>
               {link('home', 'Inicio', '/')}
               {link('distritos', 'Distritos', '/distritos')}
               {link('noticias', 'Noticias', '/noticias')}

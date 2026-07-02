@@ -760,6 +760,8 @@
 
 
     html, body { font-family: 'Inter', system-ui, sans-serif; }
+    /* Guard móvil: clip (no hidden) para no romper position:sticky del header */
+    html, body { overflow-x: clip; }
   
 </style>
 
@@ -774,8 +776,8 @@
   "headline": "Vivienda acusa a Madrid de bloquear la limitación de alquileres y proteger a grandes inversores",
   "description": "El Ministerio de Vivienda critica que Madrid rechace declarar zonas tensionadas, dejando sin protección al 2,5% de la demanda inquilina más vulnerable.",
   "image": "https://www.radarinmobiliario.com/og-image.png",
-  "datePublished": "2026-06-26",
-  "dateModified": "2026-06-26",
+  "datePublished": "2026-06-26T18:00:00+02:00",
+  "dateModified": "2026-06-26T18:00:00+02:00",
   "url": "https://www.radarinmobiliario.com/noticia/vivienda-critica-madrid-limitar-alquileres-inversores",
   "inLanguage": "es",
   "articleSection": "Regulación",
@@ -787,7 +789,10 @@
   "publisher": {
     "@id": "https://www.radarinmobiliario.com/#organization"
   },
-  "mainEntityOfPage": "https://www.radarinmobiliario.com/noticia/vivienda-critica-madrid-limitar-alquileres-inversores",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://www.radarinmobiliario.com/noticia/vivienda-critica-madrid-limitar-alquileres-inversores"
+  },
   "breadcrumb": {
     "@type": "BreadcrumbList",
     "itemListElement": [
@@ -809,7 +814,8 @@
         "name": "Vivienda acusa a Madrid de bloquear la limitación de alquileres y proteger a grandes inversores"
       }
     ]
-  }
+  },
+  "articleBody": "El Ministerio de Vivienda ha lanzado una dura crítica a la Comunidad de Madrid por su negativa a declarar zonas de mercado residencial tensionado, mecanismo previsto en la Ley de Vivienda de 2023 que permitiría contener el precio del alquiler en áreas con demanda disparada. Según el departamento que dirige Isabel Rodríguez, la inacción autonómica está expulsando del mercado a un 2,5% de la demanda inquilina más vulnerable, concentrada en los distritos con rentas medias más bajas de la capital.\n\nEl conflicto entre el Gobierno central y la administración madrileña se enmarca en el debate sobre el papel de los grandes fondos de inversión en el mercado inmobiliario. El Ministerio sostiene que la falta de regulación beneficia directamente a los tenedores institucionales, que acumulan carteras de miles de viviendas en la región y fijan precios al alza sin restricción alguna. Los alquileres en la Comunidad de Madrid acumulan subidas superiores al 8% interanual en los últimos meses, muy por encima de la media nacional.\n\nMadrid defiende que los controles de precio generan menos oferta y encarecen el acceso a la vivienda a largo plazo, una posición respaldada por las asociaciones de propietarios y fondos inmobiliarios. Sin embargo, los colectivos de inquilinos reclaman medidas urgentes ante el avance de la precariedad habitacional en la región. El Ministerio avanza que estudiará vías legales para obligar a las comunidades autónomas reacias a aplicar la ley, lo que podría derivar en un nuevo choque competencial ante los tribunales."
 }
   </script>
 
@@ -1773,7 +1779,7 @@ function VariationD() {
             <span>Radar Inmobiliario</span>
             <span className="text-emerald-600">Madrid</span>
           </div>
-          <nav className="flex items-center gap-6 text-sm text-slate-600">
+          <nav className="flex items-center gap-6 text-sm text-slate-600" style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', minWidth: 0 }}>
             <a href="/distritos" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }}>Distritos</a>
             <a href="/noticias" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }}>Noticias</a>
             <a href="/sobre" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/sobre'); }}>Acerca</a>
@@ -1784,7 +1790,7 @@ function VariationD() {
 
       {/* ── TICKER BAR — CLARO ──────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono">
+        <div className="max-w-6xl mx-auto px-8 py-2.5 flex items-center gap-8 text-[11px] font-mono" style={{ flexWrap: 'wrap', rowGap: '6px' }}>
           <DTicker label="MADRID €/m²"    value={meta.precioMedio.toLocaleString('es-ES')} delta={`+${meta.variacionMedia.toFixed(1)}%`} up />
           <DTicker label="EURIBOR 12m"    value={macro.euribor12m.toFixed(2) + '%'} delta={macro.euriborDelta.toFixed(2)} />
           <DTicker label="ESFUERZO %"      value={macro.esfuerzoHipoteca.toFixed(1) + '%'} delta={macro.esfuerzoDelta.toFixed(1)} />
@@ -3770,25 +3776,33 @@ function NoticiaDetalleDynamic({ slug }) {
     const script = document.createElement('script');
     script.id = 'ld-article';
     script.type = 'application/ld+json';
+    const pageUrl = 'https://www.radarinmobiliario.com/noticia/' + article.slug;
+    const dateValue = (article.fechaISO && article.hora)
+      ? (article.fechaISO + 'T' + article.hora + ':00+02:00')
+      : (article.fechaISO || article.fecha);
+    const articleBody = Array.isArray(article.body)
+      ? article.body.filter(b => b.type === 'p').map(b => b.text).join('\n\n')
+      : undefined;
     script.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "NewsArticle",
       "headline": article.titulo,
       "description": article.resumen ? article.resumen.slice(0, 200) : undefined,
       "image": article.imagen,
-      "datePublished": article.fechaISO || article.fecha,
-      "dateModified": article.fechaISO || article.fecha,
-      "url": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
+      "datePublished": dateValue,
+      "dateModified": dateValue,
+      "url": pageUrl,
       "inLanguage": "es",
       "articleSection": article.categoria,
       "keywords": article.tags ? article.tags.join(', ') : undefined,
+      "articleBody": articleBody,
       "author": {
         "@type": "Organization",
         "name": "Redacción Radar Inmobiliario Madrid",
         "url": "https://www.radarinmobiliario.com/sobre"
       },
       "publisher": { "@id": "https://www.radarinmobiliario.com/#organization" },
-      "mainEntityOfPage": 'https://www.radarinmobiliario.com/noticia/' + article.slug,
+      "mainEntityOfPage": { "@type": "WebPage", "@id": pageUrl },
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -3903,7 +3917,17 @@ function NoticiaDetalleDynamic({ slug }) {
           <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
-              <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+              {article.url && article.url.indexOf('http') === 0 ? (
+                <p className="text-[14px] mt-1">
+                  <a href={article.url} target="_blank" rel="noopener nofollow"
+                     className="text-[14px] font-semibold text-emerald-700 hover:underline">
+                    Leer en {article.fuente} ↗
+                  </a>
+                  <span className="text-slate-700"> · {article.fecha}</span>
+                </p>
+              ) : (
+                <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+              )}
             </div>
             <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }}
               className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg text-sm cursor-pointer">
@@ -4217,7 +4241,7 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
               <span>Radar Inmobiliario</span>
               <span className="text-emerald-600">Madrid</span>
             </div>
-            <nav className="flex items-center gap-6 text-sm">
+            <nav className="flex items-center gap-6 text-sm" style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', minWidth: 0 }}>
               {link('home', 'Inicio', '/')}
               {link('distritos', 'Distritos', '/distritos')}
               {link('noticias', 'Noticias', '/noticias')}
