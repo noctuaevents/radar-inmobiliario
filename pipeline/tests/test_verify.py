@@ -49,5 +49,16 @@ class TestVerify(unittest.TestCase):
         self.assertIn("6,2% interanual", captured["p"])
         self.assertIn("El precio sube", captured["p"])
 
+    def test_multiple_json_blocks_takes_last_valid(self):
+        raw = ('Pensando... {"nota": "borrador"} ... final: '
+               '{"veredicto":"REJECT","motivo":"x"}')
+        v, m = vc.verify_article(POLISHED, SOURCE, runner=lambda p: raw)
+        self.assertEqual(v, "REJECT")
+
+    def test_nested_json_in_verdict(self):
+        raw = 'meta {"a": {"b": 1}} y {"veredicto":"APPROVE","motivo":"ok"}'
+        v, m = vc.verify_article(POLISHED, SOURCE, runner=lambda p: raw)
+        self.assertEqual(v, "APPROVE")
+
 if __name__ == "__main__":
     unittest.main()

@@ -39,13 +39,37 @@ Responde SOLO este JSON, sin texto extra:
 
 
 def extract_json(text: str):
-    m = re.search(r"\{.*\}", text or "", re.S)
-    if not m:
-        return None
-    try:
-        return json.loads(m.group(0))
-    except json.JSONDecodeError:
-        return None
+    """Devuelve el ÚLTIMO objeto JSON parseable del texto. La salida de los CLI
+    puede intercalar trazas u otros bloques {...} antes del veredicto final."""
+    candidates = []
+    depth, start, in_str, esc = 0, None, False, False
+    for i, c in enumerate(text or ""):
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == "}":
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start is not None:
+                    candidates.append(text[start:i + 1])
+                    start = None
+    for cand in reversed(candidates):
+        try:
+            return json.loads(cand)
+        except json.JSONDecodeError:
+            continue
+    return None
 
 
 def _env_with_cli_paths():
