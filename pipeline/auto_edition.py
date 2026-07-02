@@ -148,3 +148,293 @@ def collect_seen_urls(news_items, vault_dirs):
             if m:
                 urls.add(m.group(1))
     return urls
+
+
+# ── infraestructura del flujo ─────────────────────────────────────────────────
+
+import verify_codex as vc
+
+LOCK = WORK / "last_edition.date"
+POLISH_REPROMPT = """Eres el editor de Radar Inmobiliario Madrid. Hoy es {today}.
+Reescribe esta noticia. Devuelve SOLO este JSON (sin texto extra ni bloques de código):
+{{"titulo":"...(max 100 chars, con datos)","resumen":"...(1-2 frases, max 200 chars)",\
+"impacto":"...(max 20 chars)","impactoLabel":"...(max 35 chars)",\
+"slug":"...(kebab-case sin acentos, max 70 chars)","fechaISO":"2026-MM-DD",\
+"body":[{{"type":"p","dropcap":true,"text":"..."}},{{"type":"p","text":"..."}},\
+{{"type":"pullquote","text":"..."}},{{"type":"p","text":"..."}}]}}
+El body: 4 bloques, ~250 palabras, sin markdown, solo hechos del material original.
+REGLA INNEGOCIABLE: PROHIBIDO añadir cifras, fechas, nombres propios, organismos o
+ubicaciones que no estén en el material original. Contexto general sin datos concretos, sí.
+Si el material da poco, escribe menos: fidelidad antes que longitud.
+
+Material original:
+{art_json}"""
+
+
+def sh(cmd, **kw):
+    """Ejecuta y devuelve CompletedProcess; check=True por defecto."""
+    kw.setdefault("check", True)
+    kw.setdefault("cwd", ROOT)
+    kw.setdefault("capture_output", True)
+    kw.setdefault("text", True)
+    return subprocess.run(cmd, **kw)
+
+
+def ollama_alive() -> bool:
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=5):
+            return True
+    except OSError:
+        return False
+
+
+def preflight(report: dict) -> None:
+    import shutil as _shutil
+    import urllib.request
+    # red
+    try:
+        with urllib.request.urlopen("https://www.radarinmobiliario.com/robots.txt", timeout=15):
+            pass
+    except OSError as e:
+        raise SystemExit(f"ABORT preflight: sin red ({e})")
+    # ollama (intenta arrancarlo si está caído)
+    if not ollama_alive():
+        subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, env=vc._env_with_cli_paths())
+        import time
+        time.sleep(10)
+    report["ollama"] = ollama_alive()
+    # CLIs
+    env_path = vc._env_with_cli_paths()["PATH"]
+    report["claude"] = bool(_shutil.which("claude", path=env_path))
+    report["codex"] = bool(_shutil.which("codex", path=env_path))
+    if not report["claude"] and not report["codex"]:
+        raise SystemExit("ABORT preflight: ni claude ni codex disponibles")
+    # limpiar cola caducada (>48h) → _archivo/
+    ARCHIVO.mkdir(parents=True, exist_ok=True)
+    limite = (date.today() - timedelta(days=2)).strftime("%Y%m%d")
+    for f in sorted(COLA.glob("*.md")):
+        prefix = f.name[:8]
+        if prefix.isdigit() and prefix < limite:
+            f.rename(ARCHIVO / f.name)
+            report.setdefault("archivadas", []).append(f.name)
+
+
+def find_note_by_url(url: str, folder: Path):
+    for f in folder.glob("*.md"):
+        if f"url: '{url}'" in f.read_text(encoding="utf-8"):
+            return f
+    return None
+
+
+def reject_note(url: str, motivo: str) -> None:
+    """La nota ya está en Publicado/ (polish la movió); trasladar a _rechazadas."""
+    RECHAZADAS.mkdir(parents=True, exist_ok=True)
+    note = find_note_by_url(url, PUBLICADO)
+    if not note:
+        return
+    text = note.read_text(encoding="utf-8")
+    text = text.replace("publicar: publicado", "publicar: rechazado", 1)
+    text = text.replace("---\n", f"---\nrechazo_motivo: '{motivo[:180]}'\n", 1)
+    (RECHAZADAS / note.name).write_text(text, encoding="utf-8")
+    note.unlink()
+
+
+def needs_repolish(item: dict) -> bool:
+    return len(item.get("body") or []) < 4
+
+
+def repolish_item(item: dict, source: dict, today_h: str) -> dict:
+    """Fallback de pulido vía Codex cuando polish dejó el artículo en modo degradado."""
+    prompt = POLISH_REPROMPT.format(today=today_h,
+                                    art_json=json.dumps(source, ensure_ascii=False, indent=2))
+    try:
+        data = vc.extract_json(vc.run_codex(prompt))
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        data = None
+    if data and len(data.get("body") or []) >= 4:
+        item.update({k: data[k] for k in
+                     ("titulo", "resumen", "impacto", "impactoLabel", "slug", "fechaISO", "body")
+                     if k in data})
+    return item
+
+
+def gate3(report: dict) -> None:
+    data = parse_news_data(NEWS_JS.read_text(encoding="utf-8"))
+    for it in data["items"]:
+        if not (it.get("slug") and it.get("titulo") and it.get("fechaISO")):
+            raise SystemExit(f"ABORT puerta 3: item incompleto {it.get('slug', '?')}")
+    sh([sys.executable, "pipeline/build.py"])
+    sh([sys.executable, "pipeline/distribute.py"])
+    porcelain = sh(["git", "status", "--porcelain"]).stdout
+    allowed = ("src/data/news.js", "Radar Inmobiliario Madrid.html", "dist/",
+               "pipeline/work/", "\"Radar Inmobiliario Madrid.html\"")
+    for line in porcelain.splitlines():
+        if line[:2] == "??":
+            continue  # untracked preexistente (CLAUDE.md, scratch…) — no viene del build
+        path = line[3:].strip().strip('"')
+        if not path.startswith(tuple(a.strip('"') for a in allowed)):
+            raise SystemExit(f"ABORT puerta 3: fichero inesperado modificado: {path}")
+    report["gate3"] = "OK"
+
+
+def publish(new_items: list, report: dict) -> None:
+    today_h = datetime.now().strftime("%-d %b %Y")
+    sh(["git", "add", "src/data/news.js", "Radar Inmobiliario Madrid.html", "dist/",
+        "pipeline/work/candidates.json", "pipeline/work/approved.json"])
+    sh(["git", "commit", "-m",
+        f"noticias: edición auto {today_h}\n\nAutomated by pipeline/auto_edition.py"])
+    sh(["git", "push", "origin", "main"])
+    report["commit"] = sh(["git", "rev-parse", "--short", "HEAD"]).stdout.strip()
+    # esperar deploy: poll al primer artículo nuevo
+    import time
+    import urllib.request
+    url = f"https://www.radarinmobiliario.com/noticia/{new_items[0]['slug']}"
+    for _ in range(30):
+        try:
+            with urllib.request.urlopen(url, timeout=10) as r:
+                if r.status == 200:
+                    report["deploy"] = "verificado"
+                    break
+        except OSError:
+            pass
+        time.sleep(10)
+    else:
+        report["deploy"] = "no verificado en 5 min (revisar Vercel)"
+    r = subprocess.run([sys.executable, "pipeline/indexnow_submit.py"],
+                       capture_output=True, text=True, cwd=ROOT)
+    report["indexnow"] = (r.stdout or r.stderr).strip()
+
+
+# stubs — Task 7 los sustituye
+def write_report(report: dict, dry_run: bool) -> None:
+    print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+def notify(title: str, message: str) -> None:
+    print(f"[NOTIFY] {title}: {message}")
+
+
+class _NoEdition(Exception):
+    """Día sin edición (legítimo, no error)."""
+
+
+def main() -> int:
+    dry_run = "--dry-run" in sys.argv
+    t0 = datetime.now()
+    today = date.today()
+    report = {"fecha": today.isoformat(), "dry_run": dry_run, "publicados": [],
+              "rechazados": [], "descartados_p1": []}
+
+    if LOCK.exists() and LOCK.read_text().strip() == today.isoformat() and not dry_run:
+        print("Ya hay edición hoy — no-op.")
+        return 0
+
+    try:
+        preflight(report)
+
+        # 1. fetch + PUERTA 1
+        sh([sys.executable, "pipeline/fetch_news.py"])
+        candidates = json.loads((WORK / "candidates.json").read_text(encoding="utf-8"))
+        prev = parse_news_data(NEWS_JS.read_text(encoding="utf-8"))
+        seen = collect_seen_urls(prev["items"], [PUBLICADO, RECHAZADAS, ARCHIVO])
+        ok, ko = filter_candidates(candidates, seen, today)
+        report["descartados_p1"] = [(c["titulo"][:60], motivo) for c, motivo in ko]
+        if not ok:
+            report["resultado"] = "sin candidatos que pasen la puerta 1 — no hay edición"
+            raise _NoEdition()
+        (WORK / "candidates.json").write_text(
+            json.dumps(ok, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        # 2. triage (Ollama --auto; fallback triage_claude)
+        triage_script = "pipeline/triage_ollama.py" if report["ollama"] else "pipeline/triage_claude.py"
+        args = [sys.executable, triage_script]
+        if triage_script.endswith("ollama.py"):
+            args.append("--auto")
+        sh(args)
+        if not triage_script.endswith("ollama.py"):
+            # triage_claude no conoce --auto: marcar las notas de hoy a mano
+            hoy = date.today().strftime("%Y%m%d")
+            for f in COLA.glob(f"{hoy}-*.md"):
+                t = f.read_text(encoding="utf-8")
+                f.write_text(t.replace("publicar: false", "publicar: true\nmodo: auto", 1),
+                             encoding="utf-8")
+
+        # 3. polish (Claude) — mueve las notas a Publicado/ al acabar
+        sh(["bash", "pipeline/polish_claude.sh"], timeout=1800)
+        approved = json.loads((WORK / "approved.json").read_text(encoding="utf-8"))
+        edicion = parse_news_data(NEWS_JS.read_text(encoding="utf-8"))
+        today_items = edicion["items"]
+        if len(today_items) != len(approved):
+            raise SystemExit(f"ABORT: polish produjo {len(today_items)} items "
+                             f"pero había {len(approved)} aprobados")
+
+        # 3b. re-pulido vía Codex de los que quedaron degradados
+        today_h = datetime.now().strftime("%-d %b %Y")
+        for i, item in enumerate(today_items):
+            if needs_repolish(item):
+                today_items[i] = repolish_item(item, approved[i], today_h)
+
+        # 4. PUERTA 2 — verificación por artículo
+        survivors, sources_ok = [], []
+        for item, source in zip(today_items, approved):
+            verdict, motivo, who = vc.verify_with_fallback(item, source)
+            if verdict == "APPROVE":
+                survivors.append(item)
+                sources_ok.append(source)
+                report["publicados"].append(
+                    {"titulo": item["titulo"], "slug": item["slug"], "verificador": who})
+            else:
+                report["rechazados"].append(
+                    {"titulo": item.get("titulo", "?"), "motivo": motivo, "verificador": who})
+                if not dry_run:
+                    reject_note(source.get("url", ""), motivo)
+        if not survivors:
+            # restaurar el news.js anterior: la edición de hoy no existe
+            NEWS_JS.write_text(render_news_js(prev["actualizado"], prev["semanaResumen"],
+                                              prev["destacada"], prev["items"]),
+                               encoding="utf-8")
+            report["resultado"] = "todos los artículos rechazados en puerta 2 — no hay edición"
+            raise _NoEdition()
+
+        # 5. merge con archivo + destacada
+        destacada = edicion["destacada"]
+        if destacada.get("slug") not in {s["slug"] for s in survivors}:
+            destacada = {**survivors[0], "metricas": destacada.get("metricas", [])}
+        distritos = len({s.get("distrito") for s in survivors if s.get("distrito")})
+        semana = {"publicadas": len(survivors), "distritosCubiertos": distritos or 1,
+                  "movimientoMedio": edicion["semanaResumen"].get("movimientoMedio", "")}
+        merged = merge_items(survivors, prev["items"])
+        NEWS_JS.write_text(render_news_js(edicion["actualizado"], semana, destacada, merged),
+                           encoding="utf-8")
+
+        # 6. PUERTA 3 + publicación
+        gate3(report)
+        if dry_run:
+            report["resultado"] = ("dry-run OK — working tree con cambios para inspección; "
+                                   "restaurar con: git checkout -- . ")
+        else:
+            publish(survivors, report)
+            LOCK.write_text(today.isoformat(), encoding="utf-8")
+            report["resultado"] = f"publicados {len(survivors)} artículos"
+
+    except _NoEdition:
+        if not dry_run:
+            LOCK.write_text(today.isoformat(), encoding="utf-8")
+    except (SystemExit, subprocess.CalledProcessError, Exception) as e:
+        report["error"] = str(e)[:500]
+        report["resultado"] = "ERROR — sin publicar"
+        write_report(report, dry_run)
+        notify("Radar: edición FALLIDA", str(e)[:150])
+        return 1
+
+    report["duracion_min"] = round((datetime.now() - t0).total_seconds() / 60, 1)
+    write_report(report, dry_run)
+    notify("Radar: edición del día",
+           report.get("resultado", "") + f" · {len(report['rechazados'])} rechazados")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

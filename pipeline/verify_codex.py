@@ -28,11 +28,15 @@ Resumen de la fuente: {src_resumen}
 Borrador del triaje: {src_borrador}
 
 Rechaza (REJECT) si se cumple CUALQUIERA de estas condiciones:
-1. El artículo afirma cifras, porcentajes, fechas o nombres propios que NO aparecen en el \
-material original ni se derivan trivialmente de él.
+1. El artículo afirma CIFRAS, porcentajes, fechas, nombres propios o ubicaciones CONCRETAS \
+que NO aparecen en el material original ni se derivan trivialmente de él.
 2. El titular exagera o contradice el material original (clickbait).
 3. Hay errores de español (gramática, ortografía) o frases sin sentido.
 4. El campo "impacto" no es plausible respecto al material original.
+
+NO rechaces por contexto general del mercado madrileño (p.ej. "en un mercado tensionado", \
+"la demanda de alquiler sigue alta") siempre que esté redactado como contexto y no aporte \
+datos concretos verificables. Esa ambientación editorial es aceptable; los DATOS inventados no.
 
 Responde SOLO este JSON, sin texto extra:
 {{"veredicto": "APPROVE" | "REJECT", "motivo": "una frase concreta"}}"""
@@ -96,9 +100,16 @@ def run_claude(prompt: str) -> str:
     return result.stdout.strip()
 
 
+# Solo los campos escritos por el modelo se someten a veredicto; los metadatos del
+# sistema (fecha/hora/slug/tag/categoria/distrito/imagen/url) vienen del RSS y no
+# deben provocar falsos REJECT por "dato no presente en el material".
+EDITORIAL_FIELDS = ("titulo", "resumen", "impacto", "impactoLabel", "body")
+
+
 def build_prompt(polished: dict, source: dict) -> str:
+    editorial = {k: polished[k] for k in EDITORIAL_FIELDS if k in polished}
     return VERIFY_PROMPT.format(
-        polished=json.dumps(polished, ensure_ascii=False, indent=2),
+        polished=json.dumps(editorial, ensure_ascii=False, indent=2),
         src_titulo=(source.get("titulo_original") or "")[:200],
         src_fuente=source.get("fuente", ""),
         src_resumen=(source.get("resumen_raw") or "")[:500],

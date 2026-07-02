@@ -150,6 +150,12 @@ Tienes esta noticia. Tu tarea:
 - 'fechaISO': YYYY-MM-DD en 2026.
 - 'body': array de exactamente 4 bloques: primero con dropcap:true, dos párrafos normales, uno pullquote. ~250 palabras. Sin markdown.
 
+REGLA INNEGOCIABLE (un verificador independiente rechazará el artículo si la incumples):
+usa SOLO los datos del material original. PROHIBIDO añadir cifras, porcentajes, fechas,
+nombres propios, organismos o ubicaciones que no estén en el material. Puedes añadir contexto
+general del mercado madrileño redactado como contexto (sin datos concretos). Si el material
+da poco, escribe menos palabras: fidelidad antes que longitud.
+
 Devuelve SOLO este JSON (sin texto extra ni bloques de código):
 {{"titulo":"...","resumen":"...","impacto":"...","impactoLabel":"...","slug":"...","fechaISO":"2026-MM-DD","body":[{{"type":"p","dropcap":true,"text":"..."}},{{"type":"p","text":"..."}},{{"type":"pullquote","text":"..."}},{{"type":"p","text":"..."}}]}}
 

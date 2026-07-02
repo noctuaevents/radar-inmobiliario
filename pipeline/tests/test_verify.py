@@ -60,5 +60,18 @@ class TestVerify(unittest.TestCase):
         v, m = vc.verify_article(POLISHED, SOURCE, runner=lambda p: raw)
         self.assertEqual(v, "APPROVE")
 
+    def test_prompt_excluye_metadatos_del_sistema(self):
+        polished = dict(POLISHED, fechaISO="2026-07-02", hora="08:00",
+                        url="https://news.google.com/xyz")
+        captured = {}
+        def spy(p):
+            captured["p"] = p
+            return '{"veredicto":"APPROVE","motivo":"ok"}'
+        vc.verify_article(polished, SOURCE, runner=spy)
+        self.assertIn("El precio sube", captured["p"])       # editorial: sí
+        self.assertNotIn("letras-sube", captured["p"])        # slug: no
+        self.assertNotIn("2026-07-02", captured["p"])         # fechaISO: no
+        self.assertNotIn("news.google.com", captured["p"])    # url: no
+
 if __name__ == "__main__":
     unittest.main()
