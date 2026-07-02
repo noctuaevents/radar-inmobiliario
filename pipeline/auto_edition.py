@@ -141,7 +141,10 @@ def _movimiento_medio(prev: dict) -> str:
         text = distritos_js.read_text(encoding="utf-8")
     except OSError:
         text = ""
-    valores = [float(v) for v in re.findall(r"varAnual:\s*(-?[\d.]+)", text)]
+    # Solo el array de los 21 distritos — el fichero también trae tops de
+    # barrios (con outliers de ±50%) que sesgarían la media.
+    bloque = _balanced_span(text, r"\bdistritos:\s*\[", "[", "]") or text
+    valores = [float(v) for v in re.findall(r"varAnual:\s*(-?[\d.]+)", bloque)]
     if not valores:
         return prev.get("semanaResumen", {}).get("movimientoMedio", "")
     media = sum(valores) / len(valores)
