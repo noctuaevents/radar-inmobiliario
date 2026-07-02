@@ -111,3 +111,40 @@ window.NEWS_DATA = {{
   items: {json.dumps(items, indent=2, ensure_ascii=False)},
 }};
 """
+
+
+# ── PUERTA 1: filtro determinista ─────────────────────────────────────────────
+
+def filter_candidates(candidates, seen_urls, today, min_score=MIN_SCORE,
+                      max_articles=MAX_ARTICULOS, blacklist=FUENTES_BLACKLIST):
+    """(aceptados, [(candidato, motivo_descarte), ...]). Candidates ya viene
+    ordenado por score desc desde fetch_news.py — el corte max_articles se
+    queda con los mejores."""
+    fresh = {today.isoformat(), (today - timedelta(days=1)).isoformat()}
+    ok, ko = [], []
+    for c in candidates:
+        if c.get("fecha_iso") not in fresh:
+            ko.append((c, f"más de 48h ({c.get('fecha_iso')})"))
+        elif c.get("score", 0) < min_score:
+            ko.append((c, f"score {c.get('score')} < {min_score}"))
+        elif c.get("fuente", "").strip().lower() in blacklist:
+            ko.append((c, f"fuente en blacklist: {c.get('fuente')}"))
+        elif c.get("url", "") in seen_urls:
+            ko.append((c, "duplicado (url ya publicada)"))
+        elif len(ok) >= max_articles:
+            ko.append((c, f"cupo diario lleno ({max_articles})"))
+        else:
+            ok.append(c)
+    return ok, ko
+
+
+def collect_seen_urls(news_items, vault_dirs):
+    urls = {it.get("url", "") for it in news_items if it.get("url")}
+    for d in vault_dirs:
+        if not d.exists():
+            continue
+        for f in d.glob("*.md"):
+            m = re.search(r"^url: '([^']+)'", f.read_text(encoding="utf-8"), re.M)
+            if m:
+                urls.add(m.group(1))
+    return urls
