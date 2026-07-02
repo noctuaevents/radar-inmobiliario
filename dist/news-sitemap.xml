@@ -2,25 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
   <url>
-    <loc>https://www.radarinmobiliario.com/noticia/madrid-aprueba-4000-viviendas-los-cerros-sureste</loc>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-construccion-446-pisos-alquiler-asequible</loc>
     <news:news>
       <news:publication>
         <news:name>Radar Inmobiliario Madrid</news:name>
         <news:language>es</news:language>
       </news:publication>
-      <news:publication_date>2026-06-30T07:58:00+02:00</news:publication_date>
-      <news:title>Madrid aprueba 4.000 viviendas en Los Cerros, el mayor desarrollo urbanístico del sureste</news:title>
-    </news:news>
-  </url>
-  <url>
-    <loc>https://www.radarinmobiliario.com/noticia/madrid-recargo-ibi-pisos-vacios-alquiler-2026</loc>
-    <news:news>
-      <news:publication>
-        <news:name>Radar Inmobiliario Madrid</news:name>
-        <news:language>es</news:language>
-      </news:publication>
-      <news:publication_date>2026-06-30T08:45:00+02:00</news:publication_date>
-      <news:title>Madrid aplica recargo del IBI a pisos vacíos para abaratar alquileres hasta un 3 %</news:title>
+      <news:publication_date>2026-07-01T11:00:00+02:00</news:publication_date>
+      <news:title>Madrid inicia la construcción de 446 pisos de alquiler asequible dentro de su plan de vivienda</news:title>
     </news:news>
   </url>
 </urlset>

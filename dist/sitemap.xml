@@ -152,6 +152,12 @@
 
   <!-- News articles -->
   <url>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-construccion-446-pisos-alquiler-asequible</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible-madrid</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
