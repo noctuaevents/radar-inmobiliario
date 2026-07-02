@@ -114,3 +114,11 @@ sociales, múltiples ediciones diarias, A/B de titulares, edición cloud de resp
    tumba y la nota acaba en `_rechazadas/`.
 4. launchd: primera activación con `launchctl kickstart` manual; validar lock del día
    (segunda ejecución el mismo día = no-op con log).
+
+## Addendum (2 Jul 2026, durante planificación)
+
+`polish_claude.sh` reemplaza `news.js` entero con la edición del día y
+`distribute.py::gen_article_pages` borra las páginas de artículos ausentes. En modo
+diario automático eso destruiría cada día las URLs del día anterior (404 real).
+Decisión: el orquestador FUSIONA (`merge_items`: nuevos primero, dedup por url/slug,
+cap 30) para que el archivo crezca y las URLs indexadas sobrevivan.
