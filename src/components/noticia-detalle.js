@@ -838,6 +838,7 @@ window.NoticiaDetalleV3 = NoticiaDetalleV3;
 
 // ─── Dynamic article detail — driven by NEWS_DATA slug ───────────
 function NoticiaDetalleDynamic({ slug }) {
+  const P = window.PRENSA;
   const D = window.NEWS_DATA;
   const allItems = D.items || [];
   const article = allItems.find(a => a.slug === slug)
@@ -851,15 +852,6 @@ function NoticiaDetalleDynamic({ slug }) {
       </div>
     );
   }
-
-  const tagColor = {
-    rose:    { bar: 'bg-rose-500',    text: 'text-rose-700',    soft: 'bg-rose-50',    border: 'border-rose-200' },
-    emerald: { bar: 'bg-emerald-500', text: 'text-emerald-700', soft: 'bg-emerald-50', border: 'border-emerald-200' },
-    sky:     { bar: 'bg-sky-500',     text: 'text-sky-700',     soft: 'bg-sky-50',     border: 'border-sky-200' },
-    violet:  { bar: 'bg-violet-500',  text: 'text-violet-700',  soft: 'bg-violet-50',  border: 'border-violet-200' },
-    amber:   { bar: 'bg-amber-500',   text: 'text-amber-700',   soft: 'bg-amber-50',   border: 'border-amber-200' },
-  };
-  const ac = tagColor[article.tag] || tagColor.emerald;
 
   let distritoData = null;
   if (article.distrito && window.HOME_DATA) {
@@ -921,70 +913,73 @@ function NoticiaDetalleDynamic({ slug }) {
   }, [article.slug]);
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-white">
+    <div style={{ background: P.papel }}>
       <div className="max-w-6xl mx-auto px-10 pt-10">
-        <nav className="flex items-center gap-2 text-[12px] text-slate-400">
-          <a href="/" onClick={(e) => { e.preventDefault(); window.navTo('/'); }} className="hover:text-emerald-700">Inicio</a>
+        <nav className="flex items-center gap-2 font-mono text-[11px]" style={{ color: P.meta }}>
+          <a href="/" onClick={(e) => { e.preventDefault(); window.navTo('/'); }} className="hover:underline" style={{ color: P.meta }}>Inicio</a>
           <span>›</span>
-          <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }} className="hover:text-emerald-700">Noticias</a>
+          <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }} className="hover:underline" style={{ color: P.meta }}>Noticias</a>
           <span>›</span>
-          <span className={ac.text}>{article.categoria}</span>
+          <span style={{ color: P.teja }}>{article.categoria}</span>
         </nav>
       </div>
 
-      <div className="max-w-6xl mx-auto px-10 mt-6">
-        <div className="relative bg-stone-50 border border-slate-200 rounded-3xl overflow-hidden">
-          <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${ac.bar}`} />
-          <div className="relative grid grid-cols-12 gap-10 p-10 pl-12">
-            <div className="col-span-7">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="inline-block w-6 h-px bg-slate-900" />
-                <span className={`text-[10px] uppercase tracking-[0.28em] font-bold ${ac.text}`}>{article.categoria}</span>
-                {article.distrito && (
-                  <>
-                    <span className="text-slate-300 text-[10px]">·</span>
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold">{article.distrito}</span>
-                  </>
-                )}
-              </div>
-              <h1 className="text-[2.6rem] font-bold text-slate-900 tracking-[-0.02em] leading-[1.04] mb-2" style={{ textWrap: 'balance' }}>
-                {article.titulo}
-              </h1>
-              <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px', marginTop: '4px' }}>
-                Por <strong style={{ color: '#334155' }}>Redacción Radar Inmobiliario</strong> · {article.fecha || article.fechaISO}
-              </p>
-              <p className="text-[16px] text-slate-600 leading-relaxed max-w-xl">{article.resumen}</p>
-              <div className="flex items-center gap-5 mt-7 text-[12px] text-slate-500">
-                <span className="font-semibold text-slate-700">{article.fuente}</span>
-                <span className="text-slate-300">·</span>
-                <span className="font-mono tabular-nums">{article.fecha} · {article.hora}</span>
-              </div>
+      <div className="max-w-6xl mx-auto px-10 mt-6" style={{ paddingBottom: '1.75rem', borderBottom: `2px solid ${P.fileteFuerte}` }}>
+        <div className="grid grid-cols-12 gap-10">
+          <div className="col-span-7">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] mb-5" style={{ color: P.teja }}>
+              {article.categoria}{article.distrito ? ` · ${article.distrito}` : ''}
+            </p>
+            <h1
+              className="font-serif text-[2.6rem] font-bold leading-[1.04] tracking-[-0.02em] mb-4"
+              style={{ color: P.tinta, textWrap: 'balance' }}
+            >
+              {article.titulo}
+            </h1>
+            <p className="font-mono text-[11px] mb-4" style={{ color: P.meta }}>
+              Por Redacción Radar Inmobiliario · {article.fecha || article.fechaISO}
+            </p>
+            <p className="font-serif text-[15.5px] leading-relaxed max-w-xl" style={{ color: P.cuerpo, fontStyle: 'italic' }}>
+              {article.resumen}
+            </p>
+            <div className="flex items-center gap-5 mt-6 font-mono text-[12px]" style={{ color: P.meta }}>
+              <span style={{ color: P.secundario, fontWeight: 600 }}>{article.fuente}</span>
+              <span>·</span>
+              <span className="tabular-nums">{article.fecha} · {article.hora}</span>
             </div>
-            <div className="col-span-5 flex flex-col justify-center gap-4">
-              {article.imagen && (
-                <div className="rounded-2xl overflow-hidden bg-slate-100" style={{ aspectRatio: '16/9' }}>
+          </div>
+          <div className="col-span-5 flex flex-col justify-center gap-4">
+            {article.imagen && (
+              <div>
+                <div style={{ aspectRatio: '16/9', border: `1px solid ${P.filete}`, overflow: 'hidden', background: P.superficie }}>
                   <img src={article.imagen} alt={article.titulo}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={e => { e.currentTarget.parentElement.style.display = 'none'; }} />
+                    onError={e => { e.currentTarget.parentElement.parentElement.style.display = 'none'; }} />
                 </div>
-              )}
-              {metricCards.length > 0 && (
-                <div className="space-y-2.5">
-                  {metricCards.map((m, i) => (
-                    <div key={i} className="bg-white border border-slate-200 rounded-xl px-5 py-3.5 flex items-center justify-between relative overflow-hidden">
-                      <span className={`absolute left-0 top-0 bottom-0 w-0.5 ${ac.bar}`} />
-                      <span className="text-[12px] text-slate-500">{m.label}</span>
-                      <div className="flex items-baseline gap-2.5">
-                        <span className="text-lg font-bold text-slate-900 tabular-nums">{m.valor}</span>
-                        {m.delta && (
-                          <span className={`text-[12px] font-bold tabular-nums ${m.up ? 'text-emerald-700' : 'text-rose-700'}`}>{m.delta}</span>
-                        )}
-                      </div>
+                <p className="font-serif text-[11px] mt-1.5" style={{ color: P.meta, fontStyle: 'italic' }}>
+                  Tarjeta de datos · {article.fuente}
+                </p>
+              </div>
+            )}
+            {metricCards.length > 0 && (
+              <div>
+                {metricCards.map((m, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-2"
+                    style={{ borderBottom: i < metricCards.length - 1 ? `1px solid ${P.filete}` : 'none' }}
+                  >
+                    <span className="font-serif text-[12px]" style={{ color: P.secundario }}>{m.label}</span>
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="font-mono text-[15px] font-bold" style={{ color: P.tinta }}>{m.valor}</span>
+                      {m.delta && (
+                        <span className={`font-mono text-[12px] font-bold tabular-nums ${m.up ? 'text-emerald-700' : 'text-rose-700'}`}>{m.delta}</span>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -995,83 +990,104 @@ function NoticiaDetalleDynamic({ slug }) {
             article.body.map((block, i) => {
               if (block.type === 'pullquote') {
                 return (
-                  <blockquote key={i} className="my-8 py-5 border-y border-slate-200">
-                    <span className={`inline-block ${ac.text} text-3xl leading-none align-top mr-2 font-serif`}>"</span>
-                    <span className="text-[1.35rem] font-bold text-slate-900 leading-[1.3]" style={{ textWrap: 'balance' }}>
+                  <blockquote
+                    key={i}
+                    className="my-8 py-5"
+                    style={{ borderTop: `2px solid ${P.fileteFuerte}`, borderBottom: `1px solid ${P.filete}` }}
+                  >
+                    <p
+                      className="font-serif text-[1.55rem] font-bold leading-[1.3]"
+                      style={{ color: P.tinta, fontStyle: 'italic', textWrap: 'balance' }}
+                    >
                       {block.text}
-                    </span>
+                    </p>
                   </blockquote>
                 );
               }
               const isFirst = i === 0 && block.dropcap;
+              if (isFirst) {
+                const first = block.text.charAt(0);
+                const rest = block.text.slice(1);
+                return (
+                  <p key={i} className="font-serif text-[16px] leading-[1.7] mb-5" style={{ color: P.cuerpo }}>
+                    <span
+                      className="font-serif font-bold"
+                      style={{ fontSize: '3.2rem', lineHeight: '0.85', float: 'left', marginRight: '0.5rem', marginTop: '0.3rem', color: P.tinta }}
+                    >
+                      {first}
+                    </span>
+                    {rest}
+                  </p>
+                );
+              }
               return (
-                <p key={i} className={`text-[16.5px] text-slate-700 leading-[1.7] mb-5${isFirst ? ' first-letter:text-[3.4rem] first-letter:font-bold first-letter:text-slate-900 first-letter:mr-1.5 first-letter:float-left first-letter:leading-[0.92] first-letter:mt-1' : ''}`}>
+                <p key={i} className="font-serif text-[16px] leading-[1.7] mb-5" style={{ color: P.cuerpo }}>
                   {block.text}
                 </p>
               );
             })
           ) : (
-            <p className="text-[16.5px] text-slate-700 leading-[1.7] mb-8">{article.resumen}</p>
+            <p className="font-serif text-[16px] leading-[1.7] mb-8" style={{ color: P.cuerpo }}>{article.resumen}</p>
           )}
           {window.AffiliateBlock && (
             <div className="mb-8">
               <window.AffiliateBlock context="hipoteca" />
             </div>
           )}
-          <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
+          <div className="pt-6 flex items-center justify-between" style={{ borderTop: `1px solid ${P.filete}` }}>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Fuente original</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: P.meta }}>Fuente original</p>
               {article.url && article.url.indexOf('http') === 0 ? (
-                <p className="text-[14px] mt-1">
+                <p className="font-serif text-[14px] mt-1">
                   <a href={article.url} target="_blank" rel="noopener nofollow"
-                     className="text-[14px] font-semibold text-emerald-700 hover:underline">
+                     className="font-semibold hover:underline" style={{ color: P.teja }}>
                     Leer en {article.fuente} ↗
                   </a>
-                  <span className="text-slate-700"> · {article.fecha}</span>
+                  <span style={{ color: P.secundario }}> · {article.fecha}</span>
                 </p>
               ) : (
-                <p className="text-[14px] text-slate-700 mt-1">{article.fuente} · {article.fecha}</p>
+                <p className="font-serif text-[14px] mt-1" style={{ color: P.secundario }}>{article.fuente} · {article.fecha}</p>
               )}
             </div>
             <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo('/noticias'); }}
-              className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg text-sm cursor-pointer">
+              className="font-semibold px-5 py-2.5 text-sm cursor-pointer" style={{ background: P.tinta, color: P.papel }}>
               ← Volver a noticias
             </a>
           </div>
         </article>
         <aside className="col-span-4 space-y-5">
           {distritoData && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold mb-2">Distrito afectado</p>
-              <h2 className="text-xl font-bold text-slate-900 mt-1">{distritoData.nombre}</h2>
-              <div className="mt-4 space-y-2.5">
+            <div className="p-6" style={{ background: P.superficie, border: `1px solid ${P.filete}` }}>
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] mb-2" style={{ color: P.teja }}>Distrito afectado</p>
+              <h2 className="font-serif text-xl font-bold mt-1" style={{ color: P.tinta }}>{distritoData.nombre}</h2>
+              <div className="mt-4">
                 {[
                   ['Precio medio', `${distritoData.precioMedio.toLocaleString('es-ES')} €/m²`],
                   ['Var. interanual', `+${distritoData.varAnual.toFixed(1)} %`],
                   ['Rentabilidad bruta', `${distritoData.rent.toFixed(2)} %`],
-                ].map(([label, val]) => (
-                  <div key={label} className="flex items-baseline justify-between">
-                    <span className="text-[12px] text-slate-500">{label}</span>
-                    <span className="text-sm font-bold text-slate-900 tabular-nums">{val}</span>
+                ].map(([label, val], i) => (
+                  <div key={label} className="flex items-baseline justify-between py-2" style={{ borderBottom: i < 2 ? `1px solid ${P.filete}` : 'none' }}>
+                    <span className="font-serif text-[12px]" style={{ color: P.secundario }}>{label}</span>
+                    <span className="font-mono text-sm font-bold tabular-nums" style={{ color: P.tinta }}>{val}</span>
                   </div>
                 ))}
               </div>
               <a href="/distritos" onClick={(e) => { e.preventDefault(); window.navTo('/distritos'); }}
-                className="block mt-4 text-[12px] font-semibold text-emerald-700 hover:underline underline-offset-4">
+                className="block mt-4 font-mono text-[12px] font-semibold hover:underline" style={{ color: P.teja }}>
                 Ver todos los distritos →
               </a>
             </div>
           )}
           {relacionadas.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold mb-4">Más noticias</p>
+            <div className="p-6" style={{ background: P.superficie, border: `1px solid ${P.filete}` }}>
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] mb-4" style={{ color: P.teja }}>Más noticias</p>
               <div className="space-y-4">
                 {relacionadas.map((r, i) => (
                   <a key={i} href={`/noticia/${r.slug}`}
                     onClick={(e) => { e.preventDefault(); window.navTo(`/noticia/${r.slug}`); }}
-                    className="block group cursor-pointer">
-                    <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-slate-400 mb-1">{r.categoria}</p>
-                    <p className="text-[13px] font-semibold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors" style={{ textWrap: 'balance' }}>
+                    className="block cursor-pointer">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.15em] mb-1" style={{ color: P.teja }}>{r.categoria}</p>
+                    <p className="font-serif text-[13px] font-semibold leading-snug hover:underline" style={{ color: P.tinta, textWrap: 'balance' }}>
                       {r.titulo}
                     </p>
                   </a>
