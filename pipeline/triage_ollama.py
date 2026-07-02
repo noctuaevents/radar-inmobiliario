@@ -92,11 +92,12 @@ def slugify(titulo: str) -> str:
     return slug[:60].strip("-")
 
 
-def write_note(article: dict, triage: dict, idx: int):
+def write_note(article: dict, triage: dict, idx: int, auto: bool = False, cola_dir: Path = None):
+    cola_dir = cola_dir or COLA_DIR
     slug = slugify(article["titulo"])
     fecha_file = datetime.now().strftime("%Y%m%d")
     filename = f"{fecha_file}-{idx:02d}-{slug}.md"
-    filepath = COLA_DIR / filename
+    filepath = cola_dir / filename
 
     distrito_raw = triage.get("distrito") or ""
     # Validar distrito
@@ -119,8 +120,9 @@ def write_note(article: dict, triage: dict, idx: int):
 
     imagen = article.get("imagen", "")
 
+    publicar_line = "publicar: true\nmodo: auto" if auto else "publicar: false"
     content = f"""---
-publicar: false
+{publicar_line}
 fecha: '{article["fecha"]}'
 hora: '{article["hora"]}'
 categoria: '{categoria}'
@@ -153,6 +155,7 @@ impactoLabel: '{triage.get("impacto_label_borrador", "")}'
 
 
 def main():
+    auto = "--auto" in sys.argv
     if not CANDIDATES_FILE.exists():
         sys.exit(f"ERROR: no existe {CANDIDATES_FILE}. Ejecuta primero fetch_news.py")
 
@@ -186,7 +189,7 @@ def main():
             skipped += 1
             continue
 
-        filename = write_note(article, triage, i)
+        filename = write_note(article, triage, i, auto=auto)
         print(f"  → {filename}  [{triage.get('categoria')} | {triage.get('tag')} | {triage.get('direccion_impacto')}]")
         written += 1
 

@@ -59,6 +59,15 @@ for f in files:
     if bm:
         borrador = bm.group(1).strip()
 
+    h1 = ""
+    hm = re.search(r"^# (.+)$", text, re.M)
+    if hm:
+        h1 = hm.group(1).strip()
+    raw = ""
+    rm = re.search(r"## Resumen raw \(fuente\)\n\n(.*?)(?=\n##|\Z)", text, re.S)
+    if rm:
+        raw = rm.group(1).strip()
+
     articles.append({
         "fecha": get("fecha"),
         "hora": get("hora"),
@@ -70,6 +79,8 @@ for f in files:
         "imagen": get("imagen"),
         "impacto_borrador": get("impacto"),
         "impactoLabel_borrador": get("impactoLabel"),
+        "titulo_original": h1,
+        "resumen_raw": raw,
         "resumen_borrador": borrador,
     })
 
