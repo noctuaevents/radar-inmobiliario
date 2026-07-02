@@ -230,24 +230,27 @@ function VariationD() {
               </h2>
 
               <ul className="space-y-0 border-t border-slate-200">
-                {latestNews.map((n, i) => (
-                  <li key={n.slug || i} className="border-b border-slate-200 py-5 group">
-                    <a href={'/noticia/' + n.slug} onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticia/' + n.slug); }} className="flex items-baseline gap-5 cursor-pointer">
-                      <span className="text-xs font-bold tabular-nums text-slate-400 w-12 flex-shrink-0">{n.fecha}</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-bold mb-1">
-                          {n.categoria}{n.distrito ? ` · ${n.distrito}` : ''}
-                        </p>
-                        <h3 className="text-base font-semibold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors" style={{ textWrap: 'balance' }}>
-                          {n.titulo}
-                        </h3>
-                      </div>
-                      <span className="text-slate-300 group-hover:text-emerald-600 transition-colors">→</span>
-                    </a>
-                  </li>
-                ))}
+                {latestNews.map((n, i) => {
+                  const P = window.PRENSA;
+                  return (
+                    <li key={n.slug || i} className="border-b border-slate-200 py-5">
+                      <a href={'/noticia/' + n.slug} onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticia/' + n.slug); }} className="flex items-baseline gap-5 cursor-pointer">
+                        <span className="font-mono text-xs font-bold tabular-nums w-12 flex-shrink-0" style={{ color: P.teja }}>{n.fecha}</span>
+                        <div className="flex-1">
+                          <p className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold mb-1" style={{ color: P.teja }}>
+                            {n.categoria}{n.distrito ? ` · ${n.distrito}` : ''}
+                          </p>
+                          <h3 className="font-serif text-base font-semibold leading-snug hover:underline" style={{ color: P.tinta, textWrap: 'balance' }}>
+                            {n.titulo}
+                          </h3>
+                        </div>
+                        <span className="text-slate-300">→</span>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
-              <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }} className="inline-block mt-6 text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline">Todas las noticias →</a>
+              <a href="/noticias" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }} className="inline-block mt-6 text-sm font-semibold underline-offset-4 hover:underline" style={{ color: window.PRENSA.teja }}>Todas las noticias →</a>
             </div>
 
             <div className="col-span-5">
