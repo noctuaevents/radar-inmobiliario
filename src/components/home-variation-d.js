@@ -56,7 +56,13 @@ function VariationD() {
             <a href="/distritos" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/distritos'); }}>Distritos</a>
             <a href="/noticias" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/noticias'); }}>Noticias</a>
             <a href="/sobre" className="hover:text-emerald-700" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/sobre'); }}>Acerca</a>
-            <span className="bg-emerald-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-emerald-500">Newsletter</span>
+            <span
+              className="bg-emerald-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-emerald-500"
+              onClick={() => {
+                const el = document.getElementById('newsletter');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+            >Newsletter</span>
           </nav>
         </div>
       </header>
@@ -327,7 +333,7 @@ function VariationD() {
       </section>
 
       {/* ── NEWSLETTER — CLARO ──────────────────────────────────────── */}
-      <section className="bg-stone-50 py-28 relative overflow-hidden border-b border-slate-200">
+      <section id="newsletter" className="bg-stone-50 py-28 relative overflow-hidden border-b border-slate-200">
         <div className="absolute -right-32 -top-32 w-[480px] h-[480px] rounded-full opacity-30 pointer-events-none" style={{
           background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0) 70%)',
         }} />

@@ -643,9 +643,17 @@
               {link('distritos', 'Distritos', '/distritos')}
               {link('noticias', 'Noticias', '/noticias')}
               {link('sobre', 'Sobre', '/sobre')}
-              <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.showProModal("Comparador de distritos")}>Comparar</span>
-              <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.showProModal("Rankings de barrios")}>Rankings</span>
-              <span className="bg-emerald-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-emerald-500">Newsletter</span>
+              <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.navTo('/herramientas/comparador')}>Comparar</span>
+              <span
+                className="bg-emerald-600 text-white px-3 py-1.5 rounded-md cursor-pointer hover:bg-emerald-500"
+                onClick={() => {
+                  window.navTo('/');
+                  setTimeout(() => {
+                    const el = document.getElementById('newsletter');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 350);
+                }}
+              >Newsletter</span>
             </nav>
           </div>
         </header>
