@@ -1283,15 +1283,6 @@ def main():
     # Remove bundler noscript
     head_clean = re.sub(r'\s*<noscript>\s*<style>#__bundler_loading[^<]*</style>[^<]*<div[^<]*</div>\s*</noscript>', '', head_clean, flags=re.S)
 
-    # Extract AdSense script from head — inject before </body> to unblock render
-    adsense_m = re.search(
-        r'\s*<!-- Google AdSense -->\s*<script[\s\S]*?googlesyndication[\s\S]*?</script>',
-        head_clean
-    )
-    adsense_tag = adsense_m.group(0).strip() if adsense_m else ""
-    if adsense_m:
-        head_clean = head_clean[:adsense_m.start()] + head_clean[adsense_m.end():]
-
     # Normalize all canonical URLs to www (non-www → 308, must be consistent)
     head_clean = head_clean.replace("https://radarinmobiliario.com", BASE_URL)
     head_clean = head_clean.strip()
@@ -1336,7 +1327,6 @@ def main():
     body_data_html = "\n".join(body_tags)
 
     # ── 10. Assemble dist/index.html ─────────────────────────────────────────
-    adsense_body = f"\n  {adsense_tag}" if adsense_tag else ""
     index_html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1356,7 +1346,7 @@ def main():
   </div>
 
 {body_data_html}
-{component_scripts_html}{adsense_body}
+{component_scripts_html}
 </body>
 </html>"""
 
