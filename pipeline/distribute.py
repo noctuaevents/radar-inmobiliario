@@ -1338,7 +1338,7 @@ def main():
         print("⚠ compilación JSX no disponible — se sirve Babel runtime (ver compile_status.json)")
 
     # ── 9. Build body data/script tags in original DOM order ─────────────────
-    uuid_to_url = {u: a["url"] for u, a in assets.items() if a["url"] and a["role"] not in ("component", "react_dev", "rdom_dev")}
+    uuid_to_url = {u: a["url"] for u, a in assets.items() if a["url"] and a["role"] not in ("component", "react_dev", "rdom_dev", "geojson")}
 
     body_tags = []
     for sm in re.finditer(r'<script\b(?![^>]*type="text/babel")[^>]*src="([0-9a-f-]{36})"[^>]*/?>(?:</script>)?', template_body):

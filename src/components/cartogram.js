@@ -281,6 +281,26 @@ function defaultGeoColor(v) {
   return `rgb(${r},${g},${b})`;
 }
 
+function useMadridGeo() {
+  const [ready, setReady] = React.useState(!!window.MADRID_GEOJSON);
+  React.useEffect(() => {
+    if (window.MADRID_GEOJSON) return;
+    if (!window.__geoLoading) {
+      window.__geoLoading = new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = '/assets/geojson.js';
+        s.onload = resolve;
+        s.onerror = resolve;
+        document.body.appendChild(s);
+      });
+    }
+    let alive = true;
+    window.__geoLoading.then(() => { if (alive) setReady(!!window.MADRID_GEOJSON); });
+    return () => { alive = false; };
+  }, []);
+  return ready;
+}
+
 function MadridGeoMap({
   distritos,
   width = '100%',
@@ -292,7 +312,8 @@ function MadridGeoMap({
   showHover = true,
 }) {
   const [hovered, setHovered] = React.useState(null);
-  const cache = buildMadridGeoCache();
+  const geoReady = useMadridGeo();
+  const cache = geoReady ? buildMadridGeoCache() : null;
   if (!cache) {
     return (
       <div style={{ width, height, display: 'grid', placeItems: 'center', color: '#94a3b8', fontSize: 12 }}>
