@@ -20,3 +20,11 @@ pipeline/work/last_edition.date
 
 # Visual companion (brainstorming)
 .superpowers/
+
+# Herramientas locales (Jarvis, distribución) — no forman parte del pipeline oficial
+pipeline/jarvis_server.py
+pipeline/jarvis_static/
+pipeline/generate_distribution_pack.py
+node_modules/
+pipeline/node_modules/
+pipeline/work/jsx_cache/

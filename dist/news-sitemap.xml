@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
-  <url>
-    <loc>https://www.radarinmobiliario.com/noticia/madrid-construccion-446-pisos-alquiler-asequible</loc>
-    <news:news>
-      <news:publication>
-        <news:name>Radar Inmobiliario Madrid</news:name>
-        <news:language>es</news:language>
-      </news:publication>
-      <news:publication_date>2026-07-01T11:00:00+02:00</news:publication_date>
-      <news:title>Madrid inicia la construcción de 446 pisos de alquiler asequible dentro de su plan de vivienda</news:title>
-    </news:news>
-  </url>
+
 </urlset>

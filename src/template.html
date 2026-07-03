@@ -647,7 +647,6 @@
               {link('home', 'Inicio', '/')}
               {link('distritos', 'Distritos', '/distritos')}
               {link('noticias', 'Noticias', '/noticias')}
-              {link('jarvis', 'Jarvis', '/jarvis')}
               {link('sobre', 'Sobre', '/sobre')}
               <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.showProModal("Comparador de distritos")}>Comparar</span>
               <span className="text-slate-600 hover:text-emerald-700 cursor-pointer" onClick={() => window.showProModal("Rankings de barrios")}>Rankings</span>
@@ -858,7 +857,6 @@ function App() {
       if (r === '/noticia')   return (<div><SiteNav active="noticias" /><window.NoticiaDetalleV3 /></div>);
       if (r === '/metodologia') return (<div><SiteNav active="" /><window.MetodologiaPage /></div>);
       if (r === '/legal')     return (<div><SiteNav active="" /><window.LegalPage /></div>);
-      if (r === '/jarvis')    return (<window.JarvisConsole />);
       if (r === '/pro')       return (<PricingPage />);
       if (r === '/sobre')     return (<AboutPage />);
       if (r === '/')          return (<window.VariationD />);
