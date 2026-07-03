@@ -423,27 +423,7 @@ def gen_article_pages(articles: list, index_html: str) -> None:
         article_meta_tag = '\n  ' + '\n  '.join(article_meta_parts)
         art_html = art_html.replace('</head>', article_meta_tag + '\n</head>', 1)
 
-        # Inject article body text as hidden element for crawlers (passage indexing)
-        h1_html = f'<h1>{_html.escape(titulo_raw)}</h1>'
-        if body_texts:
-            body_html_parts = [f'<p>{_html.escape(p)}</p>' for p in body_texts]
-            hidden_body = (
-                '\n  <div id="article-body" style="position:absolute;left:-9999px;top:-9999px;'
-                'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n    '
-                + h1_html + '\n    '
-                + '\n    '.join(body_html_parts)
-                + '\n  </div>'
-            )
-            art_html = art_html.replace('<div id="root">', hidden_body + '\n  <div id="root">', 1)
-        else:
-            # Still expose an <h1> for crawlers even without body text
-            hidden_body = (
-                '\n  <div id="article-body" style="position:absolute;left:-9999px;top:-9999px;'
-                'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n    '
-                + h1_html
-                + '\n  </div>'
-            )
-            art_html = art_html.replace('<div id="root">', hidden_body + '\n  <div id="root">', 1)
+        art_html = _set_root_fallback(art_html, _article_static_html(art))
 
         article_dir = noticia_dir / slug
         article_dir.mkdir(exist_ok=True)
@@ -487,6 +467,55 @@ def _rewrite_head_meta(page_html: str, canonical: str, title: str, desc: str,
 def _inject_ld(page_html: str, ld: dict) -> str:
     ld_tag = f'\n  <script type="application/ld+json">\n  {json.dumps(ld, ensure_ascii=False, indent=2)}\n  </script>'
     return page_html.replace('</head>', ld_tag + '\n</head>', 1)
+
+
+STATIC_FALLBACK_MARKER = '<!--STATIC_FALLBACK-->'
+
+SPINNER_HTML = (
+    '<div style="position:fixed;inset:0;display:flex;align-items:center;'
+    'justify-content:center;background:#faf6ef;font:14px/1 -apple-system,'
+    'BlinkMacSystemFont,sans-serif;color:#9ca3af;">Cargando…</div>'
+)
+
+
+def _set_root_fallback(page_html: str, inner_html: str) -> str:
+    """Coloca contenido estático visible dentro de #root (React lo sustituye al montar)."""
+    return page_html.replace(STATIC_FALLBACK_MARKER, inner_html, 1)
+
+
+def _article_static_html(art: dict) -> str:
+    """Fallback visible de artículo: legible sin JS, sin texto oculto."""
+    import html as _html
+    t = _html.escape(art.get('titulo') or '')
+    resumen = _html.escape(art.get('resumen') or '')
+    fecha = _html.escape(art.get('fechaISO') or '')
+    fuente = _html.escape(art.get('fuente') or '')
+    url = art.get('url') or ''
+    parrafos = ''.join(
+        f'<p style="margin:0 0 1em">{_html.escape(p)}</p>'
+        for p in art.get('body_texts', [])
+    )
+    fuente_html = (
+        f'<p style="margin:1.5em 0 0;font-size:13px">Fuente original: '
+        f'<a href="{_html.escape(url, quote=True)}" rel="noopener">{fuente or "enlace"}</a></p>'
+        if url else ''
+    )
+    return (
+        '<div style="max-width:680px;margin:0 auto;padding:48px 20px;'
+        'font-family:Georgia,\'Times New Roman\',serif;color:#1c1917;'
+        'background:#faf6ef;line-height:1.7">'
+        f'<p style="margin:0 0 8px;font-size:12px;color:#9a3412;'
+        f'font-family:ui-monospace,monospace;text-transform:uppercase">{fecha}'
+        f'{" · " + fuente if fuente else ""}</p>'
+        f'<h1 style="margin:0 0 16px;font-size:2rem;line-height:1.15">{t}</h1>'
+        f'<p style="margin:0 0 1.5em;font-style:italic;color:#44403c">{resumen}</p>'
+        f'{parrafos}'
+        f'{fuente_html}'
+        f'<p style="margin:2em 0 0;font-size:13px">'
+        f'<a href="{BASE_URL}/noticias">← Todas las noticias</a> · '
+        f'<a href="{BASE_URL}/">Radar Inmobiliario Madrid</a></p>'
+        '</div>'
+    )
 
 
 def _inject_hidden_block(page_html: str, block_id: str, inner_html: str) -> str:
@@ -726,10 +755,10 @@ def gen_section_pages(articles: list, index_html: str) -> None:
 
 
 def gen_home_static(articles: list) -> None:
-    """Inject a static, crawlable block (H1 + intro + internal nav + latest news
-    list) before <div id="root"> in dist/index.html, using the same off-screen
-    aria-hidden pattern as gen_article_pages, so bots that don't run JS still
-    see the home's H1 and internal links."""
+    """Render a static, crawlable, VISIBLE block (H1 + intro + internal nav +
+    latest news list) inside <div id="root"> in dist/index.html — React
+    replaces it once it mounts — so bots and users without JS still see the
+    home's H1 and internal links."""
     import html as _html
 
     index_path = DIST / "index.html"
@@ -765,22 +794,19 @@ def gen_home_static(articles: list) -> None:
     noticias_html = "\n    ".join(li_items)
 
     home_static = (
-        '\n  <div id="home-static" style="position:absolute;left:-9999px;top:-9999px;'
-        'width:1px;height:1px;overflow:hidden;" aria-hidden="true">\n'
-        f'    <h1>{_html.escape(titulo)}</h1>\n'
-        f'    <p>{_html.escape(intro)}</p>\n'
-        f'    <nav>\n    {nav_html}\n    </nav>\n'
-        f'    <h2>Últimas noticias</h2>\n'
-        f'    <ul>\n    {noticias_html}\n    </ul>\n'
-        '  </div>'
+        '<div style="max-width:680px;margin:0 auto;padding:48px 20px;'
+        'font-family:Georgia,\'Times New Roman\',serif;color:#1c1917;line-height:1.7">'
+        f'<h1 style="margin:0 0 12px;font-size:1.7rem;line-height:1.2">{_html.escape(titulo)}</h1>'
+        f'<p style="margin:0 0 1.5em;font-style:italic;color:#44403c">{_html.escape(intro)}</p>'
+        f'<nav style="margin:0 0 1.5em">{nav_html}</nav>'
+        '<h2 style="margin:0 0 8px;font-size:1.1rem">Últimas noticias</h2>'
+        f'<ul style="margin:0;padding-left:20px">{noticias_html}</ul>'
+        '</div>'
     )
-
-    if 'id="home-static"' not in index_html:
-        index_html = index_html.replace(
-            '<div id="root">', home_static + '\n  <div id="root">', 1
-        )
+    if STATIC_FALLBACK_MARKER in index_html:
+        index_html = _set_root_fallback(index_html, home_static)
         index_path.write_text(index_html, encoding="utf-8")
-        print("✓ dist/index.html: bloque estático de home inyectado (home-static)")
+        print("✓ dist/index.html: fallback estático visible de home")
 
 
 def gen_news_sitemap(articles: list) -> None:
@@ -1316,11 +1342,7 @@ def main():
   <script src="/assets/babel.min.js"></script>
 </head>
 <body class="bg-stone-100">
-  <div id="root">
-    <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#faf9f5;font:14px/1 -apple-system,BlinkMacSystemFont,sans-serif;color:#9ca3af;">
-      Cargando…
-    </div>
-  </div>
+  <div id="root"><!--STATIC_FALLBACK--></div>
 
 {body_data_html}
 {component_scripts_html}
@@ -1368,6 +1390,20 @@ def main():
     gen_pro_gracias_pages(index_html)
     gen_404_page()
     gen_indexnow_key()
+
+    finalize_static_fallbacks()
+
+
+def finalize_static_fallbacks() -> None:
+    """Las páginas generadas que no recibieron fallback propio vuelven al spinner."""
+    n = 0
+    for p in DIST.rglob("index.html"):
+        s = p.read_text(encoding="utf-8")
+        if STATIC_FALLBACK_MARKER in s:
+            p.write_text(s.replace(STATIC_FALLBACK_MARKER, SPINNER_HTML), encoding="utf-8")
+            n += 1
+    if n:
+        print(f"✓ {n} páginas con spinner por defecto (sin fallback propio)")
 
 
 if __name__ == "__main__":
