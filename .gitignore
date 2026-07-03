@@ -28,3 +28,4 @@ pipeline/generate_distribution_pack.py
 node_modules/
 pipeline/node_modules/
 pipeline/work/jsx_cache/
+pipeline/work/compile_status.json
