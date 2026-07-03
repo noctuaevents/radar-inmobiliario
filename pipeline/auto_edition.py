@@ -348,6 +348,9 @@ def gate3(report: dict) -> None:
             raise SystemExit(f"ABORT puerta 3: item incompleto {it.get('slug', '?')}")
     sh([sys.executable, "pipeline/build.py"])
     sh([sys.executable, "pipeline/distribute.py"])
+    status = ROOT / "pipeline" / "work" / "compile_status.json"
+    if status.exists():
+        report["compile"] = json.loads(status.read_text(encoding="utf-8")).get("mode", "?")
     porcelain = sh(["git", "status", "--porcelain"]).stdout
     allowed = ("src/data/news.js", "Radar Inmobiliario Madrid.html", "dist/",
                "pipeline/work/", "\"Radar Inmobiliario Madrid.html\"")
@@ -415,6 +418,7 @@ def render_report(report: dict) -> str:
         L += ["", f"_{len(report['archivadas'])} notas caducadas archivadas._"]
     meta = [str(report.get(k, "")) for k in ("commit", "deploy", "indexnow")]
     L += ["", "---", f"Commit: {meta[0]} · Deploy: {meta[1]} · IndexNow: {meta[2]} · "
+          f"Compilado: {report.get('compile', '?')} · "
           f"Duración: {report.get('duracion_min', '?')} min"]
     return "\n".join(L) + "\n"
 

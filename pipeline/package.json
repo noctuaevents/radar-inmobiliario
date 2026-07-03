@@ -1,0 +1,9 @@
+{
+  "name": "radar-pipeline",
+  "private": true,
+  "devDependencies": {
+    "@babel/cli": "^7.24.0",
+    "@babel/core": "^7.24.0",
+    "@babel/preset-react": "^7.24.0"
+  }
+}

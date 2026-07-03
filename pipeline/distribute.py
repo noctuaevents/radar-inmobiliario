@@ -22,6 +22,8 @@ import base64, gzip, json, re, shutil, sys, urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+from compile_jsx import compile_bundle
+
 ROOT     = Path(__file__).parent.parent
 HTML_IN  = ROOT / "Radar Inmobiliario Madrid.html"
 DIST     = ROOT / "dist"
@@ -1307,17 +1309,33 @@ def main():
 
     # Collect component UUIDs in DOM order
     component_scripts_html = ""
+    named_sources = []
     for sm in re.finditer(r'<script\b[^>]*type="text/babel"[^>]*src="([0-9a-f-]{36})"[^>]*/?>(?:</script>)?', template_body):
         uuid = sm.group(1)
         if uuid in assets and assets[uuid]["role"] == "component":
             content = escape_script(assets[uuid]["content"].decode("utf-8"))
             component_scripts_html += f'\n<script type="text/babel">\n{content}\n</script>'
+            named_sources.append((uuid, assets[uuid]["content"].decode("utf-8")))
 
     # Inline router script (type="text/babel" without src)
     router_m = re.search(r'<script\s+type="text/babel"(?!\s*src)[^>]*>\s*(.*?)\s*</script>', template_body, re.S)
     if router_m:
         router = escape_script(router_m.group(1))
         component_scripts_html += f'\n<script type="text/babel">\n{router}\n</script>'
+        named_sources.append(("router", router_m.group(1)))
+
+    # Precompilar el JSX a JS plano (Babel CLI) cuando node/babel están disponibles;
+    # si no, se degrada a servir Babel Standalone en el navegador (rama de siempre).
+    compiled_js, bundle_hash = compile_bundle(named_sources)
+    if compiled_js is not None:
+        bundle_file = DIST / "assets" / f"app.{bundle_hash}.js"
+        bundle_file.write_text(compiled_js, encoding="utf-8")
+        component_scripts_html = f'\n<script defer src="/assets/app.{bundle_hash}.js"></script>'
+        babel_script_tag = ""
+        print(f"✓ JSX precompilado → assets/app.{bundle_hash}.js ({len(compiled_js)//1024} KB)")
+    else:
+        babel_script_tag = '\n  <script src="/assets/babel.min.js"></script>'
+        print("⚠ compilación JSX no disponible — se sirve Babel runtime (ver compile_status.json)")
 
     # ── 9. Build body data/script tags in original DOM order ─────────────────
     uuid_to_url = {u: a["url"] for u, a in assets.items() if a["url"] and a["role"] not in ("component", "react_dev", "rdom_dev")}
@@ -1340,8 +1358,7 @@ def main():
   <script>window.va = window.va || function () {{ (window.vaq = window.vaq || []).push(arguments); }};</script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script src="/assets/react.min.js"></script>
-  <script src="/assets/react-dom.min.js"></script>
-  <script src="/assets/babel.min.js"></script>
+  <script src="/assets/react-dom.min.js"></script>{babel_script_tag}
 </head>
 <body class="bg-stone-100">
   <div id="root"><!--STATIC_FALLBACK--></div>
