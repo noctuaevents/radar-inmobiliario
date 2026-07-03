@@ -1337,6 +1337,8 @@ def main():
 
 {font_css}
 
+  <script>window.va = window.va || function () {{ (window.vaq = window.vaq || []).push(arguments); }};</script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <script src="/assets/react.min.js"></script>
   <script src="/assets/react-dom.min.js"></script>
   <script src="/assets/babel.min.js"></script>
