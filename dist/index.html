@@ -795,10 +795,6 @@
     <li><a href="https://www.radarinmobiliario.com/noticia/pisos-turisticos-madrid-barrios-pierden-vecinos-regulacion">Pisos turísticos en Madrid: barrios pierden un 6,2 % de vecinos</a> — Los distritos con mayor densidad de apartamentos turísticos registran una caída del 6,2 % de residentes permanentes, avivando el debate regulatorio en el…</li>
     </ul>
   </div>
-  
-  <form name="pro-waitlist" data-netlify="true" netlify hidden>
-    <input type="email" name="email" />
-  </form>
   <div id="root">
     <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#faf9f5;font:14px/1 -apple-system,BlinkMacSystemFont,sans-serif;color:#9ca3af;">
       Cargando…
@@ -1713,7 +1709,7 @@ function VariationD() {
     return () => obs.disconnect();
   }, []);
 
-  const BEEHIIV_URL = '/.netlify/functions/subscribe';
+  const SUBSCRIBE_URL = '/api/subscribe';
 
   const [nlEmail, setNlEmail] = React.useState('');
   const [nlStatus, setNlStatus] = React.useState('idle'); // idle | loading | ok | error
@@ -1721,16 +1717,11 @@ function VariationD() {
   function handleNlSubmit() {
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nlEmail.trim());
     if (!valid) { setNlStatus('error'); return; }
-    if (!BEEHIIV_URL) {
-      // Sin URL configurada, abrimos la página de Beehiiv directamente
-      window.open('https://beehiiv.com', '_blank');
-      return;
-    }
     setNlStatus('loading');
-    fetch(BEEHIIV_URL, {
+    fetch(SUBSCRIBE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: nlEmail.trim() }),
+      body: JSON.stringify({ email: nlEmail.trim(), list: 'newsletter', website: '' }),
     })
       .then((r) => { setNlStatus(r.ok ? 'ok' : 'error'); })
       .catch(() => { setNlStatus('error'); });
@@ -2071,6 +2062,12 @@ function VariationD() {
                       <span className="w-1 h-1 rounded-full bg-slate-400" />
                       1 envío/mes · sin spam ·{' '}
                       <a href="/legal" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/legal'); }} className="underline hover:text-slate-700">privacidad</a>
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Solo para enviarte el radar. Baja en un click.{' '}
+                      <span className="underline cursor-pointer" onClick={() => window.navTo && window.navTo('/legal')}>
+                        Política de privacidad
+                      </span>
                     </p>
                   </>
                 )}
@@ -3995,6 +3992,7 @@ function LegalPage() {
     },
     { h: 'Cookies y rastreo', body: 'Esta publicación usa <strong>Google AdSense</strong> para financiarse. Google puede establecer cookies de publicidad. No usamos otras herramientas de analítica ni rastreo propias.' },
     { h: 'Descargo de responsabilidad', body: 'Los datos publicados son <strong>orientativos</strong> y no constituyen asesoramiento financiero, legal ni de inversión. Consulta siempre a un profesional antes de tomar decisiones de compra, venta o alquiler.' },
+    { h: 'Emails y newsletter', body: 'Si te suscribes a la newsletter o a la lista de espera de Radar Pro guardamos únicamente tu dirección de email y la fecha de alta, con la única finalidad de enviarte el contenido solicitado. No cedemos tu email a terceros. Puedes darte de baja o pedir la eliminación de tus datos respondiendo a cualquier email o escribiendo a la dirección de contacto.' },
   ];
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">
@@ -4212,18 +4210,14 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
       const [waitlistEmail, setWaitlistEmail] = React.useState('');
       const [waitlistStatus, setWaitlistStatus] = React.useState('idle'); // idle | loading | ok | error
 
-      function encodeForm(data) {
-        return Object.keys(data).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k])).join('&');
-      }
-
       function handleWaitlistSubmit() {
         const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waitlistEmail.trim());
         if (!valid) { setWaitlistStatus('error'); return; }
         setWaitlistStatus('loading');
-        fetch('/', {
+        fetch('/api/subscribe', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: encodeForm({ 'form-name': 'pro-waitlist', email: waitlistEmail.trim() }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: waitlistEmail.trim(), list: 'pro-waitlist', website: '' }),
         })
           .then((r) => { setWaitlistStatus(r.ok ? 'ok' : 'error'); })
           .catch(() => { setWaitlistStatus('error'); });
@@ -4315,6 +4309,12 @@ const { useState: useRouteState, useEffect: useRouteEffect } = React;
                     {waitlistStatus === 'error' && (
                       <p className="text-rose-600 text-xs">Introduce un email válido.</p>
                     )}
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Solo para enviarte el radar. Baja en un click.{' '}
+                      <span className="underline cursor-pointer" onClick={() => window.navTo && window.navTo('/legal')}>
+                        Política de privacidad
+                      </span>
+                    </p>
                   </>
                 )}
               </div>

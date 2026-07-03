@@ -1185,6 +1185,7 @@ function LegalPage() {
     },
     { h: 'Cookies y rastreo', body: 'Esta publicación usa <strong>Google AdSense</strong> para financiarse. Google puede establecer cookies de publicidad. No usamos otras herramientas de analítica ni rastreo propias.' },
     { h: 'Descargo de responsabilidad', body: 'Los datos publicados son <strong>orientativos</strong> y no constituyen asesoramiento financiero, legal ni de inversión. Consulta siempre a un profesional antes de tomar decisiones de compra, venta o alquiler.' },
+    { h: 'Emails y newsletter', body: 'Si te suscribes a la newsletter o a la lista de espera de Radar Pro guardamos únicamente tu dirección de email y la fecha de alta, con la única finalidad de enviarte el contenido solicitado. No cedemos tu email a terceros. Puedes darte de baja o pedir la eliminación de tus datos respondiendo a cualquier email o escribiendo a la dirección de contacto.' },
   ];
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="bg-slate-50 min-h-screen">

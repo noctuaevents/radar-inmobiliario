@@ -569,11 +569,6 @@
 </head>
 <body class="bg-stone-100">
 
-  <!-- Netlify Forms detection: static form so Netlify's build-time HTML parser registers it. -->
-  <form name="pro-waitlist" data-netlify="true" netlify hidden>
-    <input type="email" name="email" />
-  </form>
-
   <div id="root"></div>
 
   <!-- Data (plain JS, attaches to window) -->
@@ -670,18 +665,14 @@
       const [waitlistEmail, setWaitlistEmail] = React.useState('');
       const [waitlistStatus, setWaitlistStatus] = React.useState('idle'); // idle | loading | ok | error
 
-      function encodeForm(data) {
-        return Object.keys(data).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k])).join('&');
-      }
-
       function handleWaitlistSubmit() {
         const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waitlistEmail.trim());
         if (!valid) { setWaitlistStatus('error'); return; }
         setWaitlistStatus('loading');
-        fetch('/', {
+        fetch('/api/subscribe', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: encodeForm({ 'form-name': 'pro-waitlist', email: waitlistEmail.trim() }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: waitlistEmail.trim(), list: 'pro-waitlist', website: '' }),
         })
           .then((r) => { setWaitlistStatus(r.ok ? 'ok' : 'error'); })
           .catch(() => { setWaitlistStatus('error'); });
@@ -773,6 +764,12 @@
                     {waitlistStatus === 'error' && (
                       <p className="text-rose-600 text-xs">Introduce un email válido.</p>
                     )}
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Solo para enviarte el radar. Baja en un click.{' '}
+                      <span className="underline cursor-pointer" onClick={() => window.navTo && window.navTo('/legal')}>
+                        Política de privacidad
+                      </span>
+                    </p>
                   </>
                 )}
               </div>

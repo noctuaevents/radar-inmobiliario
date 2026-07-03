@@ -1170,29 +1170,6 @@ def update_sitemap_core() -> None:
     print(f"✓ dist/sitemap.xml (+{len(core_pages)} páginas core)")
 
 
-def inject_waitlist_form() -> None:
-    """Inyecta el <form> estático oculto de Netlify Forms en dist/index.html para
-    que la detección en build de Netlify registre `pro-waitlist`. distribute.py
-    reconstruye index.html desde cero, así que el form estático del template no se
-    arrastra — se inyecta aquí. El form React de PricingPage hace POST url-encoded
-    a `/` con form-name=pro-waitlist contra este form registrado."""
-    index_path = DIST / "index.html"
-    if not index_path.exists():
-        return
-    html_ = index_path.read_text(encoding="utf-8")
-    marker = '<form name="pro-waitlist" data-netlify="true"'
-    if marker in html_:
-        return
-    form = (
-        '\n  <form name="pro-waitlist" data-netlify="true" netlify hidden>\n'
-        '    <input type="email" name="email" />\n'
-        '  </form>'
-    )
-    html_ = html_.replace('<div id="root">', form + '\n  <div id="root">', 1)
-    index_path.write_text(html_, encoding="utf-8")
-    print("✓ dist/index.html: form oculto Netlify pro-waitlist inyectado")
-
-
 # ── main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -1382,11 +1359,10 @@ def main():
     distritos, dist_meta = extract_districts()
     gen_district_pages(distritos, dist_meta, index_html)
 
-    # Monetización (Fase 3): páginas estáticas de herramientas + sitemap + form Netlify
+    # Monetización (Fase 3): páginas estáticas de herramientas + sitemap
     gen_tool_pages(index_html)
     update_sitemap_tools()
     update_sitemap_core()
-    inject_waitlist_form()
 
     # SEO: /pro + /gracias estáticas, 404 real y clave IndexNow
     gen_pro_gracias_pages(index_html)

@@ -24,7 +24,7 @@ function VariationD() {
     return () => obs.disconnect();
   }, []);
 
-  const BEEHIIV_URL = '/.netlify/functions/subscribe';
+  const SUBSCRIBE_URL = '/api/subscribe';
 
   const [nlEmail, setNlEmail] = React.useState('');
   const [nlStatus, setNlStatus] = React.useState('idle'); // idle | loading | ok | error
@@ -32,16 +32,11 @@ function VariationD() {
   function handleNlSubmit() {
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nlEmail.trim());
     if (!valid) { setNlStatus('error'); return; }
-    if (!BEEHIIV_URL) {
-      // Sin URL configurada, abrimos la página de Beehiiv directamente
-      window.open('https://beehiiv.com', '_blank');
-      return;
-    }
     setNlStatus('loading');
-    fetch(BEEHIIV_URL, {
+    fetch(SUBSCRIBE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: nlEmail.trim() }),
+      body: JSON.stringify({ email: nlEmail.trim(), list: 'newsletter', website: '' }),
     })
       .then((r) => { setNlStatus(r.ok ? 'ok' : 'error'); })
       .catch(() => { setNlStatus('error'); });
@@ -382,6 +377,12 @@ function VariationD() {
                       <span className="w-1 h-1 rounded-full bg-slate-400" />
                       1 envío/mes · sin spam ·{' '}
                       <a href="/legal" onClick={(e) => { e.preventDefault(); window.navTo && window.navTo('/legal'); }} className="underline hover:text-slate-700">privacidad</a>
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Solo para enviarte el radar. Baja en un click.{' '}
+                      <span className="underline cursor-pointer" onClick={() => window.navTo && window.navTo('/legal')}>
+                        Política de privacidad
+                      </span>
                     </p>
                   </>
                 )}
