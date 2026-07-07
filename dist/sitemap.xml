@@ -152,70 +152,106 @@
 
   <!-- News articles -->
   <url>
+    <loc>https://www.radarinmobiliario.com/noticia/bravo-murillo-frontera-tetuan-precios-vivienda</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/fraude-inmobiliario-dispara-subida-precios-madrid</loc>
+    <lastmod>2026-06-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/cnmc-pide-eliminar-trabas-urbanisticas-vivienda</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-provincia-mas-cara-espana-comprar-vivienda</loc>
+    <lastmod>2026-07-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/entrada-vivienda-madrid-124000-euros</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-desbloquea-10000-viviendas-campamento</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.radarinmobiliario.com/noticia/madrid-amplia-acceso-alquiler-asequible-estabilidad-economica</loc>
     <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/madrid-construccion-446-pisos-alquiler-asequible</loc>
     <lastmod>2026-07-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/el-canaveral-770-familias-alquiler-asequible-emvs</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/madrid-se-organiza-contra-la-ley-lider</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/ayuntamiento-madrid-aprueba-1400-viviendas-puente-vallecas</loc>
     <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/hacienda-cobrara-impuestos-pisos-vacios-como-alquilados</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/barrios-madrid-contra-pisos-turisticos</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/madrid-cambia-reglas-vivienda-publica-rentas-medias-opcion-compra</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/vivienda-usada-madrid-supera-6000-euros-m2</loc>
     <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/madrid-permite-elevar-dos-alturas-vivienda-asequible</loc>
     <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/suelo-madrid-barcelona-sube-30-desde-2019</loc>
     <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/noticia/canaveral-770-viviendas-alquiler-asequible-madrid</loc>
@@ -283,13 +319,13 @@
   <!-- Tools -->
   <url>
     <loc>https://www.radarinmobiliario.com/herramientas/simulador</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/herramientas/comparador</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -299,25 +335,25 @@
   <!-- Static extra pages -->
   <url>
     <loc>https://www.radarinmobiliario.com/sobre</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/metodologia</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/legal</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.radarinmobiliario.com/pro</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

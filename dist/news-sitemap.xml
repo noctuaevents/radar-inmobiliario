@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
-
+  <url>
+    <loc>https://www.radarinmobiliario.com/noticia/madrid-provincia-mas-cara-espana-comprar-vivienda</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Radar Inmobiliario Madrid</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-07-05T11:53:00+02:00</news:publication_date>
+      <news:title>Madrid, la provincia más cara de España para comprar vivienda, sube un 6,2 %</news:title>
+    </news:news>
+  </url>
 </urlset>
